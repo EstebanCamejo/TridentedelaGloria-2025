@@ -1,0 +1,36 @@
+<ion-header [translucent]="true">
+  
+</ion-header>
+
+<ion-content fullscreen>
+  <div class="wrapper">
+    <div class="card">
+      <h2 class="tittle">Iniciar Sesión</h2>
+
+      <div class="form-group">
+        <label for="email" class="subTittle">Correo electrónico</label>
+        <input type="text" id="email" placeholder="Correo electrónico" [(ngModel)]="email" />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="subTittle">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Contraseña"
+          [(ngModel)]="password"
+        />
+      </div>
+
+      <button (click)="login()" class="buttonLogin">Ingresar</button>
+      <button (click)="goToRegister()" class="buttonRegister">
+        Registrarse
+      </button>
+      <div class="button-row">
+    <button (click)="fastLogin1()" class="fastLogin">Usuario 1</button>
+    <button (click)="fastLogin2()" class="fastLogin">Usuario 2</button>
+    <button (click)="fastLogin3()" class="fastLogin">Usuario 3</button>
+  </div>
+    </div>
+  </div>
+</ion-content>

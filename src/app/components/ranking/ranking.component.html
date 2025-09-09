@@ -1,0 +1,30 @@
+<ion-content [fullscreen]="true" class="ranking-content">
+  <div class="ranking-navbar">
+    <span class="navbar-title">Ranking - {{ dificultadSeleccionada }}</span>
+    <button class="navbar-exit" (click)="goHome()">CERRAR</button>
+  </div>
+
+  <div class="dificultad-buttons">
+    <button
+      *ngFor="let d of dificultades"
+      (click)="seleccionarDificultad(d)"
+      [class.selected]="dificultadSeleccionada === d">
+      {{ d }}
+    </button>
+  </div>
+
+  <div class="ranking-list">
+    <div class="ranking-row" *ngFor="let user of ranking; let i = index">
+      <div class="puesto">
+        <span class="puesto-num puesto-top-{{i+1}}">{{ i+1 }}</span>
+      </div>
+      <div class="user-info">
+        <div class="user-email"><b>Usuario:</b> {{user.email}}</div>
+        <div class="user-data">
+          <span><b>Puntaje:</b> {{user.puntaje}}</span>
+          <span><b>Dificultad:</b> {{ dificultadMap[user.dificultad] || user.dificultad }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

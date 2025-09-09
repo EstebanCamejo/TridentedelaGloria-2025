@@ -1,0 +1,208 @@
+// .memoria-content {
+//   --background: #18191c;
+//   min-height: 100vh;
+//   padding: 0;
+//   margin: 0;
+//   position: relative;
+// }
+
+// /* Fila superior con 3 zonas, play centrado */
+// .fila-superior {
+//   display: flex;
+//   flex-direction: row;
+//   align-items: center;
+//   justify-content: space-between;
+//   position: absolute;
+//   top: 36px;
+//   left: 0;
+//   width: 100vw;
+//   z-index: 5;
+//   padding: 0 16px;
+// }
+
+// .lado-izq, .lado-der {
+//   flex: 1 1 0;
+//   display: flex;
+//   align-items: center;
+//   min-width: 0;
+// }
+// .lado-izq {
+//   justify-content: flex-start;
+// }
+// .lado-der {
+//   justify-content: flex-end;
+// }
+
+// .play-contenedor {
+//   flex: 0 0 auto;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+// }
+
+// .dificultad-select {
+//   min-width: 110px;
+//   max-width: 120px;
+//   --padding-start: 6px;
+//   --padding-end: 6px;
+//   --background: #23272a;
+//   --color: #fff;
+//   font-size: 1.02rem;
+//   z-index: 2;
+// }
+
+// .play-fab {
+//   width: 52px;
+//   height: 52px;
+//   border-radius: 50%;
+//   background: #ffffff;
+//   border: none;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   box-shadow: 0 2px 10px #000a;
+//   cursor: pointer;
+//   transition: box-shadow 0.15s;
+//   margin: 0 12px;
+//   padding: 0;
+// }
+// .play-fab:disabled {
+//   opacity: 0.6;
+//   cursor: not-allowed;
+// }
+// .play-fab img {
+//   width: 32px;
+//   height: 32px;
+//   display: block;
+// }
+
+// .timer-row {
+//   color: #fff;
+//   background: #23272a;
+//   padding: 0.4rem 1.1rem;
+//   border-radius: 12px;
+//   font-size: 1.03rem;
+//   font-weight: bold;
+//   box-shadow: 0 2px 8px #23272a44;
+//   min-width: 62px;
+//   text-align: right;
+//   margin-left: auto;
+// }
+
+// /* El tablero NO tiene height fijo, así nunca se corta una fila */
+// .memory-grid {
+//   position: absolute;
+//   top: 96px;
+//   left: 0;
+//   width: 100vw;
+//   box-sizing: border-box;
+//   display: grid;
+//   justify-items: center;
+//   align-items: start;
+//   padding: 0.5rem 0 1.5rem 0; /* padding abajo para los FABs */
+//   overflow-x: hidden;
+//   overflow-y: auto;
+// }
+
+// /* Grids según dificultad */
+// .grid-facil {
+//   grid-template-columns: repeat(2, 1fr);
+//   gap: 0.09rem;
+// }
+// .grid-medio {
+//   margin-top: 10px;
+//   grid-template-columns: repeat(2, 1fr); 
+//   gap: 0.07rem;
+//   .memory-card {
+//     height: 110px; /* Altura fija para mantener proporción */
+//   }
+// }
+// .grid-dificil {
+//   margin-top: 15px;
+//   grid-template-columns: repeat(4, 1fr);
+//   gap: 0.07rem;
+//   .memory-card {
+//     height: 130px; /* Altura fija para mantener proporción */
+//   }
+// }
+
+// /* Las cartas usan aspect-ratio y width 100% para llenar su celda */
+// .memory-card {
+//   width: 100%;
+//   aspect-ratio: 1/1;
+//   border: none;
+//   background: transparent;
+//   border-radius: 16px;
+//   overflow: hidden;
+//   display: flex;
+//   align-items: stretch;
+//   justify-content: stretch;
+//   box-shadow: none;
+//   padding: 0;
+//   margin: 0;
+//   transition: background 0.2s;
+// }
+// .memory-card:active,
+// .memory-card:focus-visible {
+//   background: rgba(91, 225, 249, 0.08);
+// }
+// .memory-card img,
+// .card-back {
+//   width: 100%;
+//   height: 100%;
+//   object-fit: cover;
+//   border-radius: 16px;
+//   pointer-events: none;
+//   user-select: none;
+// }
+// .card-back {
+//   background: repeating-linear-gradient(135deg, #444 0 10px, #23272a 10px 20px);
+// }
+
+// /* FABs flotantes personalizados */
+// .fab-ranking, .fab-salir {
+//   --border-radius: 50%;
+// }
+// .fab-ranking {
+//   position: fixed !important;
+//   bottom: 20px;
+//   left: 20px;
+//   z-index: 100;
+// }
+// .fab-salir {
+//   position: fixed !important;
+//   bottom: 20px;
+//   right: 20px;
+//   z-index: 100;
+// }
+// .select-play-row {
+//   display: flex;
+//   flex-direction: row;
+//   align-items: center;
+//   gap: 0.5rem;
+// }
+
+.bienvenida {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* ocupa toda la altura de la pantalla */
+  text-align: center;
+}
+
+.bienvenida h1 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  font-weight: bold;
+  animation: fadeIn 1s ease-in-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -25,6 +25,7 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
+
 /**
  * Ionic Dark Mode
  * -----------------------------------------------------
@@ -35,3 +36,37 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+@import 'ngx-toastr/toastr';
+
+
+ion-tab-bar {
+    --background: #252525; /* Color de fondo oscuro */
+    --color-selected: #fff; /* Color del texto cuando está seleccionado */
+    --color: #bbb; /* Color del texto por defecto */
+}
+
+ion-header {
+    --background: #252525; /* Fondo más oscuro para el header */
+    --color: #fff; /* Color del texto en el header */
+  }
+  
+  ion-toolbar {
+    --background: #252525; /* Fondo más oscuro para la toolbar */
+  }
+
+  :root {
+    --ion-background-color: #333333; /* Fondo más claro que #252525 */
+  }
+  
+  body {
+    background-color: var(--ion-background-color);
+  }
+  .toast-center {
+  top: 50% !important;
+  left: 50% !important;
+  bottom: auto !important;
+  right: auto !important;
+  transform: translate(-50%, -50%) !important;
+  position: fixed !important;
+  z-index: 99999 !important;
+}
