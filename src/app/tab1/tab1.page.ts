@@ -15,7 +15,7 @@ import {
 import { ExploreContainerComponent } from '../explore-container/explore-container.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FirestoreAuthService } from '../services/firestore-auth.service';
+import { SupabaseService } from '../services/supabase.service';
 
 @Component({
   selector: 'app-tab1',
@@ -31,23 +31,26 @@ import { FirestoreAuthService } from '../services/firestore-auth.service';
   ],
 })
 export class Tab1Page {
-  constructor(private authS: FirestoreAuthService) {}
+  constructor(private authS: SupabaseService) {}
 
-  email: string = ''; //franuleg@gmail.com
-  password: string = ''; //franciscoH
+  email: string = ''; 
+  password: string = ''; 
 
   login() {
     this.authS
       .login(this.email, this.password)
-      .then((user) => {
-        console.log('User logged in:', user);
-        alert('User logged in: ' + user.email);
-        // Handle successful login here
+      .then((res: any) => {
+        const correo = res?.user?.email || this.email;
+        console.log('User logged in:', res);
+        alert('User logged in: ' + correo);
+        this.email = '';
+        this.password = '';
       })
-      .catch((error) => {
-        alert('Error logging in: ' + error);
+      .catch((error: any) => {
+        const msg = (error?.message || 'Error al iniciar sesión');
+        alert('Error logging in: ' + msg);
         console.error('Error logging in:', error);
-        // Handle login error here
       });
   }
+  
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AlertController } from '@ionic/angular';
-import { FirestoreAuthService } from '../services/firestore-auth.service';
+
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -61,142 +61,41 @@ export class HomeComponent implements OnInit, OnDestroy{
   };
 
   constructor(
-    private auth: FirestoreAuthService,
+    //private auth: FirestoreAuthService,
     private toastr: ToastrService,
     private router: Router,
     private supabaseService: SupabaseService,
   ) {}
+  
+  private authSub?: { unsubscribe: () => void };
 
-  ngOnInit() {
-    this.auth.currentUser$.subscribe(email => {
-      this.user = email ?? 'No user logged in';
+  async ngOnInit() {
+    // Usuario actual (una vez)
+    const { data } = await this.supabaseService.client.auth.getUser();
+    this.user = data.user?.email ?? 'No user logged in';
+
+    // Escuchar cambios de sesión
+    const { data: sub } = this.supabaseService.client.auth.onAuthStateChange((_event, session) => {
+      this.user = session?.user?.email ?? 'No user logged in';
     });
+    this.authSub = sub.subscription; // guardar para desuscribir
   }
 
   ngOnDestroy() {
     if (this.intervalId) clearInterval(this.intervalId);
-  }
-
-  seleccionarDificultad(nueva: 'facil' | 'medio' | 'dificil') {
-    this.dificultad = nueva;
-    this.juegoIniciado = false;
-    this.cards = [];
-    this.showTimer = false;
-    this.timer = 0;
-    this.matchesFound = 0;
-    this.selectedCards = [];
-    if (this.intervalId) clearInterval(this.intervalId);
-  }
-
-  iniciarJuego() {
-    this.juegoIniciado = true;
-    this.setupGame();
-  }
-
-  setupGame() {
-    const selectedImages = this.images[this.dificultad];
-    const duplicated = [...selectedImages, ...selectedImages];
-    const shuffled = duplicated
-      .map((img) => ({ img, sort: Math.random() }))
-      .sort((a, b) => a.sort - b.sort)
-      .map((obj, i) => ({
-        id: i,
-        image: obj.img,
-        revealed: false,
-        matched: false,
-      }));
-
-    this.cards = shuffled;
-    this.selectedCards = [];
-    this.matchesFound = 0;
-    this.timer = 0;
-    this.showTimer = false;
-
-    // Mostrar todas las cartas por 3 segundos
-    this.cards.forEach(card => card.revealed = true);
-    setTimeout(() => {
-      this.cards.forEach(card => card.revealed = false);
-      this.showTimer = true;
-      this.startTimer();
-    }, 3000);
-  }
-
-  startTimer() {
-    if (this.intervalId) clearInterval(this.intervalId);
-    this.intervalId = setInterval(() => {
-      this.timer++;
-    }, 1000);
-  }
-
-  stopTimer() {
-    if (this.intervalId) clearInterval(this.intervalId);
-  }
-
-  selectCard(card: any) {
-    if (!this.juegoIniciado) return;
-    if (card.revealed || card.matched || this.selectedCards.length === 2) return;
-    card.revealed = true;
-    this.selectedCards.push(card);
-
-    if (this.selectedCards.length === 2) {
-      const [c1, c2] = this.selectedCards;
-      if (c1.image === c2.image) {
-        c1.matched = c2.matched = true;
-        this.matchesFound++;
-        this.selectedCards = [];
-        if (this.matchesFound === this.images[this.dificultad].length) {
-          this.gameOver();
-        }
-      } else {
-        setTimeout(() => {
-          c1.revealed = c2.revealed = false;
-          this.selectedCards = [];
-        }, 1000);
-      }
-    }
-  }
-
-  gameOver() {
-    this.stopTimer();
-    this.showTimer = false;
-    this.supabaseService.InsertarPuntaje(this.user, this.timer, this.dificultad)
-      .then(success => {
-        if (success) {
-          
-        } else {
-          this.toastr.error('Error al guardar el puntaje', '', {
-            positionClass: 'toast-center',
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error al guardar el puntaje:', error);
-        this.toastr.error('Error al guardar el puntaje: ' + error.message, '', {
-          positionClass: 'toast-center',
-        });
-      });
-    setTimeout(() => {
-      
-      this.toastr.success(`¡Juego terminado! Tiempo: ${this.timer} segundos`, '', {
-        positionClass: 'toast-center',
-      });}, 200);
-    this.juegoIniciado = false;
+    this.authSub?.unsubscribe?.();
   }
 
   logOut() {
-    this.auth
-      .logOut()
+    this.supabaseService.logout()
       .then(() => {
         this.toastr.success('Sesión cerrada', '', { positionClass: 'toast-center' });
         this.router.navigate(['/login']);
       })
       .catch((error) => {
         console.error('Error logging out:', error);
-        this.toastr.error('Error logging out: ' + error.message);
+        this.toastr.error('Error logging out: ' + (error?.message || ''));
       });
   }
-
-  goToRanking() {
-    this.router.navigate(['/ranking']);
-  }
+  
 }

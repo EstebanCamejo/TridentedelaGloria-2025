@@ -12,9 +12,6 @@ import {
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { getAuth, provideAuth } from '@angular/fire/auth';
-import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { provideToastr, ToastrModule } from 'ngx-toastr';
 import {
   BrowserAnimationsModule,
@@ -33,7 +30,8 @@ bootstrapApplication(AppComponent, {
     provideAnimations(),
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
-    provideFirebaseApp(() =>
+
+    /*provideFirebaseApp(() =>
       initializeApp({
         projectId: 'ionicapp-e1773',
         appId: '1:122367269467:web:f57efd57ba469a8c8a3d7e',
@@ -44,6 +42,6 @@ bootstrapApplication(AppComponent, {
       })
     ),
     provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore()),
+    provideFirestore(() => getFirestore()),*/
   ],
 });
