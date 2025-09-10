@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { FirestoreAuthService } from 'src/app/services/firestore-auth.service';
+import { SupabaseService } from 'src/app/services/supabase.service';
 
 @Component({
   selector: 'app-register',
@@ -13,7 +13,7 @@ import { FirestoreAuthService } from 'src/app/services/firestore-auth.service';
 })
 export class RegisterComponent {
   constructor(
-    private auth: FirestoreAuthService,
+    private auth: SupabaseService,
     private router: Router,
     private toastr: ToastrService
   ) {}

@@ -17,7 +17,8 @@ import {
 import { ExploreContainerComponent } from 'src/app/explore-container/explore-container.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FirestoreAuthService } from 'src/app/services/firestore-auth.service';
+import { SupabaseService } from 'src/app/services/supabase.service';
+
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
@@ -35,7 +36,7 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class loginComponent {
   constructor(
-    private auths: FirestoreAuthService,
+    private auths: SupabaseService,
     private router: Router,
     private toastr: ToastrService
   ) {}
@@ -44,20 +45,18 @@ export class loginComponent {
   password: string = ''; 
 
   private getErrorMessage(error: any): string {
-  switch (error.code) {
-    case 'auth/invalid-email':
-      return 'El correo ingresado no es válido.';
-    case 'auth/user-not-found':
-      return 'No existe una cuenta con este correo.';
-    case 'auth/wrong-password':
-      return 'La contraseña es incorrecta.';
-    case 'auth/too-many-requests':
-      return 'Demasiados intentos fallidos. Intenta más tarde.';
-    default:
-      return 'Ha ocurrido un error al iniciar sesión. Inténtalo de nuevo.';
+    const msg: string =
+      (error && (error.message || error.error_description)) || '';
+  
+    if (/Invalid login credentials/i.test(msg)) {
+      return 'Correo o contraseña incorrectos.';
+    }
+    if (/Email not confirmed/i.test(msg)) {
+      return 'Debes confirmar tu correo antes de ingresar.';
+    }
+    return 'Ha ocurrido un error al iniciar sesión. Inténtalo de nuevo.';
   }
-}
-
+  
 
   // login() {
   //   this.auths
@@ -110,8 +109,8 @@ export class loginComponent {
   }
 
   fastLogin1() {
-    this.email = 'sofiadorbe@gmail.com';
-    this.password = '12345678';
+    this.email = 'eltridentedelagloria@gmail.com';
+    this.password = '123456';
   }
   fastLogin2() {
     this.email = 'anonimo1@hotmail.com';

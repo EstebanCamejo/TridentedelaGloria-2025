@@ -4,7 +4,7 @@ import { RegisterComponent } from './components/register/register.component';
 
 import { Tab1Page } from './tab1/tab1.page';
 import { HomeComponent } from './home/tab2.page';
-import { RankingComponent } from './components/ranking/ranking.component';
+
 
 export const routes: Routes = [
   {
@@ -23,5 +23,5 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {path: 'home',component: HomeComponent,pathMatch: 'full',},
-  {path: 'ranking',component: RankingComponent,pathMatch: 'full',},
+
 ];
