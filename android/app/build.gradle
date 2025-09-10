@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "io.ionic.starter4"
+    namespace "io.ionic.starter"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "io.ionic.starter4"
+        applicationId "io.ionic.starter"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

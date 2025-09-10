@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'io.ionic.starter',
-  appName: 'App Sofi',
+  appName: 'El Tridente',
   webDir: 'www',
   plugins: {
     SplashScreen: {
@@ -22,6 +22,7 @@ const config: CapacitorConfig = {
       useDialog: false,
     },
   },
+
 };
 
 export default config;

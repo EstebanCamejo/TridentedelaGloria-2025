@@ -1,7 +1,9 @@
-<ion-app>
+<!-- <ion-app>
   <div class="splash-container">
     <img src="assets/splash.png" alt="Splash" class="splash-image" />
     <div class="splash-text top">Sofía Dorbessan</div>
+    <div class="splash-text top">Esteban Camejo</div>
+    <div class="splash-text top">Ivan Laurito</div>
     <div class="splash-text bottom">Comisión 141-2 </div>
   </div>
 
@@ -9,4 +11,24 @@
   <app-tabs></app-tabs>
 </ion-app>
 
- 
+  -->
+
+  <ion-app>
+  <div class="splash-container">
+    <!-- Comisión arriba -->
+    <div class="splash-text commission">Comisión 141-2</div>
+
+    <!-- Logo en el centro -->
+    <img src="assets/splash.png" alt="Splash" class="splash-image" />
+
+    <!-- Nombres abajo -->
+    <div class="splash-names">
+      <div class="splash-text name">Sofía Dorbessan</div>
+      <div class="splash-text name">Esteban Camejo</div>
+      <div class="splash-text name">Ivan Laurito</div>
+    </div>
+  </div>
+
+  <ion-router-outlet></ion-router-outlet>
+  <app-tabs></app-tabs>
+</ion-app>
