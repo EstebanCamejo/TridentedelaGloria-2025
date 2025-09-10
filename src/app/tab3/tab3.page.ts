@@ -8,6 +8,7 @@ import { ExploreContainerComponent } from '../explore-container/explore-containe
   styleUrls: ['tab3.page.scss'],
   imports: [IonHeader, IonToolbar, IonTitle, IonContent, ExploreContainerComponent],
 })
+
 export class Tab3Page {
   constructor() {}
 }
