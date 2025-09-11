@@ -1,3 +1,4 @@
+<!-- 
 <div class="register-container">
   <h2>Registrar usuario</h2>
   <form (ngSubmit)="onSubmit(registerForm)" #registerForm="ngForm">
@@ -49,4 +50,46 @@
       Ingresar
     </button>
   </form>
-</div>
+</div> -->
+<ion-content fullscreen>
+   <div class="wrapper">
+
+    <form class="register-form" (ngSubmit)="onSubmit(registerForm)" #registerForm="ngForm" novalidate>
+      <div class="brand-badge drop-in">
+        <img src="assets/brand.png" alt="El Tridente de la Gloria" />
+      </div>
+
+      <div class="form-group">
+        <label for="username" class="subTittle">Nombre</label>
+        <input id="username" name="username" type="text" ngModel required placeholder="Nombre" />
+      </div>
+
+      <div class="form-group">
+        <label for="dni" class="subTittle">DNI</label>
+        <input id="dni" name="dni" type="text" ngModel required
+               inputmode="numeric" pattern="^[0-9]{7,8}$" maxlength="8"
+               placeholder="Sólo números (7–8 dígitos)" />
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="subTittle">Correo</label>
+        <input id="email" name="email" type="email" [(ngModel)]="email" ngModel required email placeholder="correo@ejemplo.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="subTittle">Contraseña</label>
+        <input id="password" name="password" type="password" [(ngModel)]="password" ngModel required minlength="8" placeholder="Mínimo 8 caracteres" />
+      </div>
+
+      <div class="form-group">
+        <label for="confirm" class="subTittle">Repetir contraseña</label>
+        <input id="confirm" name="confirm" type="password" ngModel required minlength="8"
+               placeholder="Vuelva a escribir la contraseña" />
+      </div>
+
+      <button type="submit" class="buttonLogin" [disabled]="registerForm.invalid">Registrarse</button>
+      <button type="button" class="buttonRegister" (click)="goToLogin()">Volver a Iniciar Sesión</button>
+    </form>
+
+  </div>
+</ion-content>

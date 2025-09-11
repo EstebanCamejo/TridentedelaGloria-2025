@@ -3,12 +3,14 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { SupabaseService } from 'src/app/services/supabase.service';
+import { IonContent } from '@ionic/angular/standalone';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
-  imports: [FormsModule],
+   imports: [CommonModule, FormsModule, IonContent],
   standalone: true,
 })
 export class RegisterComponent {
@@ -17,7 +19,7 @@ export class RegisterComponent {
     private router: Router,
     private toastr: ToastrService
   ) {}
-
+logoReady = false;
   email: string = '';
   password: string = '';
   public loading = false;
@@ -153,7 +155,9 @@ onSubmit(registerForm: NgForm) {
       this.loading = false;
     });
 }
-  
+    ionViewDidEnter() {
+    requestAnimationFrame(() => (this.logoReady = true)); // dispara la caída del badge
+  }
 
     goToLogin() {
     console.log('Navigating to login page');

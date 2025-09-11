@@ -1,345 +1,259 @@
-// body {
-//   margin: 0;
-//   background-color: #18191c;
-// }
+/* Tipos de marca */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap");
 
-// ion-content {
-//   --background: #18191c;
-//   min-height: 100vh;
-// }
+/* ===== Tokens (del logo) ===== */
+:root{
+  --cream-25:#fbf3e4;
+  --cream-50:#f6ecdc;
+  --cream-100:#efe3cf;
+  --cream-200:#e7dac4;
 
-// ion-header, ion-toolbar {
-//   --background: #23272a;
-//   box-shadow: 0 2px 8px #18191c55;
-// }
+  --maroon-600:#7b2f2f;
+  --maroon-700:#5d2222;
+  --maroon-800:#3f1717;
 
-// .tittleLogin {
-//   display: flex;
-//   justify-content: center;
-//   text-align: center;
-//   color: #fff;
-//   font-size: 1.7rem;
-//   font-weight: bold;
-//   letter-spacing: 0.5px;
-//   background: none;
-//   padding: 1rem 0 0.5rem 0;
-// }
+  --ink:#3b2a2a;
+  --ink-soft:#6b5858;
 
-// .wrapper {
-//   min-height: 100vh;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   padding: 0.5rem;
-// }
+  --shadow: 0 10px 28px rgba(61,43,43,.22);
 
-// .card {
-//   width: 100%;
-//   max-width: 400px;
-//   background: #23272a;
-//   border-radius: 18px;
-//   box-shadow: 0 8px 32px #000a 0 4px 12px #0002;
-//   padding: 2rem 1.5rem 1.5rem 1.5rem;
-//   border: none;
-//   animation: fadeInUp 0.5s cubic-bezier(.4,1.7,.7,1.1);
-// }
-
-// .tittle {
-//   text-align: center;
-//   margin-bottom: 1.5rem;
-//   color: #eeeeee;
-//   font-weight: bold;
-//   letter-spacing: 1px;
-// }
-
-// .subTittle {
-//   margin-bottom: 0.5rem;
-//   color: #aaa;
-//   font-size: 1rem;
-//   font-weight: 500;
-// }
-
-// .form-group {
-//   margin-bottom: 1.5rem;
-// }
-
-// input[type="text"],
-// input[type="password"],
-// input[type="email"] {
-//   width: 100%;
-//   padding: 0.8rem;
-//   margin-top: 0.25rem;
-//   border: 1.5px solid #444a;
-//   border-radius: 10px;
-//   background-color: #18191c;
-//   color: #f5f5f5;
-//   font-size: 1rem;
-//   box-sizing: border-box;
-//   outline: none;
-//   transition: border 0.2s, box-shadow 0.2s;
-// }
-
-// input:focus {
-//   border-color: #6eb1fa;
-//   box-shadow: 0 0 0 2px #6eb1fa44;
-//   background: #23272a;
-// }
-
-// .button-row {
-//   display: flex;
-//   justify-content: center;
-//   gap: 0.8rem;
-//   padding: 1.1rem 0 0.6rem 0;
-// }
-
-// .fastLogin {
-//   padding: 0.5rem 1.1rem;
-//   background: linear-gradient(100deg, #23272a 60%, #414856 100%);
-//   color: #fff;
-//   border: none;
-//   border-radius: 8px;
-//   font-weight: bold;
-//   cursor: pointer;
-//   font-size: 0.98rem;
-//   letter-spacing: .5px;
-//   box-shadow: 0 2px 8px #23272a44;
-//   transition: background 0.2s, transform 0.14s;
-// }
-// .fastLogin:hover {
-//   background: linear-gradient(100deg, #31343b 60%, #5e6d8a 100%);
-//   transform: scale(1.05);
-// }
-// .fastLogin:active {
-//   background: linear-gradient(100deg, #18191c 60%, #23272a 100%);
-// }
-
-// .buttonLogin {
-//   background: linear-gradient(90deg, #6eb1fa 60%, #2d3748 100%);
-//   color: #fff;
-//   padding: 0.8rem 1.5rem;
-//   border: none;
-//   border-radius: 12px;
-//   cursor: pointer;
-//   font-weight: bold;
-//   font-size: 1.1rem;
-//   width: 100%;
-//   margin-top: 0.5rem;
-//   box-shadow: 0 2px 8px #6eb1fa44;
-//   transition: background 0.2s, transform 0.13s;
-// }
-// .buttonLogin:hover {
-//   background: linear-gradient(90deg, #4a90e2 60%, #23272a 100%);
-//   transform: scale(1.03);
-// }
-// .buttonLogin:active {
-//   background: linear-gradient(90deg, #23272a 60%, #6eb1fa 100%);
-// }
-
-// .buttonRegister {
-//   background: #18191c;
-//   color: #6eb1fa;
-//   padding: 0.8rem 1.5rem;
-//   margin-top: 0.8rem;
-//   border: 2px solid #6eb1fa99;
-//   border-radius: 12px;
-//   cursor: pointer;
-//   font-size: 1.1rem;
-//   font-weight: bold;
-//   width: 100%;
-//   box-shadow: 0 2px 8px #6eb1fa22;
-//   transition: background 0.2s, color 0.2s, border 0.2s;
-// }
-// .buttonRegister:hover {
-//   background: #23272a;
-//   color: #fff;
-//   border-color: #6eb1fa;
-// }
-// .buttonRegister:active {
-//   background: #111214;
-//   color: #6eb1fa;
-//   border-color: #23272a;
-// }
-
-// @keyframes fadeInUp {
-//   from {
-//     opacity: 0;
-//     transform: translateY(30px);
-//   }
-//   to {
-//     opacity: 1;
-//     transform: translateY(0);
-//   }
-// }
-
-
-body {
-  margin: 0;
-  background-color: #18191c;
+  --badge-size: clamp(88px, 22vw, 120px);
 }
 
-ion-content {
-  --background: #18191c;
-  min-height: 100vh;
+/* ===== Fondo general en borgoña suave ===== */
+body{ margin:0; }
+ion-content{
+  --background: transparent;
+  min-height:100vh;
+  background:
+    radial-gradient(110% 70% at 50% 10%, rgba(255,255,255,.06) 0%, transparent 55%),
+    radial-gradient(80% 55% at 50% 100%, rgba(123,47,47,.20) 0%, transparent 65%),
+    linear-gradient(180deg, #2a1717 0%, #1f1313 15%, #2b1614 100%);
 }
 
-ion-header, ion-toolbar {
-  --background: #23272a;
-  box-shadow: 0 2px 8px #18191c55;
+/* ===== Card ===== */
+.wrapper{
+  min-height:100vh; display:flex; justify-content:center; align-items:center;
+  padding:clamp(12px,4vh,24px);
 }
-
-.tittleLogin {
-  display: flex;
-  justify-content: center;
-  text-align: center;
-  color: #fff;
-  font-size: 1.7rem;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-  background: none;
-  padding: 1rem 0 0.5rem 0;
-}
-
-.wrapper {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5rem;
-}
-
-.card {
-  width: 100%;
-  max-width: 400px;
-  background: #23272a;
+.card{
+  width:100%; max-width: 420px;
+  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: 18px;
-  box-shadow: 0 8px 32px #000a 0 4px 12px #0002;
-  padding: 2rem 1.5rem 1.5rem 1.5rem;
-  border: none;
-  animation: fadeInUp 0.5s cubic-bezier(.4,1.7,.7,1.1);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  padding: 22px 18px 18px;
+  animation: fadeInUp .45s cubic-bezier(.2,.9,.35,1);
 }
 
-.tittle {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #eeeeee;
-  font-weight: bold;
-  letter-spacing: 1px;
+/* Espacio vertical entre Email y Contraseña */
+.card .form-group{ margin: 0; }
+
+.card .form-group:not(:last-of-type){
+  margin-bottom: clamp(12px, 1.8vh, 18px); /* ajustá a gusto */
+}
+/* La card no debe recortar el badge */
+.card.with-badge{ position:relative; overflow: visible; }
+
+/* Estado inicial: badge arriba, oculto */
+.brand-badge{
+  /* lo demás igual que tenías (size, fondo, sombras, etc.) */
+  transform: translate(-50%, -220%) scale(.9) rotate(-1.5deg);
+  opacity: 0;
+  will-change: transform, opacity, filter;
+  z-index: 2;
 }
 
-.subTittle {
-  margin-bottom: 0.5rem;
-  color: #aaa;
-  font-size: 1rem;
-  font-weight: 500;
+/* Al entrar la vista: animación de caída + pulso de aros */
+.brand-badge.drop-in{
+  animation: badgeDrop 900ms cubic-bezier(.2,.9,.3,1.25) .12s both;
+}
+.brand-badge.drop-in::before,
+.brand-badge.drop-in::after{
+  animation: ringPulse 900ms ease-out .16s;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+/* El logo dentro también “respira” apenas asienta */
+.brand-badge.drop-in img{
+  animation: logoPop 520ms cubic-bezier(.2,.9,.3,1.2) .32s both;
 }
 
-input[type="text"],
-input[type="password"],
-input[type="email"] {
-  width: 100%;
-  padding: 0.8rem;
-  margin-top: 0.25rem;
-  border: 1.5px solid #444a;
-  border-radius: 10px;
-  background-color: #18191c;
-  color: #f5f5f5;
-  font-size: 1rem;
-  box-sizing: border-box;
-  outline: none;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-
-input:focus {
-  border-color: #6eb1fa;
-  box-shadow: 0 0 0 2px #6eb1fa44;
-  background: #23272a;
-}
-
-.button-row {
-  display: flex;
-  justify-content: center;
-  gap: 0.8rem;
-  padding: 1.1rem 0 0.6rem 0;
-}
-
-/* Botón Ingresar con gradiente */
-.buttonLogin {
-  background: linear-gradient(90deg, #00d1c1, #ff6b6b);
-  color: white;
-  border: none;
-  border-radius: 14px;
-  padding: 0.9rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  width: 100%;
-  margin-top: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-/* Botón Registrarse corregido */
-.buttonRegister {
-  margin-top: 1rem;
-  width: 100%;  /* <- esto es lo que faltaba */
-  padding: 0.9rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #ffa600;
-  background-color: transparent;
-  border: 2px solid #ffa600;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.buttonRegister:hover {
-  background-color: #ffa600;
-  color: #000;
-}
-
-/* Fila de botones rápida */
-.button-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem; /* <- esto separa los botones */
-  margin-top: 1.5rem;
-}
-
-/* Botones individuales */
-.fastLogin {
-  flex: 1; /* <- cada botón ocupa igual espacio */
-  padding: 0.6rem 0;
-  background: #2b2b2b;
-  color: white;
-  border-radius: 10px;
-  border: 1px solid #555;
-  font-weight: bold;
-  font-size: 0.95rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-.fastLogin:hover {
-  background-color: #ff6b6b;
-  color: black;
-}
-
-
-@keyframes fadeInUp {
-  from {
+/* ---- KEYFRAMES ---- */
+@keyframes badgeDrop{
+  0%{
+    transform: translate(-50%, -260%) scale(.9) rotate(-1.5deg);
+    filter: blur(1px);
     opacity: 0;
-    transform: translateY(30px);
   }
-  to {
+  55%{
+    transform: translate(-50%, -48%) scale(1.03);
+    filter: blur(0);
     opacity: 1;
-    transform: translateY(0);
+  }
+  78%{
+    transform: translate(-50%, -68%) scale(.996);
+  }
+  100%{
+    /* posición final: la que usabas normalmente */
+    transform: translate(-50%, -62%) scale(1);
+    opacity: 1;
   }
 }
 
+/* Pulso suave de los aros (aprovechamos tus ::before/::after) */
+@keyframes ringPulse{
+  0%   { transform: scale(.9);   opacity: 0; }
+  45%  { transform: scale(1.02); opacity: .85; }
+  100% { transform: scale(1.12); opacity: 0; }
+}
+
+/* Micro-pop del contenido (logo) para “asentar” */
+@keyframes logoPop{
+  0%   { transform: scale(.98); }
+  60%  { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+
+/* Accesibilidad: si el usuario prefiere menos movimiento, desactivar */
+@media (prefers-reduced-motion: reduce){
+  .brand-badge{ transform: translate(-50%, -62%) !important; opacity: 1 !important; }
+  .brand-badge, .brand-badge::before, .brand-badge::after, .brand-badge img{ animation: none !important; }
+}
+
+/* ===== Logo redondeado ===== */
+
+.card.with-badge{
+  position: relative;
+  padding-top: calc(28px + clamp(56px, 14vw, 92px)); /* deja espacio para el badge */
+}
+
+.brand-badge{
+  --size: clamp(96px, 22vw, 148px);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -62%);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 9999px;
+  background: var(--cream-25);
+  box-shadow: 0 16px 36px rgba(0,0,0,.38);
+  isolation: isolate;              /* asegura capas correctas */
+  z-index: 2;
+}
+
+/* Aro 1 (crema, definido) */
+.brand-badge::before{
+  content: "";
+  position: absolute;
+  inset: -6px;                     /* expande hacia afuera */
+  border-radius: inherit;
+  border: 6px solid rgba(255,255,255,.95);
+  pointer-events: none;
+}
+
+/* Aro 2 (borgoña, halo) */
+.brand-badge::after{
+  content: "";
+  position: absolute;
+  inset: -16px;                    /* segundo aro más externo */
+  border-radius: inherit;
+  border: 10px solid rgba(123,47,47,.28);
+  filter: blur(.15px);             /* suaviza el borde externo */
+  pointer-events: none;
+}
+
+/* Logo dentro del círculo (recorte perfecto + microborde) */
+.brand-badge img{
+  position: absolute;
+  inset: 8px;                      /* margen interno para separar del aro */
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  object-fit: contain;             /* no deforma tu PNG */
+  border-radius: 50%;
+  background: var(--cream-50);
+  border: 2px solid rgba(61,43,43,.12); /* micro‐stroke para definición */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    0 2px 6px rgba(93,34,34,.25);
+}
 
 
+/* ===== Título ===== */
+.tittle{
+  font-family:"Cinzel", serif;
+  text-align:center;
+  margin: 2px 0 16px;
+  color: #fff8ef;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-size: clamp(1.25rem, 5.5vw, 1.8rem);
+  text-shadow: 0 1px 0 rgba(255,255,255,.25), 0 12px 28px rgba(0,0,0,.35);
+}
+.tittle::after{
+  content:""; display:block; margin:.55rem auto 0;
+  width:min(160px,52%); height:2px; border-radius:2px;
+  background: linear-gradient(90deg, transparent, rgba(255,221,190,.7), transparent);
+}
 
+/* ===== Labels & Inputs ===== */
+.subTittle{
+  margin:10px 2px 6px;
+  color:#f3e7da; font-family:"Inter",system-ui,Segoe UI,Roboto,sans-serif;
+  font-size:.95rem; font-weight:600;
+}
+input[type="text"], input[type="password"], input[type="email"]{
+  width:100%; height:46px; padding:0 12px; box-sizing:border-box;
+  border-radius:12px;
+  border:1.5px solid rgba(255,221,190,.55);
+  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
+  color:#673a2c;
+  font-size:1rem; outline:none;
+  transition:border-color .2s, box-shadow .2s, background .2s, transform .04s;
+}
+input::placeholder{ color:#a88978; }
+input:focus{
+  border-color: var(--cream-200);
+  box-shadow: 0 0 0 3px rgba(255,221,190,.35);
+  background:#fffaf2;
+}
+
+/* ===== Botones ===== */
+.buttonLogin, .buttonRegister{
+  width:100%; border-radius:14px; padding:.9rem 1rem;
+  font-family:"Inter",system-ui,Segoe UI,Roboto,sans-serif;
+  font-weight:700; font-size:1.05rem; cursor:pointer;
+  transition: transform .04s ease, filter .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
+  margin-top:12px;
+}
+.buttonLogin{
+  border:2px solid rgba(255,221,190,.65);  /* borde crema */
+}
+.buttonRegister{
+  background:transparent; color:#ffe4cc;
+  border:2px solid rgba(255,221,190,.9);
+}
+.buttonRegister:hover{ background: rgba(255,221,190,.12); color:#1b0f0f; }
+
+/* ===== Acceso rápido ===== */
+.button-row{ display:flex; gap:8px; margin-top:14px; }
+.fastLogin{
+  flex:1; padding:.55rem 0; border-radius:12px;
+  border:1px solid rgba(255,221,190,.55);
+  background: linear-gradient(180deg, #361a19, #2a1413);
+  color:#ffe4cc; font-weight:700; font-size:.95rem; text-align:center;
+  transition:background .18s ease, transform .04s ease, filter .18s ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+.fastLogin:hover{ filter: brightness(1.08); }
+.fastLogin:active{ transform: translateY(1px); }
+
+/* ===== Animación ===== */
+@keyframes fadeInUp{
+  from{ opacity:0; transform: translateY(26px); }
+  to{ opacity:1; transform: translateY(0); }
+}
 

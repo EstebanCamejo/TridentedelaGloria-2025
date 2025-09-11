@@ -35,6 +35,8 @@ import { ToastrService } from 'ngx-toastr';
   standalone: true,
 })
 export class loginComponent {
+   logoReady = false;
+
   constructor(
     private auths: SupabaseService,
     private router: Router,
@@ -101,7 +103,10 @@ export class loginComponent {
       console.error('Error logging in:', error);
     });
 }
-
+  ionViewDidEnter() {
+    // dispara en el primer frame para asegurar layout listo
+    requestAnimationFrame(() => this.logoReady = true);
+  }
 
   goToRegister() {
     console.log('Navigating to register page');
