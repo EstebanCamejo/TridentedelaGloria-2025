@@ -1,76 +1,345 @@
 
 
-.splash-container {
+// .splash-container {
+//   position: fixed;
+//   inset: 0;
+//   width: 100vw;
+//   height: 100vh;
+//   background: linear-gradient(135deg, #876767 0%, #e6ebef 100%);
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   justify-content: space-between;
+//   padding: 4rem 1rem;
+//   z-index: 9999;
+//   opacity: 1;
+//   animation: splashFadeOut 1s ease-in 2.5s forwards;
+//   font-family: 'Segoe UI', 'Roboto', sans-serif;
+// }
+
+// .splash-text {
+//   text-align: center;
+//   opacity: 0;
+//   letter-spacing: 1px;
+//   transition: all 0.3s ease;
+//   color: #333;
+// }
+
+// .splash-text.commission {
+//   font-size: 1.8rem;
+//   font-weight: 600;
+//   color: #444; /* tono sobrio */
+//   animation: fadeInDown 1s ease-out 0.4s both;
+// }
+
+// .splash-image {
+//   width: 55vw;
+//   max-width: 280px;
+//   height: auto;
+//   object-fit: contain;
+//   animation: fadeInScale 1s ease-out 0.8s both;
+// }
+
+// .splash-names {
+//   display: flex;
+//   flex-direction: column;
+//   gap: 0.4rem;
+//   margin-bottom: 2rem;
+// }
+
+// .splash-text.name {
+//   font-size: 1.2rem;
+//   font-weight: 500;
+//   color: #555;
+//   animation: fadeInUp 1s ease-out 1.2s both;
+// }
+
+// /* Animaciones */
+// @keyframes fadeInDown {
+//   0% { opacity: 0; transform: translateY(-30px); }
+//   100% { opacity: 1; transform: translateY(0); }
+// }
+
+// @keyframes fadeInUp {
+//   0% { opacity: 0; transform: translateY(30px); }
+//   100% { opacity: 1; transform: translateY(0); }
+// }
+
+// @keyframes fadeInScale {
+//   0% { opacity: 0; transform: scale(0.85); }
+//   100% { opacity: 1; transform: scale(1); }
+// }
+
+// @keyframes splashFadeOut {
+//   to { opacity: 0; visibility: hidden; }
+// }
+
+// /* Tipografías profesionales */
+// @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap");
+
+// /* Paleta (ajústala si tu logo cambia de tono) */
+// :root{
+//   --brand:#7b2f2f;         /* borgoña del logo */
+//   --brand-700:#5d2222;     /* sombra */
+//   --bg-1:#2a1f1f;          /* fondo profundo */
+//   --bg-2:#dcd6d6;          /* fondo claro */
+//   --ink:#2f3034;           /* texto principal */
+//   --ink-soft:#5c6166;      /* texto secundario */
+//   --white: #ffffff;
+// }
+
+// .splash-container {
+//   position: fixed;
+//   inset: 0;
+//   width: 100vw;
+//   height: 100vh;
+//   background: linear-gradient(135deg, #876767 0%, #e6ebef 100%);
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   justify-content: space-between;
+//   padding: 4rem 1rem;
+//   z-index: 9999;          /* tapa todo lo demás */
+//   opacity: 1;
+//   animation: splashFadeOut 1s ease-in 2.5s forwards;
+//   font-family: 'Segoe UI', 'Roboto', sans-serif;
+// }
+
+// /* Encabezado (Comisión) */
+// .splash-text{
+//   text-align: center;
+//   opacity: 0;
+//   letter-spacing: .02em;
+//   transition: opacity .3s ease, transform .3s ease;
+//   color: var(--ink);
+// }
+
+// .splash-text.commission{
+//   font-family: "Cinzel", serif;
+//   font-weight: 700;
+//   font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+//   line-height: 1.2;
+//   color: var(--ink);
+//   text-shadow: 0 1px 0 rgba(255,255,255,.35);
+//   animation: fadeInDown .8s ease-out .35s both;
+// }
+
+// /* Logo centrado y con presencia */
+// .splash-image{
+//   width: min(48vw, 260px);
+//   height: auto;
+//   object-fit: contain;
+//   filter: drop-shadow(0 6px 18px rgba(0,0,0,.18))
+//           drop-shadow(0 2px 6px rgba(0,0,0,.25));
+//   /* tinte sutil hacia el brand por si el PNG es monocromo */
+//   /* remove si no lo necesitás */
+//   /* mix-blend-mode: multiply; */
+//   animation: fadeInScale .9s ease-out .75s both;
+// }
+
+// /* Bloque de nombres */
+// .splash-names{
+//   display: flex;
+//   flex-direction: column;
+//   gap: .25rem;
+//   margin-bottom: clamp(1.25rem, 3vh, 2rem);
+//   width: 100%;
+//   align-items: center;
+//   position: relative;
+// }
+
+// /* Línea divisoria muy suave encima de los nombres */
+// .splash-names::before{
+//   content:"";
+//   width: min(72%, 320px);
+//   height: 1px;
+//   background: linear-gradient(90deg, transparent, rgba(0,0,0,.12), transparent);
+//   margin-bottom: .6rem;
+// }
+
+// /* Cada nombre */
+// .splash-text.name{
+//   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+//   font-weight: 500;
+//   font-size: clamp(1rem, 1.8vw, 1.15rem);
+//   color: var(--ink-soft);
+//   letter-spacing: .01em;
+//   animation: fadeInUp .65s ease-out 1.05s both;
+// }
+
+// /* Pequeño “stagger” para que entren uno tras otro */
+// .splash-text.name:nth-child(2){ animation-delay: 1.15s; }
+// .splash-text.name:nth-child(3){ animation-delay: 1.25s; }
+// .splash-text.name:nth-child(4){ animation-delay: 1.35s; }
+
+// /* Opcional: si tu logo es SVG, podés colorearlo así
+// .splash-image path { fill: var(--brand); }
+// */
+
+// /* Animaciones */
+// @keyframes fadeInDown{
+//   from{ opacity:0; transform: translateY(-18px); }
+//   to{   opacity:1; transform: translateY(0); }
+// }
+// @keyframes fadeInUp{
+//   from{ opacity:0; transform: translateY(16px); }
+//   to{   opacity:1; transform: translateY(0); }
+// }
+// @keyframes fadeInScale{
+//   from{ opacity:0; transform: scale(.94); }
+//   to{   opacity:1; transform: scale(1); }
+// }
+// @keyframes splashFadeOut {
+//   to { 
+//     opacity: 0; 
+//     visibility: hidden; 
+//     display: none;       /* así ya no ocupa espacio ni se ve debajo */
+//   }
+// }
+
+// /* Accesibilidad: reduce animaciones si el usuario lo pide */
+// @media (prefers-reduced-motion: reduce){
+//   .splash-text,
+//   .splash-image{ animation: none !important; opacity: 1 !important; }
+// }
+/* Tipografías */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap");
+
+/* Paleta */
+:root{
+  --brand:#7b2f2f;        /* borgoña del logo */
+  --brand-700:#5d2222;    /* sombra */
+  --ink:#f3f5f7;          /* texto principal sobre fondo */
+  --ink-soft:#d0d5da;     /* texto secundario */
+  --bg-deep:#20171a;      /* base cálida profunda */
+  --bg-soft:#e7e3e6;      /* claro del degradé */
+}
+
+/* ===== SPLASH ===== */
+.splash-container{
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #876767 0%, #e6ebef 100%);
+
+  /* Fondo pro: degradé + viñeta + highlight superior */
+  background:
+    radial-gradient(120% 90% at 50% 20%, rgba(255,255,255,.18) 0%, transparent 55%),
+    radial-gradient(80% 60% at 50% 95%, rgba(123,47,47,.16) 0%, transparent 65%),
+    linear-gradient(135deg, #876767 0%, #e6ebef 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 4rem 1rem;
-  z-index: 9999;
+  padding: calc(clamp(2rem,6vh,4rem) + env(safe-area-inset-top)) 1rem
+           calc(clamp(1rem,4vh,2rem) + env(safe-area-inset-bottom)) 1rem;
+
+  z-index: 9999;          /* tapa todo */
   opacity: 1;
-  animation: splashFadeOut 1s ease-in 2.5s forwards;
-  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  animation: splashFadeOut 1s ease-in 2.5s forwards; /* tiempos intactos */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;       /* oculta el glow del logo si se pasa */
 }
 
-.splash-text {
-  text-align: center;
-  opacity: 0;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
-  color: #333;
+/* Texto base */
+.splash-text{
+  text-align:center;
+  opacity:0;
+  letter-spacing:.02em;
+  transition:opacity .3s ease, transform .3s ease;
+  color:var(--ink);
 }
 
-.splash-text.commission {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #444; /* tono sobrio */
-  animation: fadeInDown 1s ease-out 0.4s both;
+/* Encabezado (Comisión) */
+.splash-text.commission{
+  font-family:"Cinzel", serif;
+  font-weight:700;
+  text-transform:uppercase;
+  font-size: clamp(1.2rem, 2.4vw, 1.75rem);
+  line-height:1.2;
+  letter-spacing:.06em;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,.25),
+    0 10px 28px rgba(0,0,0,.25);
+  animation: fadeInDown .8s ease-out .35s both;
 }
 
-.splash-image {
-  width: 55vw;
-  max-width: 280px;
-  height: auto;
-  object-fit: contain;
-  animation: fadeInScale 1s ease-out 0.8s both;
+/* Logo con presencia y glow */
+.splash-image{
+  width: min(100vw, 360px);
+  height:auto;
+  object-fit:contain;
+  filter:
+    drop-shadow(0 12px 32px rgba(0,0,0,.35))
+    drop-shadow(0 3px 10px rgba(0,0,0,.28));
+  animation: fadeInScale .9s ease-out .75s both, floatY 2.2s ease-in-out .75s infinite;
+  position: relative;
+  z-index: 1;
 }
 
-.splash-names {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-bottom: 2rem;
+/* Halo suave en color de marca */
+.splash-image::after{
+  content:"";
+  position:absolute;
+  inset:-22%;
+  border-radius:50%;
+  background: radial-gradient(circle at 50% 55%, rgba(123,47,47,.20), transparent 58%);
+  z-index:-1;
 }
 
-.splash-text.name {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #555;
-  animation: fadeInUp 1s ease-out 1.2s both;
+/* Bloque de nombres */
+.splash-names{
+  display:flex;
+  flex-direction:column;
+  gap:.28rem;
+  margin-bottom: clamp(1rem, 3vh, 1.75rem);
+  width:100%;
+  align-items:center;
+  position:relative;
 }
 
-/* Animaciones */
-@keyframes fadeInDown {
-  0% { opacity: 0; transform: translateY(-30px); }
-  100% { opacity: 1; transform: translateY(0); }
+/* Nombres */
+.splash-text.name{
+  font-family:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight:500;
+  font-size: clamp(1rem, 1.8vw, 1.12rem);
+  color:var(--ink-soft);
+  letter-spacing:.015em;
+  text-shadow: 0 1px 0 rgba(0,0,0,.25);
+  animation: fadeInUp .6s ease-out 1.05s both;
 }
 
-@keyframes fadeInUp {
-  0% { opacity: 0; transform: translateY(30px); }
-  100% { opacity: 1; transform: translateY(0); }
+/* Stagger suave */
+.splash-text.name:nth-child(2){ animation-delay: 1.15s; }
+.splash-text.name:nth-child(3){ animation-delay: 1.25s; }
+.splash-text.name:nth-child(4){ animation-delay: 1.35s; }
+
+/* ===== Animaciones ===== */
+@keyframes fadeInDown{
+  from{ opacity:0; transform: translateY(-16px); }
+  to{   opacity:1; transform: translateY(0); }
+}
+@keyframes fadeInUp{
+  from{ opacity:0; transform: translateY(14px); }
+  to{   opacity:1; transform: translateY(0); }
+}
+@keyframes fadeInScale{
+  from{ opacity:0; transform: scale(.95); }
+  to{   opacity:1; transform: scale(1); }
+}
+/* flotación sutil mientras se muestra el splash */
+@keyframes floatY{
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(-6px); }
 }
 
-@keyframes fadeInScale {
-  0% { opacity: 0; transform: scale(0.85); }
-  100% { opacity: 1; transform: scale(1); }
+/* Ocultar del flujo al final */
+@keyframes splashFadeOut{
+  to{ opacity:0; visibility:hidden; display:none; }
 }
 
-@keyframes splashFadeOut {
-  to { opacity: 0; visibility: hidden; }
+/* Accesibilidad */
+@media (prefers-reduced-motion: reduce){
+  .splash-text,.splash-image{ animation:none !important; opacity:1 !important; }
 }
-
