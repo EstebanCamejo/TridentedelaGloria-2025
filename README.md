@@ -1,6 +1,7 @@
 # El tridente de la gloria🍴
 
-<img width="320" height="220" alt="image" src="https://github.com/user-attachments/assets/32abba29-e5fe-418d-bd17-2637ea8a77a2" />
+<img width="179" height="219" alt="488039206-32abba29-e5fe-418d-bd17-2637ea8a77a2" src="https://github.com/user-attachments/assets/02a354da-5dfc-4909-a3b7-268c63f91d97" />
+
 
 
 ## 📖 Descripción
@@ -41,7 +42,7 @@
 **Diseño**
 - Icono → *Sofia Dorbessan*  
 - Splash estático / animado → *Sofia Dorbessan* 
-- Pantalla Home → *Sofia Dorbessan*  
+- Splash estático / animado → *Sofia Dorbessan* 
 
 **Gestión**
 - Creación de proyecto + vinculacion con Supabase → *Esteban Camejo*  
@@ -50,5 +51,3 @@
 ✅ **Entrega:** Video con Splash + Diseño de login + Diseño de registro y formularios validados
 
 ---
-
-📌 *Proyecto en desarrollo para optimizar la gestión de restaurantes mediante tecnología móvil y QR.*
