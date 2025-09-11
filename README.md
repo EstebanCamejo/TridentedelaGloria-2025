@@ -1,6 +1,6 @@
 # El tridente de la gloria🍴
 
-<img width="579" height="619" alt="image" src="https://github.com/user-attachments/assets/32abba29-e5fe-418d-bd17-2637ea8a77a2" />
+<img width="320" height="220" alt="image" src="https://github.com/user-attachments/assets/32abba29-e5fe-418d-bd17-2637ea8a77a2" />
 
 
 ## 📖 Descripción
