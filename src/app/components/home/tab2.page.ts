@@ -1,16 +1,22 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AlertController } from '@ionic/angular';
-
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { SupabaseService } from '../services/supabase.service';
+import { SupabaseService } from 'src/app/services/supabase.service';
+import { SesionService } from 'src/app/services/sesion.service';
+import { HomeAdminComponent } from '../home-admin/home-admin.component';
+import { HomeMozoComponent } from '../home-mozo/home-mozo.component';
+import { HomeClienteComponent } from '../home-cliente/home-cliente.component';
+import { HomeMaitreComponent } from '../home-maitre/home-maitre.component';
+import { HomeBartenderCocineroComponent } from '../home-bartender-cocinero/home-bartender-cocinero.component';
 
-import {
+
+import {  
   IonHeader,
   IonToolbar,
   IonTitle,
-  IonContent,
+  IonContent,IonSpinner,
   IonButton,
   IonSelect,
   IonSelectOption,
@@ -21,50 +27,24 @@ import { CommonModule } from '@angular/common';
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss'],
   standalone: true,
-  imports: [CommonModule,IonContent,IonFabButton,IonFab,IonSelect,IonSelectOption,FormsModule
+  imports: [CommonModule,IonContent,IonFabButton,IonFab,IonSelect, IonSelectOption,FormsModule,  
+    HomeAdminComponent,
+    HomeMozoComponent,
+    HomeClienteComponent,
+    HomeMaitreComponent,
+    HomeBartenderCocineroComponent,
+    IonSpinner
   ],
 })
 export class HomeComponent implements OnInit, OnDestroy{
-   dificultad: 'facil' | 'medio' | 'dificil' = 'facil';
-  user: string = 'No user logged in';
-  cards: any[] = [];
-  selectedCards: any[] = [];
-  matchesFound = 0;
-  timer = 0;
-  intervalId: any;
-  showTimer = false;
-  juegoIniciado = false;
 
-  images = {
-    facil: [
-      'assets/animales/perro.jpg',
-      'assets/animales/gato.jpg',
-      'assets/animales/elefante.jpg'
-    ],
-    medio: [
-      'assets/herramientas/martillo.png',
-      'assets/herramientas/destornillador.png',
-      'assets/herramientas/llave.png',
-      'assets/herramientas/sierra.png',
-      'assets/herramientas/alicate.png'
-    ],
-    dificil: [
-      'assets/frutas/manzana.png',
-      'assets/frutas/banana.png',
-      'assets/frutas/naranja.png',
-      'assets/frutas/pera.png',
-      'assets/frutas/melon.png',
-      'assets/frutas/fresa.png',
-      'assets/frutas/uva.png',
-      'assets/frutas/cereza.png'
-    ]
-  };
+  user: string = 'No user logged in'
 
   constructor(
-    //private auth: FirestoreAuthService,
     private toastr: ToastrService,
     private router: Router,
     private supabaseService: SupabaseService,
+    public sesion: SesionService,
   ) {}
   
   private authSub?: { unsubscribe: () => void };
@@ -79,11 +59,24 @@ export class HomeComponent implements OnInit, OnDestroy{
       this.user = session?.user?.email ?? 'No user logged in';
     });
     this.authSub = sub.subscription; // guardar para desuscribir
+
+    setTimeout(() => {
+      console.log('[Home] usuarioActual:', this.sesion.usuarioActual?.email);
+      console.log('[Home] usuarioBD:', this.sesion.usuarioBD);
+      console.log('[Home] roles:', {
+        dueno: this.sesion.esDueno(),
+        supervisor: this.sesion.esSupervisor(),
+        maitre: this.sesion.esMaitre(),
+        mozo: this.sesion.esMozo(),
+        cocinero: this.sesion.esCocinero(),
+        bartender: this.sesion.esBartender(),
+        cliente: this.sesion.esCliente(),
+      });
+    }, 0);
   }
 
   ngOnDestroy() {
-    if (this.intervalId) clearInterval(this.intervalId);
-    this.authSub?.unsubscribe?.();
+    this.authSub?.unsubscribe();
   }
 
   logOut() {
