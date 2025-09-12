@@ -1,0 +1,62 @@
+<div class="wrapper">
+  <form class="register-form" (ngSubmit)="onSubmit(f)" #f="ngForm" novalidate>
+  <div class="contenedor-subidas">
+    <div class="avatar-ctr">
+      <img [src]="photoPreview || 'assets/imagenes/agregar-usuario.png'" alt="foto-perfil" />
+    </div>
+
+    <ion-button class="btn-subir" (click)="subirFotoClick()" type="button">
+      <ion-icon name="camera"></ion-icon>
+      <p>SUBIR FOTO</p>
+    </ion-button>
+
+    <!-- Fallback navegador/escritorio -->
+    <input #fileInput type="file" accept="image/*" capture="environment"
+           class="file-hidden" (change)="onFileSelected($event)">
+  </div>
+    <!-- Nombre -->
+    <div class="form-group">
+      <label for="nombre" class="subTittle">Nombre</label>
+      <input id="nombre" name="nombre" type="text"
+             [(ngModel)]="nombre" #nombreModel="ngModel" required
+             placeholder="Nombre" />
+      <small *ngIf="showError(nombreModel, f)" class="msg-error">El nombre es obligatorio.</small>
+    </div>
+
+    <!-- Correo -->
+    <div class="form-group">
+      <label for="email" class="subTittle">Correo</label>
+      <input id="email" name="email" type="email"
+             [(ngModel)]="email" #emailModel="ngModel" required email
+             placeholder="correo@ejemplo.com" />
+      <small *ngIf="showError(emailModel, f)" class="msg-error">Ingresá un correo válido.</small>
+    </div>
+
+    <!-- Contraseña -->
+    <div class="form-group">
+      <label for="password" class="subTittle">Contraseña</label>
+      <input id="password" name="password" type="password"
+             [(ngModel)]="password" #passwordModel="ngModel" required minlength="8"
+             placeholder="Mínimo 8 caracteres" />
+      <small *ngIf="showError(passwordModel, f)" class="msg-error">
+        La contraseña debe tener al menos 8 caracteres.
+      </small>
+    </div>
+
+    <!-- Repetir contraseña -->
+    <div class="form-group">
+      <label for="confirm" class="subTittle">Repetir contraseña</label>
+      <input id="confirm" name="confirm" type="password"
+             [(ngModel)]="confirm" #confirmModel="ngModel" required minlength="8"
+             placeholder="Vuelva a escribir la contraseña" />
+      <small *ngIf="showError(confirmModel, f)" class="msg-error">Repetí la contraseña.</small>
+      <small *ngIf="passwordsMismatch && (f.submitted || confirmModel.touched)" class="msg-error-strong">
+        Las contraseñas no coinciden.
+      </small>
+    </div>
+
+    <button type="submit" class="buttonLogin">{{ loading ? 'Registrando…' : 'Registrarse' }}</button>
+
+    <div *ngIf="errorMsg" class="msg-error-strong" style="margin-top:8px">{{ errorMsg }}</div>
+  </form>
+</div>
