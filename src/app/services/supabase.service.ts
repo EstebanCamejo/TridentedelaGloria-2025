@@ -39,4 +39,33 @@ export class SupabaseService {
     return data;
   }
   
+  // === CLIENTES PENDIENTES (ADMIN) ===
+  async getPendingClients() {
+    const { data, error } = await this._supabase
+      .from('usuarios')
+      .select('id, auth_id, email, nombres, apellidos, foto_url, created_at')
+      .eq('perfil', 'clienteReg')
+      .eq('estado', 'pendiente')
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async approveClient(id: string) {
+    const { error } = await this._supabase
+      .from('usuarios')
+      .update({ estado: 'aprobado' })
+      .eq('id', id);
+    if (error) throw error;
+  }
+
+  async rejectClient(id: string) {
+    const { error } = await this._supabase
+      .from('usuarios')
+      .update({ estado: 'rechazado' })
+      .eq('id', id);
+    if (error) throw error;
+  }
+
 }

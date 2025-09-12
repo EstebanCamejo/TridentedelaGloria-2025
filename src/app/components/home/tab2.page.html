@@ -1,0 +1,85 @@
+
+
+<ion-content [fullscreen]="true" class="memoria-content">
+
+<!-- Mientras carga el perfil desde Supabase -->
+ <!--
+<ng-template #cargando>
+  <div style="padding: 24px; text-align: center;">
+    <ion-spinner name="crescent"></ion-spinner>
+    <div style="margin-top: 8px; opacity: .7;">Cargando perfil…</div>
+  </div>
+</ng-template>
+-->
+<!-- Cuando ya hay sesión/perfil -->
+ 
+<!--
+<ng-container *ngIf="sesion.usuarioBD as u; else cargando">-->
+  <!-- Admin (Dueño/Supervisor) --> 
+ <!-- <app-home-admin *ngIf="sesion.esDueno() || sesion.esSupervisor()"></app-home-admin>-->
+
+  <!-- Maître -->
+  <!--  <app-home-maitre *ngIf="sesion.esMaitre()"></app-home-maitre>-->
+
+  <!-- Mozo -->
+  <!--  <app-home-mozo *ngIf="sesion.esMozo()"></app-home-mozo>-->
+
+  <!-- ✅ unificado -->
+  <!--  <app-home-bartender-cocinero
+    *ngIf="sesion.esBartender() || sesion.esCocinero()">
+  </app-home-bartender-cocinero> -->
+
+
+  <!-- Cliente (registrado/anónimo) -->
+<!--  <app-home-cliente *ngIf="sesion.esCliente()"></app-home-cliente> -->
+
+  <!-- Si el perfil existe pero no calza en ningún rol (fallback) -->
+  <!--
+  <div *ngIf="!sesion.esDueno() && !sesion.esSupervisor() && !sesion.esMaitre() && !sesion.esMozo() && !sesion.esCocinero() && !sesion.esBartender() && !sesion.esCliente()" style="padding:16px; text-align:center; opacity:.8;">
+    Rol no reconocido para: {{ u?.email || 'usuario' }}
+  </div>
+</ng-container> -->
+
+<ng-template #cargando>
+  <div style="padding: 24px; text-align:center; opacity:.7;">
+    <ion-spinner name="crescent"></ion-spinner>
+    <div style="margin-top:8px;">Cargando perfil…</div>
+  </div>
+</ng-template>
+
+<ng-container *ngIf="sesion.perfilCargado; else cargando">
+  <!-- Admin (Dueño/Supervisor) -->
+  <app-home-admin *ngIf="sesion.esDueno() || sesion.esSupervisor()"></app-home-admin>
+
+  <!-- Maître -->
+  <app-home-maitre *ngIf="sesion.esMaitre()"></app-home-maitre>
+
+  <!-- Mozo -->
+  <app-home-mozo *ngIf="sesion.esMozo()"></app-home-mozo>
+
+  <!-- Bartender / Cocinero -->
+  <app-home-bartender-cocinero *ngIf="sesion.esBartender() || sesion.esCocinero()"></app-home-bartender-cocinero>
+
+  <!-- Cliente -->
+  <app-home-cliente *ngIf="sesion.esCliente()"></app-home-cliente>
+
+  <!-- Fallback si cargó pero no hay perfil -->
+  <div *ngIf="!sesion.usuarioBD" style="padding:16px; text-align:center; opacity:.8;">
+    No encontramos tu perfil. Contactá a un supervisor para completar el alta.
+  </div>
+</ng-container>
+
+
+
+
+
+
+
+  <!-- FAB Salir -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-salir">
+    <ion-fab-button color="danger" (click)="logOut()">
+      <img src="assets/salir.jpg" alt="Salir" />
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+

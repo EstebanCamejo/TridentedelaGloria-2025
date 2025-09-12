@@ -1,0 +1,38 @@
+<ion-content class="pa-4">
+  <div class="admin-wrap">
+    <h2 class="title">Panel administrador</h2>
+
+    <ion-grid fixed>
+      <ion-row class="gap-y">
+        <ion-col size="12" sizeMd="6">
+          <ion-button expand="block" size="large" (click)="irAListaDeEspera()">
+            <ion-icon slot="start" name="checkmark-done-circle"></ion-icon>
+            Verificación de clientes
+          </ion-button>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <ion-button expand="block" size="large" color="secondary" (click)="irAAltaUsuarios()">
+            <ion-icon slot="start" name="person-add"></ion-icon>
+            Alta de usuarios (Dueño/Supervisor)
+          </ion-button>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <ion-button expand="block" size="large" color="tertiary" (click)="irAAltaMesa()">
+            <ion-icon slot="start" name="restaurant"></ion-icon>
+            Alta de mesa
+          </ion-button>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <ion-button expand="block" size="large" color="medium" (click)="irAResultados()">
+            <ion-icon slot="start" name="stats-chart"></ion-icon>
+            Resultados de encuestas
+          </ion-button>
+        </ion-col>
+        
+      </ion-row>
+    </ion-grid>
+  </div>
+</ion-content>

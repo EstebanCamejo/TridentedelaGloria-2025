@@ -1,7 +1,6 @@
+<!--
 <ion-header [translucent]="true">
   
-</ion-header>
-
 <ion-content fullscreen>
   <div class="wrapper">
 <div class="card with-badge">
@@ -36,4 +35,112 @@
   </div>
     </div>
   </div>
+</ion-content>
+
+-->
+
+<ion-header [translucent]="true"></ion-header>
+
+<ion-content fullscreen>
+  <div class="wrapper">
+    <div class="card with-badge">
+      <!-- Brand / logo -->
+      <div class="brand-badge" [class.drop-in]="logoReady">
+        <img src="assets/brand.png" alt="El Tridente de la Gloria" />
+      </div>
+
+      <h2 class="tittle">Iniciar Sesión</h2>
+
+      <!-- Formulario -->
+      <form (ngSubmit)="login()" #f="ngForm" novalidate>
+        <!-- EMAIL -->
+        <ion-item lines="full">
+          <ion-input
+            label="Correo"
+            label-placement="floating"
+            type="email"
+            placeholder="usuario@dominio.com"
+            [(ngModel)]="email"
+            name="email"
+            required
+            email
+            #emailCtrl="ngModel">
+          </ion-input>
+        </ion-item>
+        <div class="error" *ngIf="f.submitted && emailCtrl.invalid">
+          {{ emailCtrl.errors?.['required'] ? 'El correo es obligatorio.' : 'Ingresá un correo válido.' }}
+        </div>
+
+        <!-- PASSWORD -->
+        <ion-item lines="full" class="mt-2">
+          <ion-input
+            label="Contraseña"
+            label-placement="floating"
+            type="password"
+            placeholder="●●●●●●●●"
+            [(ngModel)]="password"
+            name="password"
+            required
+            minlength="8"
+            #passCtrl="ngModel">
+          </ion-input>
+        </ion-item>
+        <div class="error" *ngIf="f.submitted && passCtrl.invalid">
+          {{
+            passCtrl.errors?.['required']
+              ? 'La contraseña es obligatoria.'
+              : 'La contraseña debe tener al menos 8 caracteres.'
+          }}
+        </div>
+
+        <!-- Acciones -->
+        <ion-button expand="block" type="submit" class="mt-3" [disabled]="f.invalid" (click)="login()">
+          Iniciar sesión
+        </ion-button>
+
+        <ion-button expand="block" fill="clear" (click)="goToRegister()">
+          Registrarse
+        </ion-button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FAB: accesos rápidos por rol (igual a la app base; sin handlers nuevos por ahora) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button>
+      <ion-icon name="person-circle"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="start">
+      <!-- Dueño / Supervisor -->
+      <ion-fab-button color="primary" (click)="fastLoginDuenoSupervisor()" title="Dueño / Supervisor">
+        <ion-icon name="person-circle"></ion-icon>
+      </ion-fab-button>
+  
+      <!-- Maître -->
+      <ion-fab-button color="secondary" (click)="fastLoginMaitre()" title="Maître">
+        <ion-icon name="glasses"></ion-icon>
+      </ion-fab-button>
+  
+      <!-- Mozo -->
+      <ion-fab-button color="tertiary" (click)="fastLoginMozo()" title="Mozo">
+        <ion-icon name="footsteps"></ion-icon>
+      </ion-fab-button>
+  
+      <!-- Cocinero -->
+      <ion-fab-button color="warning" (click)="fastLoginCocinero()" title="Cocinero">
+        <ion-icon name="restaurant"></ion-icon>
+      </ion-fab-button>
+  
+      <!-- Bartender -->
+      <ion-fab-button color="medium" (click)="fastLoginBartender()" title="Bartender">
+        <ion-icon name="beer"></ion-icon>
+      </ion-fab-button>
+  
+      <!-- Cliente -->
+      <ion-fab-button color="success" (click)="fastLoginCliente()" title="Cliente">
+        <ion-icon name="body"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+  
 </ion-content>

@@ -1,9 +1,7 @@
 import { Routes } from '@angular/router';
 import { loginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
-
-import { Tab1Page } from './tab1/tab1.page';
-import { HomeComponent } from './home/tab2.page';
+import { HomeComponent } from './components/home/tab2.page';
 
 
 export const routes: Routes = [
@@ -23,5 +21,14 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {path: 'home',component: HomeComponent,pathMatch: 'full',},
+  { path: 'admin/pendientes', loadComponent: () =>
+    import('./components/admin/pendientes/pendientes.component').then(m => m.PendientesComponent) },
+  { path: 'admin/alta-usuario', loadComponent: () =>
+      import('./components/admin/alta-usuario/alta-usuario.component').then(m => m.AltaUsuarioComponent) },
+  { path: 'admin/alta-mesa', loadComponent: () =>
+      import('./components/admin/alta-mesa/alta-mesa.component').then(m => m.AltaMesaComponent) },
+  { path: 'admin/notas', loadComponent: () =>
+      import('./components/admin/resultados-encuestas/resultados-encuestas.component').then(m => m.ResultadosEncuestasComponent) },
+
 
 ];
