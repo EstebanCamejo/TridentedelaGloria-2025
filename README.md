@@ -42,10 +42,12 @@
 **Diseño**
 - Icono → *Sofia Dorbessan*  
 - Splash estático / animado → *Sofia Dorbessan* 
-- Splash estático / animado → *Sofia Dorbessan* 
+- Login → *Sofia Dorbessan*
+- Formulario registro cliente → *Sofia Dorbessan*
 
 **Gestión**
-- Creación de proyecto + vinculacion con Supabase → *Esteban Camejo*  
+- Creación de proyecto + vinculacion con Supabase → *Esteban Camejo*
+- Servicio admin + verificacion de correo → *Esteban Camejo*
 - Servicio de sesión / login / validación formularios → *Sofia Dorbessan*  
 
 ✅ **Entrega:** Video con Splash + Diseño de login + Diseño de registro y formularios validados
