@@ -89,24 +89,34 @@ input:focus{
 .msg-error{ color:#ffd1d1; font-weight:600; }
 .msg-error-strong{ color:#ffd1d1; font-weight:800; }
 .contenedor-subidas {
-  display:flex; flex-direction:column; align-items:center;
-  gap:10px; margin-bottom:10px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 10px;
 }
+
 .avatar-ctr {
   display:flex; align-items:center; justify-content:center;
-  width:88px; height:88px; border-radius:9999px; background:#d8c9d5;
+  width: 88px; height: 88px; border-radius: 9999px;
+  background: #7b2f2f; 
+  position: relative;
 }
 .avatar-ctr img {
-  width:74px; height:74px; border-radius:9999px; object-fit:cover;
-  background:#eee; border:2px solid #fff;
+  width: 74px; height: 74px; object-fit: cover; border-radius: 9999px;
+  background:#eee; border: 2px solid #fff;
 }
+
 .btn-subir {
-  --background:#B692C2; --background-activated:#a27fb5; --border-radius:10px;
-  height:36px; padding:0 14px; display:inline-flex; align-items:center; gap:8px;
-  font-weight:700;
+  --background: #7b2f2f; /* bordo */ 
+  --background-activated: #6a2727;
+  --color: #ffe9d3;      /* crema */
+  --border-radius: 10px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  height: clamp(32px, 5.2svh, 38px);
+  font-weight: 700;
+  letter-spacing: .2px;
 }
-.btn-subir ion-icon { font-size:18px; }
-.btn-subir p { margin:0; color:#fff; }
+.btn-subir:hover, .btn-scanner:hover{ filter: brightness(1.04); }
+
+/* input file oculto para fallback web */
 .file-hidden { display:none; }
 
 /* mensajes ya usados */

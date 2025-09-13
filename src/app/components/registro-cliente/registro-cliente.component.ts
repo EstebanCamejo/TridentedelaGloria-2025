@@ -7,7 +7,9 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Device } from '@capacitor/device';
 import { AppLauncher } from '@capacitor/app-launcher';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { IonButton, IonIcon,  IonContent,
+  IonHeader,
+ } from '@ionic/angular/standalone';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -19,7 +21,9 @@ import { BarcodeScanner, BarcodeFormat, PermissionStatus  } from '@capacitor-mlk
   standalone: true,
   templateUrl: './registro-cliente.component.html',
   styleUrls: ['./registro-cliente.component.scss'],
-  imports: [CommonModule, FormsModule,IonButton,IonIcon],   // ← quitamos IonContent
+  imports: [CommonModule, FormsModule,
+  IonButton,
+  IonIcon,],   // ← quitamos IonContent
 })
 export class RegistroClienteComponent {
   username = '';
@@ -163,30 +167,44 @@ private async ensureCameraPermission(): Promise<boolean> {
   return;
 }
 
-    // evitar doble envío
-    if (this.loading) return;
-    this.loading = true;
-    this.toastOk('Formulario válido. Registrando...');
+// evitar doble envío
+if (this.loading) return;
+this.loading = true;
+this.toastOk('Formulario válido. Registrando...');
 
-    this.auth.register(this.email, this.password)
-      .then(() => {
-        // limpiar
-        this.username = '';
-        this.apellido = '';
-        this.dni = '';
-        this.email = '';
-        this.password = '';
-        this.confirm = '';
-        registerForm.resetForm();
-        this.router.navigate(['/login']);
-      })
-      .catch((error: any) => {
-        const msg = this.mapRegisterError(error);
-        this.errorMsg = msg;
-        this.toastError(msg);
-        console.error('Register error:', error);
-      })
-      .finally(() => { this.loading = false; });
+// 👇 FLUJO COMPLETO: signUp + subir foto + insert en clientes_registrados
+this.auth.registrarClienteFlow(
+  {
+    tipo_registro: 'cliente',   // << este componente es el “cliente”
+    nombre: this.username,
+    apellido: this.apellido,
+    dni: this.dni,
+    email: this.email,
+    password: this.password,
+  },
+  this.photoFile // << se sube al bucket (avatars) si viene
+)
+.then(() => {
+  this.toastOk('Registro enviado. ¡Revisá tu correo si requiere confirmación!');
+  // limpiar
+  this.username = '';
+  this.apellido = '';
+  this.dni = '';
+  this.email = '';
+  this.password = '';
+  this.confirm = '';
+  this.photoFile = null;
+  this.photoPreview = null;
+  registerForm.resetForm();
+  this.router.navigate(['/login']);
+})
+.catch((error: any) => {
+  const msg = this.mapRegisterError(error);
+  this.errorMsg = msg;
+  this.toastError(msg);
+  console.error('Registrar cliente error:', error);
+})
+.finally(() => { this.loading = false; });
   }
   
 // Convierte un webPath/base64 a File para subirlo (Storage/backend)
