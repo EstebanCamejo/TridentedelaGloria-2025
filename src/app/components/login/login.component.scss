@@ -20,16 +20,48 @@
   --badge-size: clamp(88px, 22vw, 120px);
 }
 
+
+/* Botón de acción principal siempre bordó */
+.card ion-button[type="submit"]{
+  --background: var(--ion-color-primary) !important;
+  --background-activated: #6d2a2a;
+  --background-hover: #8a3e3e;
+  --color: var(--ion-color-primary-contrast);
+  --ripple-color: rgba(255,221,190,.35);
+}
+
+/* FAB principal siempre bordó (por si olvidás el color en el template) */
+ion-fab-button:not([color]){
+  --background: var(--ion-color-primary) !important;
+  --color: var(--ion-color-primary-contrast) !important;
+  --ripple-color: rgba(255,221,190,.35);
+}
+
+
+
 /* ===== Fondo general en borgoña suave ===== */
 body{ margin:0; }
 ion-content{
   --background: transparent;
-  min-height:100vh;
+  min-height: 100vh;
   background:
-    radial-gradient(110% 70% at 50% 10%, rgba(255,255,255,.06) 0%, transparent 55%),
-    radial-gradient(80% 55% at 50% 100%, rgba(123,47,47,.20) 0%, transparent 65%),
-    linear-gradient(180deg, #2a1717 0%, #1f1313 15%, #2b1614 100%);
-}
+    /* halo crema superior */
+    radial-gradient(110% 70% at 50% 8%,
+      rgba(255,221,190,.35) 0%,
+      rgba(255,221,190,.18) 22%,
+      transparent 60%
+    ),
+    /* viñeta bordó suave abajo */
+    radial-gradient(90% 60% at 50% 100%,
+      rgba(123,47,47,.18) 0%,
+      transparent 70%
+    ),
+    /* base más clara */
+    linear-gradient(180deg,
+      #4b2a2a 0%,
+      #3b2020 28%,
+      #4d2622 100%
+    );}
 
 /* ===== Card ===== */
 .wrapper{
@@ -46,6 +78,55 @@ ion-content{
   -webkit-backdrop-filter: blur(8px) saturate(1.05);
   padding: 22px 18px 18px;
   animation: fadeInUp .45s cubic-bezier(.2,.9,.35,1);
+}
+
+.card {
+  ion-item {
+    --background: linear-gradient(180deg, #f6ecdc, #fbf3e4);
+    --color: #673a2c;
+    --border-color: rgba(123,47,47,.25);
+    --inner-padding-end: 12px;
+    --inner-padding-start: 12px;
+    --padding-start: 0;
+    --highlight-color-focused: #e7dac4;   /* quita azul de foco */
+    --highlight-color-valid:   #e7dac4;
+    --highlight-color-invalid: #a34a4a;
+
+    border: 1.5px solid rgba(123,47,47,.18);
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+
+  ion-input {
+    --color: #673a2c;
+    --placeholder-color: #a88978;
+    --placeholder-opacity: 1;
+  }
+
+  /* Botón principal (bordó) */
+  ion-button[type="submit"] {
+    --background: var(--ion-color-primary);
+    --background-activated: #6d2a2a;
+    --background-hover: #8a3e3e;
+    --border-color: rgba(255,221,190,.6);
+    --ripple-color: rgba(255,221,190,.35);
+    font-weight: 700;
+    border-radius: 14px;
+  }
+
+  /* Botón “Registrarse” en modo clear con texto crema */
+  ion-button[fill="clear"] {
+    --color: #ffe4cc;
+    --color-activated: #fff1df;
+    --ripple-color: rgba(255,221,190,.35);
+    font-weight: 700;
+    border-radius: 14px;
+  }
+}
+
+/* FAB: ya usa color="primary/secondary/..." – ahora salen en tu paleta */
+ion-fab-button {
+  --ripple-color: rgba(255,221,190,.35);
 }
 
 /* Espacio vertical entre Email y Contraseña */

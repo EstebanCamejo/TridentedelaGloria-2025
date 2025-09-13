@@ -191,10 +191,5 @@ import { RegistroClienteAnonimoComponent } from '../registro-cliente-anonimo/reg
 export class RegisterComponent {
   // arranca en "usuario normal"
   ingresarAnonimo = false;
-
-
-
-
-
   
 }

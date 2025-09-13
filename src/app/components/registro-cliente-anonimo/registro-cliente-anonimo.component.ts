@@ -105,44 +105,102 @@ export class RegistroClienteAnonimoComponent {
     return 'No pudimos completar el registro. Intentá de nuevo.';
   }
 
+  // onSubmit(form: NgForm) {
+  //   this.errorMsg = '';
+  //   this.passwordsMismatch = false;
+
+  //   this.markAllAsTouched(form);
+  //   if (form.invalid) {
+  //     this.toastError('Por favor completá todos los campos correctamente.');
+  //     return;
+  //   }
+
+  //   if (this.password !== this.confirm) {
+  //     this.passwordsMismatch = true;
+  //     this.toastError('Las contraseñas no coinciden.');
+  //     return;
+  //   }
+
+  //   if (this.requirePhoto && !this.photoFile) {
+  //     this.toastError('Subí una foto de perfil para continuar.');
+  //     return;
+  //   }
+
+  //   if (this.loading) return;
+  //   this.loading = true;
+  //   this.toastOk('Formulario válido. Registrando...');
+
+  //   this.auth.register(this.email, this.password)
+  //     .then(() => {
+  //       this.nombre = this.email = this.password = this.confirm = '';
+  //       this.photoFile = null; this.photoPreview = null;
+  //       form.resetForm();
+  //       this.router.navigate(['/login']);
+  //     })
+  //     .catch((error: any) => {
+  //       const msg = this.mapRegisterError(error);
+  //       this.errorMsg = msg;
+  //       this.toastError(msg);
+  //       console.error('Register anon error:', error);
+  //     })
+  //     .finally(() => { this.loading = false; });
+  // }
+
   onSubmit(form: NgForm) {
-    this.errorMsg = '';
-    this.passwordsMismatch = false;
+  this.errorMsg = '';
+  this.passwordsMismatch = false;
 
-    this.markAllAsTouched(form);
-    if (form.invalid) {
-      this.toastError('Por favor completá todos los campos correctamente.');
-      return;
-    }
-
-    if (this.password !== this.confirm) {
-      this.passwordsMismatch = true;
-      this.toastError('Las contraseñas no coinciden.');
-      return;
-    }
-
-    if (this.requirePhoto && !this.photoFile) {
-      this.toastError('Subí una foto de perfil para continuar.');
-      return;
-    }
-
-    if (this.loading) return;
-    this.loading = true;
-    this.toastOk('Formulario válido. Registrando...');
-
-    this.auth.register(this.email, this.password)
-      .then(() => {
-        this.nombre = this.email = this.password = this.confirm = '';
-        this.photoFile = null; this.photoPreview = null;
-        form.resetForm();
-        this.router.navigate(['/login']);
-      })
-      .catch((error: any) => {
-        const msg = this.mapRegisterError(error);
-        this.errorMsg = msg;
-        this.toastError(msg);
-        console.error('Register anon error:', error);
-      })
-      .finally(() => { this.loading = false; });
+  this.markAllAsTouched(form);
+  if (form.invalid) {
+    this.toastError('Por favor completá todos los campos correctamente.');
+    return;
   }
+
+  if (this.password !== this.confirm) {
+    this.passwordsMismatch = true;
+    this.toastError('Las contraseñas no coinciden.');
+    return;
+  }
+
+  if (this.requirePhoto && !this.photoFile) {
+    this.toastError('Subí una foto de perfil para continuar.');
+    return;
+  }
+
+  if (this.loading) return;
+  this.loading = true;
+  this.toastOk('Formulario válido. Registrando...');
+
+  // 👇 FLUJO COMPLETO: signUp + (subir foto) + insert en clientes_registrados
+  this.auth.registrarClienteFlow(
+    {
+      tipo_registro: 'anonimo',
+      nombre: this.nombre,
+      email: this.email,
+      password: this.password,
+      // (sin apellido ni dni)
+    },
+    this.photoFile // se sube al bucket 'avatars' si viene
+  )
+  .then(() => {
+    this.toastOk('Registro enviado. ¡Revisá tu correo si requiere confirmación!');
+    // limpiar
+    this.nombre = '';
+    this.email = '';
+    this.password = '';
+    this.confirm = '';
+    this.photoFile = null;
+    this.photoPreview = null;
+    form.resetForm();
+    this.router.navigate(['/login']);
+  })
+  .catch((error: any) => {
+    const msg = this.mapRegisterError(error);
+    this.errorMsg = msg;
+    this.toastError(msg);
+    console.error('Registrar anónimo error:', error);
+  })
+  .finally(() => { this.loading = false; });
+}
+
 }

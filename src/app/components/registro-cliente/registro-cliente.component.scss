@@ -17,16 +17,17 @@
   --badge-size: clamp(96px, 22vw, 148px);
   --badge-y: -70%;
   --badge-clearance: clamp(92px, 16vw, 132px);
+  --panel-max: 340px;
 }
 
 /* Contenedor interno (no ocupa toda la pantalla porque vive dentro del card del padre) */
 .wrapper{
-  position: relative;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding: clamp(12px, 2vh, 20px);
+  max-width: var(--panel-max);      /* antes 560 */
+  padding: clamp(8px, 1.6svh, 14px) /* arriba */
+           clamp(10px, 4vw, 16px)   /* laterales */
+           clamp(10px, 1.8svh, 14px);/* abajo */
+  gap: clamp(6px, 1vh, 10px);       /* menos aire entre bloques */
+  margin-inline: auto;
 }
 
 /* El form con look de “card” */
@@ -42,10 +43,10 @@
   padding: 22px 18px 18px;
   position: relative;
   overflow: visible;
-
-  /* espacio para el badge */
   padding-top: calc(100px + var(--badge-clearance));
   margin-top:  calc(var(--badge-clearance) * .35);
+  padding-bottom: clamp(8px, 1svh, 12px); /* antes era más grande */
+  margin-bottom: 8px;  
 }
 
 /* Badge */
@@ -125,13 +126,13 @@ input:focus{
 }
 /* Avatar + botón subir foto (look de tu ejemplo) */
 .contenedor-subidas {
-  display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 1px; margin-bottom: 7px;
 }
 
 .avatar-ctr {
   display:flex; align-items:center; justify-content:center;
   width: 88px; height: 88px; border-radius: 9999px;
-  background: #d8c9d5; /* lila suave */
+  background: #7b2f2f; 
   position: relative;
 }
 .avatar-ctr img {
@@ -140,17 +141,17 @@ input:focus{
 }
 
 .btn-subir {
-  --background: #B692C2;    /* violeta */
-  --background-activated: #a27fb5;
-  --background-focused: #a27fb5;
+  --background: #7b2f2f; /* bordo */ 
+  --background-activated: #6a2727;
+  --color: #ffe9d3;      /* crema */
   --border-radius: 10px;
-  height: 36px;
-  padding: 0 14px;
-  display: inline-flex; align-items: center; gap: 8px;
-  font-weight: 700; letter-spacing: .3px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  height: clamp(32px, 5.2svh, 38px);
+  font-weight: 700;
+  letter-spacing: .2px;
 }
-.btn-subir ion-icon { font-size: 18px; }
-.btn-subir p { margin: 0; font-weight: 700; color: #fff; }
+.btn-subir:hover, .btn-scanner:hover{ filter: brightness(1.04); }
 
 /* input file oculto para fallback web */
 .file-hidden { display:none; }

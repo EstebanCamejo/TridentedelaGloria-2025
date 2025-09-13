@@ -1,3 +1,48 @@
 // For information on how to create your own theme, please see:
 
 // http://ionicframework.com/docs/theming/
+/* src/theme/variables.scss */
+/* src/theme/variables.scss */
+
+/* ===== Paleta Tridente ===== */
+:root {
+  /* Bordó */
+  --ion-color-primary: #7b2f2f;
+  --ion-color-primary-rgb: 123,47,47;
+  --ion-color-primary-contrast: #fff8ef;
+  --ion-color-primary-contrast-rgb: 255,248,239;
+  --ion-color-primary-shade: #6d2a2a;
+  --ion-color-primary-tint: #8a3e3e;
+
+  /* Crema */
+  --ion-color-secondary: #f6ecdc;
+  --ion-color-secondary-rgb: 246,236,220;
+  --ion-color-secondary-contrast: #3b2a2a;
+  --ion-color-secondary-contrast-rgb: 59,42,42;
+  --ion-color-secondary-shade: #d9d1c3;
+  --ion-color-secondary-tint: #f7efe2;
+
+  /* Apoyo (títulos/acentos suaves) */
+  --ion-color-tertiary: #e7dac4;
+  --ion-color-tertiary-rgb: 231,218,196;
+  --ion-color-tertiary-contrast: #3b2a2a;
+  --ion-color-tertiary-contrast-rgb: 59,42,42;
+  --ion-color-tertiary-shade: #cbbfae;
+  --ion-color-tertiary-tint: #ede3d2;
+
+  /* Texto “tinta” */
+  --ion-color-medium: #6b5858;
+  --ion-color-medium-rgb: 107,88,88;
+  --ion-color-medium-contrast: #fffaf2;
+
+  /* Éxito/Warning ajustados a la estética */
+  --ion-color-success: #5a8a62;
+  --ion-color-warning: #cfa24a;
+  --ion-color-danger:  #a34a4a;
+
+  /* Fondo de items por defecto (evita negro) */
+  --ion-item-background: #fbf3e4;
+
+  /* Ripple y focus (evita azul) */
+  --ion-color-step-450: #d9c8b7;
+}
