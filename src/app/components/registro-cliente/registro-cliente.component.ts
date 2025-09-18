@@ -224,9 +224,15 @@ async subirFotoClick() {
       const img = await Camera.getPhoto({
         quality: 75,
         resultType: CameraResultType.Uri,
-        source: CameraSource.Prompt,   // cámara o galería
+        source: CameraSource.Prompt,   // mostrará el action sheet
         allowEditing: false,
         saveToGallery: false,
+
+        // 👇 Etiquetas en español
+        promptLabelHeader: 'Foto',
+        promptLabelPhoto: 'Elegir de la galería',
+        promptLabelPicture: 'Tomar foto',
+        promptLabelCancel: 'Cancelar',
       });
 
       if (img?.webPath) {

@@ -59,6 +59,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { HomeComponent } from './components/home/tab2.page';
 import { RegistroClienteAnonimoComponent } from './components/registro-cliente-anonimo/registro-cliente-anonimo.component';
 import { RegistroClienteComponent } from './components/registro-cliente/registro-cliente.component';
+import { HomeClienteComponent } from './components/home-cliente/home-cliente.component';
 
 export const routes: Routes = [
   {
@@ -89,6 +90,11 @@ export const routes: Routes = [
   {
     path: 'registro-cliente-anonimo',
     component: RegistroClienteAnonimoComponent,
+    pathMatch: 'full',
+  },
+    {
+    path: 'home-cliente',
+    component: HomeClienteComponent,
     pathMatch: 'full',
   },
   {

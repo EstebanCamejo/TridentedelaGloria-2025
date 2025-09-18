@@ -10,7 +10,7 @@ import { HomeMozoComponent } from '../home-mozo/home-mozo.component';
 import { HomeClienteComponent } from '../home-cliente/home-cliente.component';
 import { HomeMaitreComponent } from '../home-maitre/home-maitre.component';
 import { HomeBartenderCocineroComponent } from '../home-bartender-cocinero/home-bartender-cocinero.component';
-
+import { SpinnerService } from 'src/app/services/spinner.service';
 
 import {  
   IonHeader,
@@ -39,12 +39,14 @@ import { CommonModule } from '@angular/common';
 export class HomeComponent implements OnInit, OnDestroy{
 
   user: string = 'No user logged in'
-
+cargando: boolean = false;
+ loading = false; 
   constructor(
     private toastr: ToastrService,
     private router: Router,
     private supabaseService: SupabaseService,
     public sesion: SesionService,
+     private spinner: SpinnerService, 
   ) {}
   
   private authSub?: { unsubscribe: () => void };
@@ -79,16 +81,34 @@ export class HomeComponent implements OnInit, OnDestroy{
     this.authSub?.unsubscribe();
   }
 
-  logOut() {
-    this.supabaseService.logout()
-      .then(() => {
-        this.toastr.success('Sesión cerrada', '', { positionClass: 'toast-center' });
-        this.router.navigate(['/login']);
-      })
-      .catch((error) => {
-        console.error('Error logging out:', error);
-        this.toastr.error('Error logging out: ' + (error?.message || ''));
-      });
+  // logOut() {
+  //   this.supabaseService.logout()
+  //     .then(() => {
+  //       this.toastr.success('Sesión cerrada', '', { positionClass: 'toast-center' });
+  //       this.router.navigate(['/login']);
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error logging out:', error);
+  //       this.toastr.error('Error logging out: ' + (error?.message || ''));
+  //     });
+  // }
+  async logOut() {
+  if (this.loading) return;
+  this.loading = true;
+  this.cargando = true;   // 👈 muestra overlay
+
+  try {
+    await this.supabaseService.logout();
+
+    this.toastr.success('Sesión cerrada', '', { positionClass: 'toast-center' });
+    await this.router.navigate(['/login']);
+  } catch (error: any) {
+    console.error('Error logging out:', error);
+    this.toastr.error('Error logging out: ' + (error?.message || ''));
+  } finally {
+    this.cargando = false; // 👈 oculta overlay
+    this.loading = false;
   }
+}
   
 }

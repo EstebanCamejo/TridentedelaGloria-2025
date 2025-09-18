@@ -256,12 +256,12 @@
   font-family:"Cinzel", serif;
   font-weight:700;
   text-transform:uppercase;
-  font-size: clamp(1.2rem, 2.4vw, 1.75rem);
+  font-size: clamp(1.6rem, 4.8vmin, 3rem);
   line-height:1.2;
-  letter-spacing:.06em;
+  letter-spacing:.08em;
   text-shadow:
     0 1px 0 rgba(0,0,0,.25),
-    0 10px 28px rgba(0,0,0,.25);
+    0 14px 32px rgba(0,0,0,.32);
   animation: fadeInDown .8s ease-out .35s both;
 }
 
@@ -302,8 +302,8 @@
 /* Nombres */
 .splash-text.name{
   font-family:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-weight:500;
-  font-size: clamp(1rem, 1.8vw, 1.12rem);
+  font-weight:700;
+  font-size: clamp(2rem, 2vw, 2rem);
   color:var(--ink-soft);
   letter-spacing:.015em;
   text-shadow: 0 1px 0 rgba(0,0,0,.25);
@@ -342,4 +342,167 @@
 /* Accesibilidad */
 @media (prefers-reduced-motion: reduce){
   .splash-text,.splash-image{ animation:none !important; opacity:1 !important; }
+}
+/* ===== Ajustes pedidos: subir nombres, más espacio, fondo a cada nombre y logo más grande ===== */
+
+/* Logo más grande y contenido sin desbordes */
+.splash-image{
+  width: clamp(440px, 74vmin, 760px);   /* ↑ tamaño */
+  max-height: 65vh;                     /* evita tapar textos en pantallas bajas */
+}
+
+/* Bloque de nombres: más arriba y más separación entre ellos */
+.splash-names{
+  gap: clamp(.5rem, 1.8vh, 1.2rem);     /* ↑ espacio entre nombres */
+  margin-bottom: clamp(2rem, 10vh, 8rem);/* ↑ espacio inferior => los empuja hacia arriba */
+}
+
+/* Cada nombre con “pill” de fondo */
+.splash-text.name{
+  color: var(--ink);
+  font-weight: 700;
+  display: inline-flex;                  /* para que el fondo se ajuste al texto */
+  align-items: center;
+  padding: .35rem .75rem;                /* colchón del pill */
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(123,47,47,.22), rgba(123,47,47,.12));
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow:
+    0 4px 18px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.12);
+  backdrop-filter: blur(2px);            /* sutil vidrio esmerilado (si hay soporte) */
+}
+
+/* Un poquito más de aire vertical en pantallas muy altas */
+@media (min-height: 900px){
+  .splash-names{ margin-bottom: clamp(3rem, 14vh, 10rem); }
+}
+
+/* Compatibilidad: usar 100dvh cuando exista para ocupar pantalla real en mobile */
+@supports (height: 100dvh){
+  .splash-container{ height: 100dvh; }
+}
+/* ===== Fondo del SPLASH igual al de Inicio de Sesión ===== */
+@supports (height: 100dvh){
+  .splash-container{ height: 100dvh; }
+}
+.splash-container{
+  /* mismo stack de gradients que en ion-content del login */
+  background:
+    /* halo crema superior */
+    radial-gradient(110% 70% at 50% 8%,
+      rgba(255,221,190,.35) 0%,
+      rgba(255,221,190,.18) 22%,
+      transparent 60%
+    ),
+    /* viñeta bordó suave abajo */
+    radial-gradient(90% 60% at 50% 100%,
+      rgba(123,47,47,.18) 0%,
+      transparent 70%
+    ),
+    /* base más clara */
+    linear-gradient(180deg,
+      #4b2a2a 0%,
+      #3b2020 28%,
+      #4d2622 100%
+    );
+}
+
+/* (opcional) Ajuste leve para que los nombres destaquen más en el nuevo fondo */
+.splash-text.name{
+  background: linear-gradient(180deg, rgba(255,243,228,.22), rgba(255,243,228,.12));
+  border: 1px solid rgba(255,243,228,.28);
+  color: #fff8ef;
+}
+/* ====== Loading con logo de la marca ====== */
+.brand-loading::part(backdrop) {
+  --backdrop-opacity: 0.32;
+}
+
+.brand-loading::part(message) {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ion-text-color, #fff);
+  opacity: .9;
+}
+
+.brand-loading::part(content) {
+  background: rgba(61,43,43,.92); /* bordeó/ink de tu paleta */
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: 0 12px 36px rgba(61,43,43,.35);
+  display: grid;
+  justify-items: center;
+  row-gap: 10px;
+}
+
+/* Reemplaza el spinner por el logo animado */
+.brand-loading::part(content)::before {
+  content: '';
+  width: 92px;
+  height: 92px;
+  background: url('src/assets/brand.png') center / contain no-repeat; /* 👈 tu logo */
+  animation: brand-rotate 1.2s linear infinite;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.25));
+  margin-bottom: 6px;
+}
+
+@keyframes brand-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Tema claro/crema opcional */
+@media (prefers-color-scheme: light) {
+  .brand-loading::part(content) {
+    background: #5d2222; /* maroon-700 */
+  }
+}
+
+
+/* ====== Loading con icono tridente+tenedor ====== */
+
+/* 👇 Reemplazamos el spinner por tu icono girando */
+/* ===== Loading con icono girando (sobre el mensaje) ===== */
+.brand-loading::part(backdrop) { --backdrop-opacity: .32; }
+
+.brand-loading::part(content) {
+  background: rgba(61,43,43,.92);
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: 0 12px 36px rgba(61,43,43,.35);
+  display: grid;
+  justify-items: center;
+}
+
+/* El mensaje visible */
+.brand-loading::part(message) {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #fff;
+  opacity: .9;
+  margin-top: 8px;           /* deja espacio bajo el icono */
+  text-align: center;
+  position: relative;
+}
+
+/* 👇 Icono girando ANCLADO AL MENSAJE (esto siempre aparece) */
+.brand-loading::part(message)::before {
+  content: '';
+  display: block;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 8px auto;
+  background: url('src/assets/spinner-icono.png') center/contain no-repeat; /* OJO: assets/, no src/assets */
+  animation: brand-rotate 1.2s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(122,30,30,.6));
+}
+
+@keyframes brand-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* tema claro opcional */
+@media (prefers-color-scheme: light) {
+  .brand-loading::part(content) { background: #5d2222; }
 }

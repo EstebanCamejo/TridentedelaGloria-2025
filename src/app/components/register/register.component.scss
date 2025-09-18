@@ -54,3 +54,183 @@
 
 .form-container { display: flex; flex-direction: column; gap: 12px; }
 .toggle { margin-top: 12px; display: flex; justify-content: center; color: #3b2a2a; }
+
+
+/* input file oculto para fallback web */
+.file-hidden { display:none; }
+/* Sólo quienes tengan .has-wallpaper muestran el fondo */
+.has-wallpaper { --background: transparent !important; }
+.has-wallpaper::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  background: url("src/assets/fondoElTridente.png") center/cover no-repeat;
+  pointer-events: none;
+  z-index: -1;
+}
+/* Panel translúcido consistente con Login */
+.register-form{
+  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(61,43,43,.22), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+}
+
+/* Inputs y botones legibles sobre el wallpaper */
+.register-form input{
+  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
+}
+
+///nuevo
+
+
+:root{
+  /* tokens base */
+  --cream-25:#fbf3e4; --cream-50:#f6ecdc; --cream-200:#e7dac4;
+  --maroon-600:#7b2f2f; --ink:#3b2a2a; --shadow:0 10px 28px rgba(61,43,43,.22);
+
+  /* ====== escalables (se pisan en los breakpoints) ====== */
+  --panel-max: 340px;          /* ancho máximo del contenido interno */
+  --avatar: 88px;              /* diámetro avatar */
+  --avatar-img: 74px;          /* imagen adentro */
+  --input-h: 46px;             /* alto inputs */
+  --radius: 14px;              /* radios generales */
+  --pad-x: 18px;               /* padding horizontal form */
+  --pad-y: 18px;               /* padding vertical form */
+  --gap: 12px;                 /* separación vertical entre campos */
+  --badge-clearance: 92px;     /* si usas badge arriba del form */
+}
+
+/* ====== Breakpoints por ANCHO ====== */
+@media (max-width: 359px){          /* XS */
+  :root{
+    --panel-max: 300px;
+    --avatar: 72px; --avatar-img: 60px;
+    --input-h: 42px; --radius: 12px;
+    --pad-x: 14px; --pad-y: 14px;
+    --gap: 10px; --badge-clearance: 80px;
+  }
+}
+@media (min-width:360px) and (max-width:399px){ /* SM */
+  :root{
+    --panel-max: 320px;
+    --avatar: 80px; --avatar-img: 66px;
+    --input-h: 44px; --pad-x: 16px; --pad-y: 16px;
+  }
+}
+@media (min-width:400px) and (max-width:479px){  /* MD */
+  :root{ --panel-max: 340px; }
+}
+@media (min-width:480px) and (max-width:599px){  /* LG */
+  :root{
+    --panel-max: 380px;
+    --avatar: 96px; --avatar-img: 80px;
+    --input-h: 48px; --pad-x: 20px; --pad-y: 20px;
+  }
+}
+@media (min-width:600px){                         /* XL */
+  :root{
+    --panel-max: 420px;
+    --avatar: 110px; --avatar-img: 92px;
+    --input-h: 50px; --radius: 16px;
+    --pad-x: 22px; --pad-y: 22px; --gap: 14px;
+  }
+}
+
+/* ====== Breakpoints por ALTO útil ====== */
+@media (max-height: 640px){        /* pantallas “bajas” */
+  :root{
+    --pad-y: 12px; --gap: 10px;
+    --badge-clearance: 72px;
+  }
+}
+@media (max-height: 560px){        /* muy poco alto (teclado/landscape) */
+  :root{
+    --pad-y: 8px; --gap: 8px;
+    --input-h: 42px;
+  }
+}
+
+/* ====== Layout ====== */
+.wrapper{
+  max-width: var(--panel-max);
+  padding: clamp(8px, 1.6svh, 14px) clamp(10px, 4vw, 16px);
+  margin-inline: auto;
+}
+
+.register-form{
+  width: 100%;
+  max-width: min(100%, calc(var(--panel-max) + 40px));
+  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  padding: calc(var(--badge-clearance) + 12px) var(--pad-x) var(--pad-y);
+  margin: clamp(6px, 1.6svh, 12px) auto 8px;
+}
+
+/* Grilla vertical del form */
+.form-group + .form-group{ margin-top: var(--gap); }
+
+input[type="text"], input[type="email"], input[type="password"], input[type="number"]{
+  width:100%; height: var(--input-h); padding: 0 12px; border-radius: 12px;
+  border:1.5px solid rgba(255,221,190,.55);
+  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
+  color:#151313; font-size: clamp(.95rem, 2.6vw, 1rem);
+}
+
+/* Avatar y botones de carga */
+.contenedor-subidas{
+  display:flex; flex-direction:column; align-items:center;
+  gap: 6px; margin-bottom: 8px;
+}
+
+.avatar-ctr{
+  width: var(--avatar); height: var(--avatar);
+  border-radius: 9999px; background:#7b2f2f; display:flex; align-items:center; justify-content:center;
+}
+.avatar-ctr img{
+  width: var(--avatar-img); height: var(--avatar-img);
+  border-radius: 9999px; object-fit: cover; background:#eee; border:2px solid #fff;
+}
+
+/* Botón subir foto: tamaño adaptativo */
+.btn-subir{
+  --background:#7b2f2f; --background-activated:#6a2727; --color:#ffe9d3;
+  --padding-start: 14px; --padding-end: 14px;
+  height: clamp(32px, 5.2svh, 40px);
+  font-size: clamp(.85rem, 2.8vw, .95rem);
+  border-radius: 10px;
+}
+
+/* Escáner DNI: mismo look */
+.btn-scanner{
+  --background:#3f1717; --background-activated:#341212; --color:#ffe9d3;
+  --padding-start: 14px; --padding-end: 14px;
+  height: clamp(32px, 5.2svh, 40px);
+  font-size: clamp(.85rem, 2.8vw, .95rem);
+  border-radius: 10px;
+}
+
+/* Botón enviar */
+.buttonLogin{
+  height: clamp(40px, 6svh, 48px);
+  border-radius: 14px;
+  border:2px solid rgba(255,221,190,.65);
+  color:#1b0f0f; background:#ffe9d3;
+  font-size: clamp(.95rem, 3vw, 1.05rem);
+  margin-top: 10px;
+}
+
+/* Oculta overflow si se llega a desbordar por el teclado */
+:host{ display:block; overflow: hidden; }
+
+/* Landscape muy bajo: reduce aún más paddings/altos */
+@media (orientation: landscape) and (max-height: 420px){
+  .register-form{ padding: 10px var(--pad-x); }
+  .buttonLogin{ height: 38px; }
+}
