@@ -1,49 +1,161 @@
+<!-- <ion-header>
+  <ion-toolbar>
+    <ion-title>Clientes pendientes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="refresh"
+      pullingText="Deslizá para actualizar"
+      refreshingSpinner="lines"
+      refreshingText="Actualizando...">
+    </ion-refresher-content>
+  </ion-refresher>
+
+
+  <ion-searchbar
+    placeholder="Buscar por nombre o email"
+    (ionInput)="onSearchChange($event)"
+    debounce="300">
+  </ion-searchbar>
+
+
+  <ion-list *ngIf="!loading && filtered.length; else estado">
+    <ion-item *ngFor="let it of filtered; trackBy: trackById">
+      <ion-avatar slot="start">
+        <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
+      </ion-avatar>
+
+      <ion-label>
+        <h2>{{ it.nombres }} {{ it.apellidos }}</h2>
+        <p class="email">{{ it.email }}</p>
+        <div class="meta">
+          <ion-badge color="medium">pendiente</ion-badge>
+          <small>Creado: {{ it.created_at | date:'short' }}</small>
+        </div>
+      </ion-label>
+
+      <ion-button
+        fill="clear"
+        color="success"
+        [disabled]="loading || actionBusyId === it.id"
+        (click)="confirmarAprobacion(it)"
+        aria-label="Aprobar">
+        <ion-icon name="checkmark-circle" slot="icon-only"></ion-icon>
+      </ion-button>
+
+      <ion-button
+        fill="clear"
+        color="danger"
+        [disabled]="loading || actionBusyId === it.id"
+        (click)="confirmarRechazo(it)"
+        aria-label="Rechazar">
+        <ion-icon name="close-circle" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <ng-template #estado>
+    <div class="estado-ctr">
+      <ng-container *ngIf="loading; else vacio">
+        <p>Cargando pendientes…</p>
+      </ng-container>
+      <ng-template #vacio>
+        <p>No hay clientes en espera.</p>
+        <ion-button size="small" (click)="load()">Refrescar</ion-button>
+      </ng-template>
+    </div>
+  </ng-template>
+</ion-content> -->
 <ion-header>
   <ion-toolbar>
     <ion-title>Clientes pendientes</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content [fullscreen]="true">
+  <!-- Pull to refresh -->
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
+    <ion-refresher-content
+      pullingIcon="refresh"
+      pullingText="Deslizá para actualizar"
+      refreshingSpinner="lines"
+      refreshingText="Actualizando...">
+    </ion-refresher-content>
   </ion-refresher>
 
-  <div *ngIf="loading" style="padding:16px; opacity:.7;">Cargando…</div>
+  <!-- Search -->
+  <ion-searchbar
+    placeholder="Buscar por nombre o email"
+    (ionInput)="search($event.detail?.value || '')"
+    debounce="300">
+  </ion-searchbar>
 
-  <ion-searchbar placeholder="Buscar por nombre o email" (ionInput)="search($event.detail.value)"></ion-searchbar>
-
-  <ion-list *ngIf="!loading && filtered.length">
+  <!-- Lista -->
+  <ion-list *ngIf="!loading && filtered.length; else estado">
+    <!-- quité trackBy para evitar error si no existe el método -->
     <ion-item *ngFor="let it of filtered">
       <ion-avatar slot="start">
-        <img *ngIf="it.foto_url" [src]="it.foto_url" alt="foto" />
-        <div *ngIf="!it.foto_url"
-             style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#333;color:#fff;border-radius:50%;">
-          {{ (it.nombres || '?')[0] }}
-        </div>
+        <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
       </ion-avatar>
 
       <ion-label>
-        <h3>{{ it.nombres }} {{ it.apellidos }}</h3>
-        <p>{{ it.email }}</p>
+        <h2>{{ it.nombres }} {{ it.apellidos }}</h2>
+        <p class="email">{{ it.email }}</p>
+        <div class="meta">
+          <ion-badge color="medium">pendiente</ion-badge>
+          <small>Creado: {{ it.created_at | date:'short' }}</small>
+        </div>
       </ion-label>
 
-      <ion-badge slot="end" color="warning">pendiente</ion-badge>
-
-      <ion-button fill="clear" color="success" slot="end"
-            (click)="approve(it); $event.stopPropagation()">
+    <!-- Aprobar -->
+    <ion-button
+      fill="clear"
+      color="success"
+      [disabled]="loading || loadingId === it.id"
+      (click)="confirmarAprobacion(it)"
+      [attr.aria-busy]="loadingId === it.id ? 'true' : null"
+      aria-label="Aprobar">
+      <ng-container *ngIf="loadingId === it.id; else approveIcon">
+        <ion-spinner slot="icon-only"></ion-spinner>
+      </ng-container>
+      <ng-template #approveIcon>
         <ion-icon name="checkmark-circle" slot="icon-only"></ion-icon>
-      </ion-button>
+      </ng-template>
+    </ion-button>
 
-      <ion-button fill="clear" color="danger" slot="end"
-                  (click)="reject(it); $event.stopPropagation()">
+    <!-- Rechazar -->
+    <ion-button
+      fill="clear"
+      color="danger"
+      [disabled]="loading || loadingId === it.id"
+      (click)="confirmarRechazo(it)"
+      [attr.aria-busy]="loadingId === it.id ? 'true' : null"
+      aria-label="Rechazar">
+      <ng-container *ngIf="loadingId === it.id; else rejectIcon">
+        <ion-spinner slot="icon-only"></ion-spinner>
+      </ng-container>
+      <ng-template #rejectIcon>
         <ion-icon name="close-circle" slot="icon-only"></ion-icon>
-      </ion-button>
+      </ng-template>
+    </ion-button>
 
     </ion-item>
   </ion-list>
 
-  <div *ngIf="!loading && !filtered.length" style="padding:16px; opacity:.7;">
-    No hay clientes pendientes.
-  </div>
+  <!-- Estados: cargando o vacío -->
+  <ng-template #estado>
+    <div class="estado-ctr">
+      <ng-container *ngIf="loading; else vacio">
+        <p>Cargando pendientes…</p>
+      </ng-container>
+      <ng-template #vacio>
+        <p>No hay clientes en espera.</p>
+        <ion-button size="small" (click)="load()">Refrescar</ion-button>
+      </ng-template>
+    </div>
+  </ng-template>
 </ion-content>

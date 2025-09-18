@@ -1,0 +1,7 @@
+{
+  "compilerOptions": { "lib": ["deno.ns", "dom"] },
+  "imports": {
+    "@std/http": "jsr:@std/http@0.224.0",
+    "resend": "npm:resend@3"
+  }
+}

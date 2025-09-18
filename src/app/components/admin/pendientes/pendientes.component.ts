@@ -4,22 +4,13 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonList, IonItem, IonLabel, IonAvatar, IonBadge,
   IonButton, IonIcon, IonRefresher, IonRefresherContent,
-  IonSearchbar
+  IonSearchbar, IonSpinner            
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkCircle, closeCircle, refresh } from 'ionicons/icons';
-import { SupabaseService } from 'src/app/services/supabase.service';
 import { ToastrService } from 'ngx-toastr';
-
-type PendingClient = {
-  id: string;
-  auth_id: string;
-  email: string;
-  nombres: string;
-  apellidos: string;
-  foto_url?: string | null;
-  created_at: string;
-};
+import { AdminPendientesService, PendingClient } from 'src/app/services/admin-pendientes.service';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-pendientes',
@@ -29,7 +20,7 @@ type PendingClient = {
     IonContent, IonHeader, IonToolbar, IonTitle,
     IonList, IonItem, IonLabel, IonAvatar, IonBadge,
     IonButton, IonIcon, IonRefresher, IonRefresherContent,
-    IonSearchbar
+    IonSearchbar, IonSpinner            
   ],
   templateUrl: './pendientes.component.html',
 })
@@ -37,27 +28,22 @@ export class PendientesComponent implements OnInit, OnDestroy {
   loading = true;
   items: PendingClient[] = [];
   filtered: PendingClient[] = [];
-  chanSub?: ReturnType<typeof this.supa.client.channel>;
+  chanSub?: ReturnType<AdminPendientesService['watch']>;
+
+  /** Evita doble clic por ítem */
+  loadingId: string | null = null;
 
   constructor(
-    private supa: SupabaseService,
-    private toast: ToastrService
+    private srv: AdminPendientesService,
+    private toast: ToastrService,
+    private alertCtrl: AlertController
   ) {
     addIcons({ checkmarkCircle, closeCircle, refresh });
   }
 
   async ngOnInit() {
     await this.load();
-
-    // Realtime: refrescar cuando cambie la tabla usuarios
-    this.chanSub = this.supa.client
-      .channel('usuarios-pendientes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'usuarios' },
-        () => this.load(false)
-      )
-      .subscribe();
+    this.chanSub = this.srv.watch(() => this.load(false));
   }
 
   ngOnDestroy(): void {
@@ -67,11 +53,10 @@ export class PendientesComponent implements OnInit, OnDestroy {
   async load(withSpinner = true) {
     try {
       if (withSpinner) this.loading = true;
-      const data = await this.supa.getPendingClients();
-      this.items = data as PendingClient[];
+      this.items = await this.srv.list();
       this.filtered = this.items;
     } catch (e: any) {
-      this.toast.error(e.message || 'Error cargando pendientes');
+      this.toast.error(e?.message || 'Error cargando pendientes');
     } finally {
       this.loading = false;
     }
@@ -81,9 +66,9 @@ export class PendientesComponent implements OnInit, OnDestroy {
     this.load(false).finally(() => (ev.target as any).complete());
   }
 
-
+  /** Llamada desde (ionInput) del searchbar */
   search(q: string | null | undefined) {
-    const s = (q ?? '').toLowerCase();
+    const s = (q || '').trim().toLowerCase();
     this.filtered = !s
       ? this.items
       : this.items.filter(it =>
@@ -91,30 +76,110 @@ export class PendientesComponent implements OnInit, OnDestroy {
           it.email.toLowerCase().includes(s)
         );
   }
-  
 
-    async approve(it: PendingClient) {
-      console.log('[approve]', it.id);  
-      try {
-        await this.supa.approveClient(it.id);
-        this.toast.success(`Aprobado: ${it.nombres} ${it.apellidos}`);
-        await this.load(false);
-      } catch (e: any) {
-        console.error('[approve][error]', e); 
-        this.toast.error(e.message || 'No se pudo aprobar');
-      }
+  async approve(it: PendingClient) {
+    if (this.loadingId) return;
+    this.loadingId = it.id;
+    try {
+      await this.srv.approve(it.id, it.email, it.nombres, it.apellidos);
+      this.toast.success(`Aprobado: ${it.nombres} ${it.apellidos}`);
+      await this.load(false);
+    } catch (e: any) {
+      this.toast.error(e?.message || 'No se pudo aprobar');
+    } finally {
+      this.loadingId = null;
     }
-    
-    async reject(it: PendingClient) {
-      console.log('[reject]', it.id);  
-      try {
-        await this.supa.rejectClient(it.id);
-        this.toast.info(`Rechazado: ${it.nombres} ${it.apellidos}`);
-        await this.load(false);
-      } catch (e: any) {
-        console.error('[reject][error]', e); 
-        this.toast.error(e.message || 'No se pudo rechazar');
-      }
-    }
-    
+  }
+  async confirmarAprobacion(it: PendingClient) {
+    const alert = await this.alertCtrl.create({
+      header: 'Aprobar cliente',
+      message: `¿Seguro que querés aprobar a ${it.nombres} ${it.apellidos}?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Aprobar',
+          role: 'confirm',
+          // handler: async () => {
+          //   if (this.loadingId) return;
+          //   this.loadingId = it.id;
+          //   try {
+          //     await this.srv.approve(it.id, it.email, it.nombres, it.apellidos);
+          //     this.toast.success(`Aprobado: ${it.nombres} ${it.apellidos}`);
+          //     await this.load(false);
+          //   } catch (e: any) {
+          //     this.toast.error(e?.message || 'No se pudo aprobar');
+          //   } finally {
+          //     this.loadingId = null;
+          //   }
+          // }
+          handler: async () => {
+            if (this.loadingId) return;
+            this.loadingId = it.id;
+            try {
+              const res = await this.srv.approve(it.id, it.email, it.nombres, it.apellidos);
+              this.toast.success(`Aprobado: ${it.nombres} ${it.apellidos}`);
+              if (!res.ok) {
+                this.toast.warning(`Aprobado, pero el email no se envió${res.detail ? `: ${res.detail}` : ''}`, 'Aviso', { timeOut: 6000 });
+                console.warn('notificar-cliente (aprobado) falló:', res);
+              }
+              await this.load(false);
+            } catch (e: any) {
+              this.toast.error(e?.message || 'No se pudo aprobar');
+            } finally {
+              this.loadingId = null;
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+  
+  async confirmarRechazo(it: PendingClient) {
+    const alert = await this.alertCtrl.create({
+      header: 'Rechazar cliente',
+      message: `¿Seguro que querés rechazar a ${it.nombres} ${it.apellidos}?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Rechazar',
+          role: 'destructive',
+          // handler: async () => {
+          //   if (this.loadingId) return;
+          //   this.loadingId = it.id;
+          //   try {
+          //     await this.srv.reject(it.id, it.email, it.nombres, it.apellidos);
+          //     this.toast.info(`Rechazado: ${it.nombres} ${it.apellidos}`);
+          //     await this.load(false);
+          //   } catch (e: any) {
+          //     this.toast.error(e?.message || 'No se pudo rechazar');
+          //   } finally {
+          //     this.loadingId = null;
+          //   }
+          // }
+          handler: async () => {
+            if (this.loadingId) return;
+            this.loadingId = it.id;
+            try {
+              const res = await this.srv.reject(it.id, it.email, it.nombres, it.apellidos);
+              this.toast.info(`Rechazado: ${it.nombres} ${it.apellidos}`);
+              if (!res.ok) {
+                this.toast.warning(`Rechazado, pero el email no se envió${res.detail ? `: ${res.detail}` : ''}`, 'Aviso', { timeOut: 6000 });
+                console.warn('notificar-cliente (rechazado) falló:', res);
+              }
+              await this.load(false);
+            } catch (e: any) {
+              this.toast.error(e?.message || 'No se pudo rechazar');
+            } finally {
+              this.loadingId = null;
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+  
+  /** Útil si querés volver a usar trackBy en el *ngFor */
+  trackById(_: number, it: PendingClient) { return it.id; }
 }
