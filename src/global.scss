@@ -71,3 +71,127 @@ ion-header {
   position: fixed !important;
   z-index: 99999 !important;
 }
+
+/* ===== Wallpaper global desde assets ===== */
+:root{
+  /* cambiá el archivo si querés otra variante */
+  --app-wallpaper: url("src/assets/fondoElTridente.png");
+}
+
+/* Quita cualquier fondo local de ion-content para que herede el wallpaper */
+ion-content { --background: transparent !important; }
+
+/* Capa fija detrás de todo el UI */
+ion-app::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  background: var(--app-wallpaper) center center / cover no-repeat;
+  pointer-events: none;
+  z-index: -1;          /* debajo de todo */
+  /* (opcional) velo sutil para contraste global */
+  /* background-blend-mode: normal; */
+}
+
+/* Soporte altura real en móviles con barra (evita “salto” al abrir teclado) */
+@supports (height: 100dvh){
+  ion-app, ion-content { min-height: 100dvh; }
+}
+
+
+
+
+
+/* ====== Loading con icono tridente+tenedor ====== */
+
+// /* 👇 Reemplazamos el spinner por tu icono girando */
+// /* ===== Loading con icono girando (sobre el mensaje) ===== */
+// .brand-loading::part(backdrop) { --backdrop-opacity: .32; }
+
+// .brand-loading::part(content) {
+//   background: rgba(61,43,43,.92);
+//   border-radius: 18px;
+//   padding: 22px 26px;
+//   box-shadow: 0 12px 36px rgba(61,43,43,.35);
+//   display: grid;
+//   justify-items: center;
+// }
+
+// /* El mensaje visible */
+// .brand-loading::part(message) {
+//   font-family: 'Inter', system-ui, sans-serif;
+//   color: #fff;
+//   opacity: .9;
+//   margin-top: 8px;           /* deja espacio bajo el icono */
+//   text-align: center;
+//   position: relative;
+// }
+
+// // /* 👇 Icono girando ANCLADO AL MENSAJE (esto siempre aparece) */
+// /* ===== Loading con icono tridente girando ===== */
+// .brand-loading::part(backdrop) { --backdrop-opacity: .32; }
+
+// .brand-loading::part(content) {
+//   background: rgba(255,255,255,.12); /* translúcido */
+//   border-radius: 50%;
+//   padding: 40px;
+//   backdrop-filter: blur(8px);
+//   box-shadow: 0 0 20px rgba(122,30,30,.35);
+//   display: grid;
+//   justify-items: center;
+// }
+
+// .brand-loading::part(message) {
+//   color: #5d2222;               /* maroon */
+//   font-weight: 600;
+// }
+// /* 👇 Ícono girando: 3 selectores para cubrir distintas versiones de Ionic */
+// .brand-loading::part(content)::before,
+// .brand-loading .loading-content::before,
+// .brand-loading::part(message)::before {
+//   content: '';
+//   display: block;
+//   width: 92px; height: 92px;
+//   margin: 0 auto 8px auto;
+//   background: url('assets/spinner-icono.png') center/contain no-repeat;
+//   animation: brand-rotate 1.2s linear infinite;
+//   filter: drop-shadow(0 0 12px rgba(122,30,30,.6));
+// }
+
+// @keyframes brand-rotate { from { transform: rotate(0) } to { transform: rotate(360deg) } }
+/* ===== Loading con icono tridente girando (compatible md/ios) ===== */
+
+/* Overlay pantalla completa */
+// .spinner {
+//   position: fixed;           /* <- mejor que absolute en mobile */
+//   inset: 0;                  /* top/right/bottom/left: 0 */
+//   z-index: 99999;            /* por encima de todo */
+//   height: 100vh;
+//   width: 100vw;
+//   pointer-events: all; 
+//     overscroll-behavior: contain;
+//   animation: fadeIn .15s ease-out;
+// }
+
+// @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+// /* Fondo y centrado del logo */
+// .conteiner-img {
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   height: 100vh;
+//   width: 100vw;
+//   background-color: rgba(90, 90, 90, 0.75);
+
+//   img {
+//     width: 96px;             /* ajustá tamaño a gusto */
+//     height: 96px;
+//     animation: spin 3s linear infinite;
+//     filter: drop-shadow(0 0 12px rgba(122,30,30,.6));
+//   }
+// }
+
+// @keyframes spin {
+//   to { transform: rotate(360deg); }
+// }

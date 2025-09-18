@@ -28,6 +28,9 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
+//import { SpinnerService } from 'src/app/services/spinner.service';
+
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -52,11 +55,13 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class loginComponent {
    logoReady = false;
-
+     loading = false; 
+ cargando: boolean = false;
   constructor(
     private auths: SupabaseService,
     private router: Router,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+     // private spinner: SpinnerService, 
   ) {}
 
   email: string = ''; 
@@ -90,7 +95,7 @@ export class loginComponent {
     setTimeout(() => (this.logoReady = true), 10);
   }
   
-  login() {
+  async login() {
   this.auths
     .login(this.email, this.password)
     .then((user) => {
@@ -113,7 +118,81 @@ export class loginComponent {
       });
       console.error('Error logging in:', error);
     });
+  if (this.loading) return;
+  this.loading = true;
+
+//   await this.spinner.show('Iniciando sesión...');
+
+//   try {
+//     const user = await this.auths.login(this.email, this.password);
+
+//     // ⚠️ navega ANTES de ocultar (el overlay vive por encima del cambio de ruta)
+//     await this.router.navigate(['/home']);
+
+//     // ahora feedback
+//     this.toastr.success('Sesión iniciada correctamente', '', { positionClass: 'toast-center', timeOut: 3000 });
+//     this.email = ''; this.password = '';
+//   } catch (error) {
+//     const msg = this.getErrorMessage(error);
+//     this.toastr.error(msg, 'Error', { positionClass: 'toast-center', closeButton: true, progressBar: true, timeOut: 4000 });
+//     console.error('Error logging in:', error);
+//   } finally {
+//     await this.spinner.hide(350);   // deja que se vea un toque
+//     this.loading = false;
+//   }
+  
 }
+
+// async login() {
+//   if (this.loading) return;
+//   this.loading = true;
+
+//   (document.activeElement as HTMLElement | null)?.blur?.();
+//   this.cargando = true;
+
+//   // 🔦 Apagado de emergencia por si algo rompe antes del finally
+//   const kill = setTimeout(() => {
+//     if (this.cargando) {
+//       console.warn('[login] failsafe: apagando spinner');
+//       this.cargando = false;
+//       this.loading = false;
+//     }
+//   }, 8000);
+
+//   try {
+//     const user = await this.auths.login(this.email, this.password);
+
+//     this.toastr.success('Sesión iniciada correctamente', '', {
+//       positionClass: 'toast-center',
+//       timeOut: 3000,
+//     });
+
+//     this.email = '';
+//     this.password = '';
+
+//     // 👇 APAGA ANTES DE NAVEGAR (clave para que no quede “pegado”)
+//     this.cargando = false;
+
+//     await this.router.navigate(['/home']);
+//   } catch (error) {
+//     const msg = this.getErrorMessage(error);
+//     this.toastr.error(msg, 'Error', {
+//       positionClass: 'toast-center',
+//       closeButton: true,
+//       progressBar: true,
+//       timeOut: 2000,
+//     });
+//     console.error('[login] error:', error);
+//   } finally {
+//     clearTimeout(kill);
+//     this.cargando = false;   // doble seguridad
+//     this.loading = false;
+//     console.log('[login] finally: spinner OFF');
+//   }
+// }
+
+
+
   ionViewDidEnter() {
     // dispara en el primer frame para asegurar layout listo
     requestAnimationFrame(() => this.logoReady = true);
