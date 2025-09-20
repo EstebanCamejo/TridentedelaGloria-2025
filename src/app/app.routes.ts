@@ -5,6 +5,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { HomeComponent } from './components/home/tab2.page';
 import { RegistroClienteAnonimoComponent } from './components/registro-cliente-anonimo/registro-cliente-anonimo.component';
 import { RegistroClienteComponent } from './components/registro-cliente/registro-cliente.component';
+import { HomeBartenderCocineroComponent } from './components/home-bartender-cocinero/home-bartender-cocinero.component';
 import { HomeClienteComponent } from './components/home-cliente/home-cliente.component';
 
 export const routes: Routes = [
@@ -44,6 +45,11 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'home-bartender-cocinero',
+    component: HomeBartenderCocineroComponent,
+    pathMatch: 'full',
+  },
+  {
     path: 'admin/pendientes',
     loadComponent: () =>
       import('./components/admin/pendientes/pendientes.component').then(
@@ -71,6 +77,20 @@ export const routes: Routes = [
         './components/admin/resultados-encuestas/resultados-encuestas.component'
       ).then((m) => m.ResultadosEncuestasComponent),
   },
+  {
+    path: 'bartender-cocinero/nuevo-plato',
+    loadComponent: () =>
+      import(
+        './components/bartender-cocinero/nuevo-plato/nuevo-plato.component'
+      ).then((m) => m.NuevoPlatoComponent),
+  },
+  {
+    path: 'bartender-cocinero/nueva-bebida',
+    loadComponent: () =>
+      import(
+        './components/bartender-cocinero/nueva-bebida/nueva-bebida.component'
+      ).then((m) => m.NuevaBebidaComponent),
+  },
   { path: 'scan/mesa', 
     loadComponent: () => import('./components/maitre/scanner-mesa/scanner-mesa.component')
     .then(m => m.ScannerMesaComponent) 
@@ -93,6 +113,5 @@ export const routes: Routes = [
   //     import('./components/maitre/asignar-mesa/asignar-mesa.component')
   //       .then(m => m.AsignarMesaComponent),
   // },
-
 ];
 

@@ -1,0 +1,137 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap");
+
+:host { display:block; }
+
+
+:root{
+  --cream-25:#fbf3e4;
+  --cream-50:#f6ecdc;
+  --cream-100:#efe3cf;
+  --cream-200:#e7dac4;
+  --maroon-600:#7b2f2f;
+  --maroon-700:#5d2222;
+  --maroon-800:#3f1717;
+  --ink:#3b2a2a;
+  --ink-soft:#6b5858;
+  --shadow: 0 10px 28px rgba(61,43,43,.22);
+  --badge-size: clamp(96px, 22vw, 148px);
+  --badge-y: -70%;
+  --badge-clearance: clamp(92px, 16vw, 132px);
+  --panel-max: 340px;
+}
+
+.wrapper{
+  max-width: var(--panel-max);      /* antes 560 */
+  padding: clamp(8px, 1.6svh, 14px) /* arriba */
+           clamp(10px, 4vw, 16px)   /* laterales */
+           clamp(10px, 1.8svh, 14px);/* abajo */
+  gap: clamp(6px, 1vh, 10px);       /* menos aire entre bloques */
+  margin-inline: auto;
+}
+
+.nuevo-plato-form{
+  width:100%;
+  max-width: 420px;
+  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 18px;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  padding: 22px 18px 18px;
+  position: relative;
+  overflow: visible;
+  padding-top: calc(100px + var(--badge-clearance));
+  margin-top:  calc(var(--badge-clearance) * .35);
+  padding-bottom: clamp(8px, 1svh, 12px); /* antes era más grande */
+  margin-bottom: 8px;  
+}
+
+/* badge opcional */
+.brand-badge{
+  --size: clamp(96px, 22vw, 148px);
+  position: absolute;
+  top: 0; left:0; right:0;
+  margin: 0 auto;
+  transform: translateY(var(--badge-y));
+  width: var(--size); height: var(--size);
+  border-radius: 9999px; background: var(--cream-25);
+  box-shadow: 0 16px 36px rgba(0,0,0,.38); z-index: 3;
+}
+.brand-badge::before{ content:""; position:absolute; inset:-6px; border-radius:inherit; border:6px solid rgba(255,255,255,.95); }
+.brand-badge::after{  content:""; position:absolute; inset:-16px; border-radius:inherit; border:10px solid rgba(123,47,47,.28); filter: blur(.15px); }
+.brand-badge img{
+  position:absolute; inset:8px; width:calc(100% - 16px); height:calc(100% - 16px);
+  object-fit:contain; border-radius:50%; background:#f6ecdc; border:2px solid rgba(61,43,43,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 2px 6px rgba(93,34,34,.25);
+}
+
+.form-group{ margin:0; }
+.form-group + .form-group{ margin-top: clamp(12px, 1.8vh, 18px); }
+.subTittle{
+  margin:10px 2px 6px; color:#f3e7da; font-family:"Inter",sans-serif;
+  font-weight:600; font-size:.95rem;
+}
+input[type="text"], input[type="email"], input[type="password"], input[type="number"]{
+  width:100%; height:46px; padding:0 12px; box-sizing:border-box; border-radius:12px;
+  border:1.5px solid rgba(255,221,190,.55);
+  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
+  color:#673a2c; font-size:1rem; outline:none;
+  transition:border-color .2s, box-shadow .2s, background .2s, transform .04s;
+}
+input::placeholder{ color:#a88978; }
+input:focus{
+  border-color: var(--cream-200);
+  box-shadow: 0 0 0 3px rgba(255,221,190,.35);
+  background:#fffaf2;
+}
+
+/* Botones */
+.buttonLogin, .buttonRegister{
+  width:100%; border-radius:14px; padding:.9rem 1rem;
+  font-family:"Inter",sans-serif; font-weight:700; font-size:1.05rem;
+  cursor:pointer; transition: transform .04s ease, filter .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
+  margin-top:12px;
+}
+.buttonLogin{ border:2px solid rgba(255,221,190,.65); color:#1b0f0f; background:#ffe9d3; }
+.buttonRegister{ background:transparent; color:#ffe4cc; border:2px solid rgba(255,221,190,.9); }
+.buttonRegister:hover{ background: rgba(255,221,190,.12); color:#1b0f0f; }
+
+/* Animaciones */
+@keyframes badgeDrop{
+  0%{ transform: translateY(calc(var(--badge-y) - 200%)) scale(.9) rotate(-1.5deg); filter: blur(1px); opacity: 0; }
+  55%{ transform: translateY(calc(var(--badge-y) + 14%)) scale(1.03); opacity: 1; }
+  78%{ transform: translateY(calc(var(--badge-y) - 6%))  scale(.996); }
+  100%{ transform: translateY(var(--badge-y)) scale(1); }
+}
+/* Avatar + botón subir foto (look de tu ejemplo) */
+.contenedor-subidas {
+  display: flex; flex-direction: column; align-items: center; gap: 1px; margin-bottom: 7px;
+}
+
+.avatar-ctr {
+  display:flex; align-items:center; justify-content:center;
+  width: 88px; height: 88px; border-radius: 9999px;
+  background: #7b2f2f; 
+  position: relative;
+}
+.avatar-ctr img {
+  width: 74px; height: 74px; object-fit: cover; border-radius: 9999px;
+  background:#eee; border: 2px solid #fff;
+}
+
+.btn-subir {
+  --background: #7b2f2f; /* bordo */ 
+  --background-activated: #6a2727;
+  --color: #ffe9d3;      /* crema */
+  --border-radius: 10px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  height: clamp(32px, 5.2svh, 38px);
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.btn-subir:hover, .btn-scanner:hover{ filter: brightness(1.04); }
+
+/* input file oculto para fallback web */
+.file-hidden { display:none; }
