@@ -18,6 +18,15 @@ import {
   provideAnimations,
 } from '@angular/platform-browser/animations';
 
+import { LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEsAr from '@angular/common/locales/es-AR';
+registerLocaleData(localeEsAr);
+
+
+
+
+
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
@@ -30,6 +39,7 @@ bootstrapApplication(AppComponent, {
     provideAnimations(),
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
+    { provide: LOCALE_ID, useValue: 'es-AR' }, 
 
     /*provideFirebaseApp(() =>
       initializeApp({

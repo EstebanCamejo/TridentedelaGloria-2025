@@ -1,3 +1,59 @@
-<p>
-  alta-mesa works!
-</p>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Alta de mesa</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pa-4">
+  <ion-item>
+    <ion-label position="stacked">Número de mesa</ion-label>
+    <ion-input type="number" [(ngModel)]="numero" placeholder="Ej: 12"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Capacidad (1 a 12)</ion-label>
+    <ion-input type="number" [(ngModel)]="capacidad" placeholder="Ej: 4"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Tipo</ion-label>
+    <ion-select [(ngModel)]="tipo">
+      <ion-select-option value="estandar">Estándar</ion-select-option>
+      <ion-select-option value="vip">VIP</ion-select-option>
+      <ion-select-option value="mov_reducida">Movilidad reducida</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <div style="padding:16px;">
+    <ion-button expand="block" (click)="tomarFoto()">
+      <ion-icon name="camera" slot="start"></ion-icon>
+      Tomar foto de la mesa
+    </ion-button>
+
+    <div *ngIf="fotoPreview" style="margin-top:12px; text-align:center;">
+      <ion-img [src]="fotoPreview" alt="Foto de la mesa" style="max-width:260px; margin:0 auto; border-radius:12px;"></ion-img>
+      <div style="opacity:.75; margin-top:6px;">Previsualización</div>
+    </div>
+  </div>
+
+  <div style="padding:16px;">
+    <ion-button expand="block" color="primary" [disabled]="guardando || formularioInvalido" (click)="guardar()">
+      <ion-icon name="save" slot="start"></ion-icon>
+      Guardar mesa
+    </ion-button>
+  </div>
+
+  <div *ngIf="qrDataUrl" style="padding:16px; text-align:center;">
+    <img [src]="qrDataUrl" alt="QR de la mesa" style="max-width:240px; width:100%; border-radius:12px;" />
+    <div style="margin-top:8px; opacity:.7;">Código QR generado</div>
+  
+    <ion-button style="margin-top:12px;" (click)="descargarQR()">
+      <ion-icon name="download" slot="start"></ion-icon>
+      Descargar QR
+    </ion-button>
+  
+    <div *ngIf="qrPublicUrl" style="margin-top:8px;">
+      <a [href]="qrPublicUrl" target="_blank" rel="noopener">Ver QR en la nube</a>
+    </div>
+  </div>
+</ion-content>
