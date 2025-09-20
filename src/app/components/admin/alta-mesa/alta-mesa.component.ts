@@ -9,7 +9,10 @@ import { addIcons } from 'ionicons';
 import { camera, save, download } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { AdminAltaMesaService, MesaTipo } from 'src/app/services/admin-alta-mesa.service';
+//import { AdminAltaMesaService, MesaTipo } from 'src/app/services/admin-alta-mesa.service';
+import { MesasService, MesaTipo } from 'src/app/services/mesas.service';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+
 
 @Component({
   selector: 'app-alta-mesa',
@@ -42,32 +45,57 @@ export class AltaMesaComponent {
   qrFileName = 'mesa-qr.png';
   
   constructor(
-    private srv: AdminAltaMesaService,
+    private mesas: MesasService,
     private toast: ToastrService
   ) { addIcons({ camera, save, download }); }
 
+
+  private blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // async tomarFoto() {
+  //   try {
+  //     const { dataUrl, blob } = await this.srv.tomarFoto();
+  //     this.fotoPreview = dataUrl;
+  //     this.fotoBlob = blob;
+  //   } catch {
+  //     this.toast.error('No se pudo tomar la foto.');
+  //   }
+  // }
   async tomarFoto() {
     try {
-      const { dataUrl, blob } = await this.srv.tomarFoto();
-      this.fotoPreview = dataUrl;
+      const photo = await Camera.getPhoto({
+        quality: 70,
+        resultType: CameraResultType.Uri, // evita base64 gigante
+        source: CameraSource.Camera,
+        width: 1280,
+        correctOrientation: true,
+        saveToGallery: false,
+        promptLabelHeader: 'Tomar foto',
+        promptLabelPhoto: 'Usar cámara',
+        promptLabelPicture: 'Capturar',
+      });
+
+      const webPath = photo.webPath ?? photo.path;
+      if (!webPath) {
+        this.toast.error('No se pudo obtener la imagen.');
+        return;
+      }
+      const resp = await fetch(webPath);
+      const blob = await resp.blob();
+
       this.fotoBlob = blob;
+      this.fotoPreview = await this.blobToDataUrl(blob);
     } catch {
       this.toast.error('No se pudo tomar la foto.');
     }
   }
 
-  // async descargarQR() {
-  //   const url = this.qrPublicUrl || this.qrDataUrl;
-  //   if (!url) return;
-  //   const resp = await fetch(url);
-  //   const blob = await resp.blob();
-  //   const objUrl = URL.createObjectURL(blob);
-  //   const a = document.createElement('a');
-  //   a.href = objUrl;
-  //   a.download = 'mesa-qr.png';
-  //   a.click();
-  //   URL.revokeObjectURL(objUrl);
-  // }
   async descargarQR() {
     const url = this.qrPublicUrl || this.qrDataUrl;
     if (!url) return;
@@ -94,51 +122,6 @@ export class AltaMesaComponent {
     return !n || !c || c < 1 || c > 12 || !this.fotoBlob;
   }
 
-  // async guardar() {
-  //   if (this.formularioInvalido) {
-  //     this.toast.error('Completá todos los datos y tomá la foto de la mesa.');
-  //     return;
-  //   }
-
-  //   try {
-  //     this.guardando = true;
-
-  //     const numero = Number(this.numero);
-  //     const capacidad = Number(this.capacidad);
-
-  //     const libre = await this.srv.numeroDisponible(numero);
-  //     if (!libre) {
-  //       this.toast.error('El número de mesa ya existe.');
-  //       return;
-  //     }
-
-  //     const res = await this.srv.crearMesa({
-  //       numero,
-  //       capacidad,
-  //       tipo: this.tipo,       // el service mapea si hiciera falta
-  //       fotoBlob: this.fotoBlob!
-  //     });
-
-  //     this.qrText = res.qr_text;
-  //     this.qrDataUrl = res.qr_img_url;   // mostramos el PNG subido
-  //     this.qrPublicUrl = res.qr_img_url;
-  //     this.lastMesaId = res.id;
-
-  //     this.toast.success('Mesa creada correctamente. QR listo para descargar.');
-
-  //     // limpiar form (dejamos visible el QR)
-  //     this.numero = '' as any;
-  //     this.capacidad = '' as any;
-  //     this.tipo = 'estandar';
-  //     this.fotoPreview = null;
-  //     this.fotoBlob = null;
-
-  //   } catch (e: any) {
-  //     this.toast.error(e?.message || 'No se pudo crear la mesa.');
-  //   } finally {
-  //     this.guardando = false;
-  //   }
-  // }
   async guardar() {
     if (this.formularioInvalido) {
       this.toast.error('Completá todos los datos y tomá la foto de la mesa.');
@@ -151,13 +134,13 @@ export class AltaMesaComponent {
       const numero = Number(this.numero);
       const capacidad = Number(this.capacidad);
   
-      const libre = await this.srv.numeroDisponible(numero);
+      const libre = await this.mesas.numeroDisponible(numero);
       if (!libre) {
         this.toast.error('El número de mesa ya existe.');
         return;
       }
   
-      const res = await this.srv.crearMesa({
+      const res = await this.mesas.crearMesa({
         numero,
         capacidad,
         tipo: this.tipo,      // el service mapea si hiciera falta
