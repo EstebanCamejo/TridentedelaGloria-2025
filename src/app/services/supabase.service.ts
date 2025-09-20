@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
 
-
 export type TipoRegistro = 'cliente' | 'anonimo';
 type RolUsuario = 'clienteReg' | 'clienteAnon' | 'mozo' | 'maitre' | 'dueno' | 'supervisor' | 'bartender' | 'cocinero';
 
@@ -22,14 +21,14 @@ export class SupabaseService {
   private _supabase: SupabaseClient;
   private bucket = environment.supabaseBucket;
   private edgeBase = environment.supabaseUrl.replace(/\/$/, '');
-private anonFnUrl = `${this.edgeBase}/functions/v1/register-anon`;
-private appEdgeKey = environment.appEdgeKey; // el mismo valor que APP_EDGE_KE
+  private anonFnUrl = `${this.edgeBase}/functions/v1/register-anon`;
+  private appEdgeKey = environment.appEdgeKey; // el mismo valor que APP_EDGE_KE
 
   constructor() {
     this._supabase = createClient(
       environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+      environment.supabaseAnonKey,
+    ); 
   }
 
   // Acceso al cliente, por si lo necesitás en otros servicios
@@ -37,16 +36,95 @@ private appEdgeKey = environment.appEdgeKey; // el mismo valor que APP_EDGE_KE
     return this._supabase;
   }
 
-  // ---- Auth mínima (podés ajustar más tarde) ----
-  async login(email: string, password: string) {
-    const { data, error } = await this._supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
-    return data;
+  /** Espera hasta que haya session.user (o vence por timeout). */
+  private async waitForSession(timeoutMs = 3000) {
+    const t0 = Date.now();
+    while (Date.now() - t0 < timeoutMs) {
+      const { data } = await this._supabase.auth.getSession();
+      if (data?.session?.user) return data.session;
+      await new Promise(r => setTimeout(r, 120));
+    }
+    return null;
   }
+  
+  // ---- Auth mínima (podés ajustar más tarde) ----
+  // async login(email: string, password: string) {
+  //   const { data, error } = await this._supabase.auth.signInWithPassword({
+  //     email,
+  //     password,
+  //   });
 
+  //   /////////////
+  //   const { data: s } = await this._supabase.auth.getSession();
+  //   console.log('auth_id:', s?.session?.user?.id);
+  //   /////////////
+    
+  //   if (error) throw error;
+  //   const auth_id = data.user?.id;
+  //   const { data: rows, error: qErr } = await this._supabase
+  //     .from('usuarios')
+  //     .select('id, perfil, estado')
+  //     .eq('auth_id', auth_id)
+  //     .limit(1);
+  
+  //   if (qErr) {
+  //     // si falla la consulta, salimos por seguridad
+  //     await this._supabase.auth.signOut();
+  //     throw qErr;
+  //   }
+  
+  //   const u = rows?.[0];
+  //   // habilitado si es aprobado (clientes) o activo (staff)
+  //   const habilitado = u && (u.estado === 'aprobado' || u.estado === 'activo');
+
+  //   if (!habilitado) {
+  //     await this._supabase.auth.signOut();
+  //     const msg = u?.estado === 'rechazado'
+  //       ? 'Tu registro fue rechazado. Consultá al local.'
+  //       : 'Tu registro está pendiente de aprobación.';
+  //     throw new Error(msg);
+  //   }
+  //   return data;
+  // }
+    // ---- Auth ----
+  async login(email: string, password: string) {
+    const { data, error } = await this._supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // ✅ Esperar a que la sesión quede firme
+    const session = await this.waitForSession(3000);
+    if (!session?.user?.id) {
+      await this._supabase.auth.signOut();
+      throw new Error('No se pudo establecer la sesión. Intentá de nuevo.');
+    }
+
+    const auth_id = session.user.id;
+
+    // Buscar el usuario app en tu tabla
+    const { data: rows, error: qErr } = await this._supabase
+      .from('usuarios')
+      .select('id, perfil, estado')
+      .eq('auth_id', auth_id)
+      .limit(1);
+
+    if (qErr) {
+      await this._supabase.auth.signOut();
+      throw qErr;
+    }
+
+    const u = rows?.[0];
+    const habilitado = u && (u.estado === 'aprobado' || u.estado === 'activo');
+    if (!habilitado) {
+      await this._supabase.auth.signOut();
+      const msg = u?.estado === 'rechazado'
+        ? 'Tu registro fue rechazado. Consultá al local.'
+        : 'Tu registro está pendiente de aprobación.';
+      throw new Error(msg);
+    }
+
+    return data; // mantiene tu contrato actual
+  }
+    
   async logout() {
     const { error } = await this._supabase.auth.signOut();
     if (error) throw error;
@@ -58,33 +136,33 @@ private appEdgeKey = environment.appEdgeKey; // el mismo valor que APP_EDGE_KE
     return data;
   }
 
-   // ===========================
-  // =   STORAGE: subir foto   =
-  // ===========================
-  /**
-   * Sube la foto al bucket `avatars` y devuelve { path, publicUrl }.
-   * Para MVP el bucket puede ser público. Si lo hacés privado,
-   * reemplazá getPublicUrl por createSignedUrl en la vista.
-   */
-  async uploadAvatar(file: File, email: string) {
-  const safeEmail = (email || 'anon').replace(/[^a-z0-9@._-]/gi, ''); // permite @ . _ -
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const fileName = `${Date.now()}-${Math.random().toString(16).slice(2,8)}.${ext}`;
-  const filePath = `clientes/${safeEmail}/${fileName}`; // 👈 Arranca con 'clientes/'
+    // ===========================
+    // =   STORAGE: subir foto   =
+    // ===========================
+    /**
+     * Sube la foto al bucket `avatars` y devuelve { path, publicUrl }.
+     * Para MVP el bucket puede ser público. Si lo hacés privado,
+     * reemplazá getPublicUrl por createSignedUrl en la vista.
+     */
+    async uploadAvatar(file: File, email: string) {
+    const safeEmail = (email || 'anon').replace(/[^a-z0-9@._-]/gi, ''); // permite @ . _ -
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const fileName = `${Date.now()}-${Math.random().toString(16).slice(2,8)}.${ext}`;
+    const filePath = `clientes/${safeEmail}/${fileName}`; // 👈 Arranca con 'clientes/'
 
-  const { error: upErr } = await this._supabase
-    .storage
-    .from(this.bucket)               // 'avatars'
-    .upload(filePath, file, {
-      upsert: false,                 // 👈 IMPORTANTE, NADA de update
-      contentType: file.type || 'image/jpeg'
-    });
+    const { error: upErr } = await this._supabase
+      .storage
+      .from(this.bucket)               // 'avatars'
+      .upload(filePath, file, {
+        upsert: false,                 // 👈 IMPORTANTE, NADA de update
+        contentType: file.type || 'image/jpeg'
+      });
 
-  if (upErr) throw upErr;
+    if (upErr) throw upErr;
 
-  const { data } = this._supabase.storage.from(this.bucket).getPublicUrl(filePath);
-  return { path: filePath, publicUrl: data.publicUrl };
-}
+    const { data } = this._supabase.storage.from(this.bucket).getPublicUrl(filePath);
+    return { path: filePath, publicUrl: data.publicUrl };
+  }
 
 //INSERTAR EN USUARIOS
 
@@ -147,130 +225,142 @@ private appEdgeKey = environment.appEdgeKey; // el mismo valor que APP_EDGE_KE
 //   return data;
 // }
 
-async registrarClienteFlow(
-  form: {
-    tipo_registro: 'cliente' | 'anonimo';
-    nombre: string; apellido?: string | null; dni?: string | null;
-    email: string; password: string;
-  },
-  photoFile?: File | null
-) {
-  // 1) Alta en auth
-  const { data: signData, error: signErr } = await this._supabase.auth.signUp({
-    email: form.email,
-    password: form.password,
-  });
-  if (signErr) throw signErr;
-  const auth_id = signData?.user?.id || null;
-
-  // 2) Foto (opcional)
-  let foto_url: string | null = null;
-  if (photoFile) {
-    const up = await this.uploadAvatar(photoFile, form.email);
-    foto_url = up.publicUrl;
-  }
-
-  // 3) Perfil según tipo de registro
-  const perfil = form.tipo_registro === 'anonimo' ? 'clienteAnon' : 'clienteReg';
-
-  // 4) Campos normalizados
-  const trimOrNull = (v?: string | null) => {
-    const t = (v ?? '').trim();
-    return t.length ? t : null;
-  };
-  const isAnon = perfil === 'clienteAnon';
-  const nombres   = isAnon ? (trimOrNull(form.nombre) ?? 'Anónimo') : trimOrNull(form.nombre)!;
-  const apellidos = isAnon ? null : trimOrNull(form.apellido ?? null);
-  const dni       = isAnon ? null : trimOrNull(form.dni ?? null);
-
-  // 5) Estado → depende del tipo
-  const estado = isAnon ? 'aprobado' : 'pendiente';
-
-  // 6) Insert en usuarios
-  const { data, error } = await this._supabase
-    .from('usuarios')
-    .insert({
-      auth_id,
+  async registrarClienteFlow(
+    form: {
+      tipo_registro: 'cliente' | 'anonimo';
+      nombre: string; apellido?: string | null; dni?: string | null;
+      email: string; password: string;
+    },
+    photoFile?: File | null
+  ) {
+    // 1) Alta en auth
+    const { data: signData, error: signErr } = await this._supabase.auth.signUp({
       email: form.email,
-      nombres,
-      apellidos,
-      dni,
-      foto_url,
-      perfil,   // clienteAnon | clienteReg
-      estado,   // 👈 acá la diferencia clave
-    })
-    .select()
-    .single();
+      password: form.password,
+    });
+    if (signErr) throw signErr;
+    const auth_id = signData?.user?.id || null;
 
-  if (error) throw error;
-  return data;
-}
+    // 2) Foto (opcional)
+    let foto_url: string | null = null;
+    if (photoFile) {
+      const up = await this.uploadAvatar(photoFile, form.email);
+      foto_url = up.publicUrl;
+    }
 
-/** Flujo exclusivo ANÓNIMO: crea user auto-confirmado en Edge, sube foto, inserta perfil y loguea */
-async registrarAnonimoFlow(form: { nombre?: string|null; email: string; password: string }, photoFile?: File|null) {
-  // 1) Crear user auto-confirmado (Edge)
-const res = await fetch(this.anonFnUrl, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${environment.supabaseAnonKey}`, // 👈 requerido con Verify JWT ON
-    // 'x-app-key': environment.appEdgeKey, // sólo si decidiste usar este extra
-  },
-  body: JSON.stringify({
-    email: form.email,
-    password: form.password,
-    nombre: form.nombre ?? 'Anónimo',
-  }),
-});
+    // 3) Perfil según tipo de registro
+    const perfil = form.tipo_registro === 'anonimo' ? 'clienteAnon' : 'clienteReg';
 
+    // 4) Campos normalizados
+    const trimOrNull = (v?: string | null) => {
+      const t = (v ?? '').trim();
+      return t.length ? t : null;
+    };
+    const isAnon = perfil === 'clienteAnon';
+    const nombres   = isAnon ? (trimOrNull(form.nombre) ?? 'Anónimo') : trimOrNull(form.nombre)!;
+    const apellidos = isAnon ? null : trimOrNull(form.apellido ?? null);
+    const dni       = isAnon ? null : trimOrNull(form.dni ?? null);
 
-  if (!res.ok) {
-    const j = await res.json().catch(() => ({}));
-    throw new Error(j?.error || `Edge register-anon falló (${res.status})`);
+    // 5) Estado → depende del tipo
+    const estado = isAnon ? 'aprobado' : 'pendiente';
+
+    // 6) Insert en usuarios
+    const { data, error } = await this._supabase
+      .from('usuarios')
+      .insert({
+        auth_id,
+        email: form.email,
+        nombres,
+        apellidos,
+        dni,
+        foto_url,
+        perfil,   // clienteAnon | clienteReg
+        estado,   
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    this._supabase.functions.invoke('notificar-cliente', {
+      body: {
+        email: form.email,
+        nombres,
+        apellidos: apellidos ?? '',
+        estado: 'pendiente',
+      },
+    }).catch(err => console.warn('notificar-cliente (pendiente) falló:', err));
+
+    return data;
   }
-  const { auth_id } = await res.json();
 
-  // 2) Foto opcional
-  let foto_url: string | null = null;
-  if (photoFile) {
-    const up = await this.uploadAvatar(photoFile, form.email);
-    foto_url = up.publicUrl;
-  }
-
-  // 3) Insert en tu tabla (yo recomiendo seguir usando 'usuarios' con perfil/estado)
-  const { error: insErr } = await this._supabase
-    .from('usuarios')
-    .insert({
-      auth_id,
-      email: form.email,
-      nombres: (form.nombre ?? 'Anónimo').trim() || 'Anónimo',
-      apellidos: null,
-      dni: null,
-      foto_url,
-      perfil: 'clienteAnon',
-      estado: 'aprobado', // ✅ entra directo
+  /** Flujo exclusivo ANÓNIMO: crea user auto-confirmado en Edge, sube foto, inserta perfil y loguea */
+  async registrarAnonimoFlow(form: { nombre?: string|null; email: string; password: string }, photoFile?: File|null) {
+    // 1) Crear user auto-confirmado (Edge)
+    const res = await fetch(this.anonFnUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${environment.supabaseAnonKey}`, // 👈 requerido con Verify JWT ON
+        // 'x-app-key': environment.appEdgeKey, // sólo si decidiste usar este extra
+      },
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password,
+        nombre: form.nombre ?? 'Anónimo',
+      }),
     });
 
-  if (insErr) throw insErr;
 
-  // 4) Login directo (ya está auto-confirmado)
-  const { error: loginErr } = await this._supabase.auth.signInWithPassword({
-    email: form.email,
-    password: form.password,
-  });
-  if (loginErr) throw loginErr;
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j?.error || `Edge register-anon falló (${res.status})`);
+    }
+    const { auth_id } = await res.json();
 
-  return true;
-}
+    // 2) Foto opcional
+    let foto_url: string | null = null;
+    if (photoFile) {
+      const up = await this.uploadAvatar(photoFile, form.email);
+      foto_url = up.publicUrl;
+    }
 
+    // 3) Insert en tu tabla (yo recomiendo seguir usando 'usuarios' con perfil/estado)
+    const { error: insErr } = await this._supabase
+      .from('usuarios')
+      .insert({
+        auth_id,
+        email: form.email,
+        nombres: (form.nombre ?? 'Anónimo').trim() || 'Anónimo',
+        apellidos: null,
+        dni: null,
+        foto_url,
+        perfil: 'clienteAnon',
+        estado: 'aprobado', // entra directo
+      });
 
+    if (insErr) throw insErr;
 
+    // 4) Login directo (ya está auto-confirmado)
+    const { error: loginErr } = await this._supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password,
+    });
+    if (loginErr) throw loginErr;
 
+    // tras el signInWithPassword exitoso:
+    this._supabase.functions.invoke('notificar-cliente', {
+      body: {
+        email: form.email,
+        nombres: (form.nombre ?? 'Anónimo'),
+        apellidos: '',
+        estado: 'aprobado',
+      },
+    }).catch(err => console.warn('notificar-cliente (anon/aprobado) falló:', err));
 
+    return true;
+  }
 
-
-
-  
   // === CLIENTES PENDIENTES (ADMIN) ===
   async getPendingClients() {
     const { data, error } = await this._supabase

@@ -10,7 +10,7 @@ export type MesaPayload = {
   numero: number;
   capacidad: number;
   // Acepto tu valor previo y lo mapeo a 'pmr' para DB:
-  tipo: MesaTipo | 'mov_reducida';
+  tipo: MesaTipo; 
   fotoBlob: Blob; // foto OBLIGATORIA (como Blob)
 };
 
@@ -84,24 +84,37 @@ export class AdminAltaMesaService {
     if (!created_by) throw new Error('No hay usuario autenticado.');
 
     // Mapeo tipo legado -> enum real
-    const tipo: MesaTipo = (payload.tipo === 'mov_reducida' ? 'pmr' : payload.tipo) as MesaTipo;
+    //const tipo: MesaTipo = (payload.tipo === 'mov_reducida' ? 'pmr' : payload.tipo) as MesaTipo;
 
-    // 1) Inserto borrador para obtener id
-    const { data: inserted, error: insErr } = await this.supa.client
-      .from('mesas')
-      .insert({
-        numero: payload.numero,
-        capacidad: payload.capacidad,
-       // tipo_mesa: (payload.tipo === 'mov_reducida' ? 'pmr' : payload.tipo),
-       tipo, 
-       created_by, // requerido en tu schema
-        // estado: default 'libre'
-      })
-      .select('id, numero')
-      .single();
+    // 1) INSERT con manejo de errores en español
+    let inserted: any;
+    try {
+      const ins = await this.supa.client
+        .from('mesas')
+        .insert({
+          numero: payload.numero,
+          capacidad: payload.capacidad,
+          // ⚠️ usa la columna real de tu tabla:
+          tipo_mesa: payload.tipo,   // ← si tu columna es 'tipo', cámbialo por 'tipo'
+          created_by,
+        })
+        .select('id, numero')
+        .single();
 
-    if (insErr) throw new Error(insErr.message || 'No se pudo crear la mesa.');
+      if (ins.error) throw ins.error;
+      inserted = ins.data;
+    } catch (err: any) {
+      const msg = (err?.message || '').toLowerCase();
+      const code = err?.code;
 
+      if (code === '23505' || msg.includes('duplicate key') || msg.includes('unique constraint')) {
+        throw new Error('Ya existe una mesa con ese número.');
+      }
+      if (msg.includes('invalid input value') && msg.includes('tipo_mesa')) {
+        throw new Error('El tipo de mesa no es válido. Elegí Estándar, VIP o Movilidad reducida.');
+      }
+      throw new Error('No se pudo crear la mesa. Intentá nuevamente.');
+    }
     const mesaId = inserted.id as string;
     const numero = inserted.numero as number;
 

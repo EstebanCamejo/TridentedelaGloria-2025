@@ -1,0 +1,54 @@
+<ion-header>
+    <ion-toolbar>
+      <ion-title>Lista de espera</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content [fullscreen]="true" class="ion-padding">
+    <!-- Pull to refresh -->
+    <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+      <ion-refresher-content
+        pullingIcon="refresh"
+        pullingText="Deslizá para actualizar"
+        refreshingSpinner="lines"
+        refreshingText="Actualizando...">
+      </ion-refresher-content>
+    </ion-refresher>
+  
+    <!-- Lista -->
+    <ion-list *ngIf="!loading && items.length; else estado">
+      <ion-item *ngFor="let it of items; trackBy: trackById">
+        <ion-avatar slot="start">
+          <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
+        </ion-avatar>
+  
+        <ion-label>
+          <h2>{{ it.nombre }}</h2>
+          <p *ngIf="it.email" style="opacity:.8">{{ it.email }}</p>
+          <div style="margin-top:6px;">
+            <ion-badge color="warning">en espera</ion-badge>
+            <small style="margin-left:8px; opacity:.8">
+              {{ it.created_at | date:'short' }}
+            </small>
+          </div>
+        </ion-label>
+  
+        <ion-button fill="clear" (click)="atender(it)">
+          Atender
+        </ion-button>
+      </ion-item>
+    </ion-list>
+  
+    <!-- Estados: cargando o vacío -->
+    <ng-template #estado>
+      <div style="text-align:center; opacity:.9; margin-top:24px;">
+        <ng-container *ngIf="loading; else vacio">
+          Cargando lista de espera…
+        </ng-container>
+        <ng-template #vacio>
+          No hay clientes en espera.
+        </ng-template>
+      </div>
+    </ng-template>
+  </ion-content>
+  
