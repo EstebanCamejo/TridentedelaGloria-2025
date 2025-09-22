@@ -68,9 +68,9 @@
 - SendGrid para enviar mail de aceptacion o rechazo al cliente (admin) → *Esteban Camejo*
 
 **Altas**
--Alta cliente / cliente anónimo (funcionalidad completa de registro de clientes + validacion errores + dni scanner) → *Sofia Dorbessan*
--Alta Mesa → *Esteban Camejo*
--Confirmacion de usuarios por parte del Admin → *Esteban Camejo*
+- Alta cliente / cliente anónimo (funcionalidad completa de registro de clientes + validacion errores + dni scanner) → *Sofia Dorbessan*
+- Alta Mesa → *Esteban Camejo*
+- Confirmacion de usuarios por parte del Admin → *Esteban Camejo*
 
 
 ✅ **Entrega:**  Envio de captura de pantalla del diseño general de la app y los componentes
@@ -93,7 +93,7 @@ Los títulos blancos tampoco se distinguen.
  - Push notification alta cliente (Admin) → *Esteban Camejo*
 
 **Altas**
--Alta Empleados (Admin) → *Esteban Camejo*
+- Alta Empleados (Admin) → *Esteban Camejo*
 
   ✅ **Entrega:**
 
