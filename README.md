@@ -82,6 +82,7 @@
 - Los botones de alta de usuarios y alta de mesa no contrastan bien con el fondo.
 Los títulos blancos tampoco se distinguen.
 
+
 **Diseño**
 -Arreglo de las correcciones esteticas realizadas por el profesor → *Sofia Dorbessan*
 
