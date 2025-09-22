@@ -1,0 +1,34 @@
+<ion-header>
+    <ion-toolbar>
+      <ion-title>Mesa</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content class="ion-padding">
+    <ng-container *ngIf="!cargando && mesa; else cargandoTpl">
+      <ion-item>
+        <ion-label>
+          <h2>Mesa #{{ mesa.numero }}</h2>
+          <p>Capacidad: {{ mesa.capacidad }}</p>
+          <p>Tipo: {{ mesa.tipo }}</p>
+        </ion-label>
+        <ion-badge [color]="mesa.estado === 'libre' ? 'success' : (mesa.estado === 'ocupada' ? 'danger' : 'medium')">
+          {{ mesa.estado | titlecase }}
+        </ion-badge>
+      </ion-item>
+  
+      <div *ngIf="mesa.foto_url" style="margin-top:16px;text-align:center;">
+        <ion-img [src]="mesa.foto_url" style="max-width:320px;margin:0 auto;border-radius:12px;"></ion-img>
+      </div>
+  
+      <!-- Botones futuros (asignar, marcar ocupada, etc.) -->
+      <!--
+      <ion-button expand="block" color="primary" style="margin-top:20px;">Asignar</ion-button>
+      -->
+    </ng-container>
+  
+    <ng-template #cargandoTpl>
+      Cargando información de la mesa...
+    </ng-template>
+  </ion-content>
+  

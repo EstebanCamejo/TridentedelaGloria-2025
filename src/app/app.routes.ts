@@ -113,5 +113,10 @@ export const routes: Routes = [
   //     import('./components/maitre/asignar-mesa/asignar-mesa.component')
   //       .then(m => m.AsignarMesaComponent),
   // },
+  { 
+    path: 'maitre/mesa/:id', 
+    loadComponent: () => import('./components/maitre/mesa-info/mesa-info.component').then(m => m.MesaInfoComponent) 
+  },
+  
 ];
 
