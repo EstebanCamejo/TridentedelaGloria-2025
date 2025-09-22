@@ -1,39 +1,4 @@
-// .form-container{
-//     --background: #ffe4cc;
-// }
-// /* Fondo del content (opcional) */
-// .register-content {
-//   --background: #2a1b1c; /* tu marrón oscuro */
-// }
 
-// /* Centrado perfecto del card */
-// .wrapper {
-//   min-height: 100%;
-//   display: grid;
-//   place-items: center;
-//   padding: 24px;
-// }
-
-// /* Card con ancho similar al modelo */
-// .card {
-//   width: 360px;
-//   max-width: 92vw;
-//   border-radius: 16px;
-//   overflow: hidden;
-//   color:#ffe4cc;
-// }
-
-// .form-container { display: flex; flex-direction: column; gap: 12px; }
-// .toggle { margin-top: 12px; display: flex; justify-content: center; }
-
-
-.form-container{
---background: #2a1b1c;
-}
-/* Fondo del content (opcional) */
-.register-content {
-  --background: #2a1b1c; /* tu marrón oscuro */
-}
 
 /* Centrado perfecto del card */
 .wrapper {
@@ -44,16 +9,20 @@
 }
 
 /* Card con ancho similar al modelo */
-.card {
+.card{
   width: 360px;
   max-width: 92vw;
   border-radius: 16px;
-  overflow: hidden;
-  --background: rgba(212, 178, 178, 0.65);
+  overflow: visible;               /* que no recorte el contenido */
+  --background: transparent !important; /* SIN fondo rosado */
+  box-shadow: none;                 /* opcional, o dejá una sombra muy leve */
+  border: 0;                        /* opcional */
+  padding: 0;                       /* deja que el form maneje sus paddings */
 }
 
+
 .form-container { display: flex; flex-direction: column; gap: 12px; }
-.toggle { margin-top: 12px; display: flex; justify-content: center; color: #3b2a2a; }
+.toggle { margin-top: 1px; display: flex; justify-content: center; color: #e7dac4; background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));}
 
 
 /* input file oculto para fallback web */

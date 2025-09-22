@@ -5,12 +5,12 @@
       <ion-card-content>
         <div class="form-container">
 
-          <!-- Form NORMAL por defecto -->
+         
           <div class="form1" *ngIf="!ingresarAnonimo">
             <app-registro-cliente></app-registro-cliente>
           </div>
 
-          <!-- Form ANÓNIMO al activar perilla -->
+          
           <div class="form2" *ngIf="ingresarAnonimo">
             <app-registro-cliente-anonimo></app-registro-cliente-anonimo>
           </div>

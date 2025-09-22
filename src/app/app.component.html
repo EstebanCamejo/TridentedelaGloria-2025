@@ -29,6 +29,11 @@
     </div>
   </div>
 
+
   <ion-router-outlet></ion-router-outlet>
+<div class="brand-loading" *ngIf="(spinnerVisible$ | async)">
+  <div class="loading-wrapper" role="status" aria-live="polite" aria-label="Cargando"></div>
+</div>
+
 
 </ion-app>

@@ -4,7 +4,6 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { SupabaseService } from 'src/app/services/supabase.service';
-//import { SpinnerService } from 'src/app/services/spinner.service';
 
 // 👇 para cámara
 import { Capacitor } from '@capacitor/core';
@@ -42,7 +41,6 @@ export class RegistroClienteAnonimoComponent {
     private auth: SupabaseService,
     private router: Router,
     private toastr: ToastrService,
-    //private spinner: SpinnerService,
   ) {}
 
   // ==== FOTO ====
