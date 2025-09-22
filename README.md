@@ -84,7 +84,7 @@ Los títulos blancos tampoco se distinguen.
 
 
 **Diseño**
--Arreglo de las correcciones esteticas realizadas por el profesor → *Sofia Dorbessan*
+- Arreglo de las correcciones esteticas realizadas por el profesor → *Sofia Dorbessan*
 
 **Gestión**
  - Servicio Sonidio iniciar sesion + cerrar sesion → *Sofia Dorbessan*
