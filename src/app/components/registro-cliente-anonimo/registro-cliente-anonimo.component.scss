@@ -67,14 +67,22 @@ input[type="text"], input[type="email"], input[type="password"]{
   width:100%; height:46px; padding:0 12px; box-sizing:border-box;
   border-radius:12px; border:1.5px solid rgba(255,221,190,.55);
   background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
-  color:#040403; font-size:1rem; outline:none;
+  color:#ffd1d1; font-size:1rem; outline:none;
   transition:border-color .2s, box-shadow .2s, background .2s, transform .04s;
 }
 input::placeholder{ color:#a88978; }
 input:focus{
   border-color: var(--cream-200);
   box-shadow: 0 0 0 3px rgba(255,221,190,.35);
-  background:#fffaf2;
+  background: inherit;               /* o repetí tu gradiente */
+}
+
+/* Si Chrome/Android aplica el fondo de autocompletado, forzalo */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #040403;
+  box-shadow: 0 0 0 1000px transparent inset; /* sin “lavado” blanco/amarillo */
+  transition: background-color 9999s ease;    /* truco para neutralizar */
 }
 
 /* botones */

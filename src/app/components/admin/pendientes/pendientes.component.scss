@@ -1,23 +1,132 @@
-.estado-ctr {
-    text-align: center;
-    padding: 2rem 1rem;
-    opacity: 0.85;
-  }
+// .estado-ctr {
+//     text-align: center;
+//     padding: 2rem 1rem;
+//     opacity: 0.85;
+//   }
   
-  .email {
-    opacity: 0.8;
-    font-size: 0.9rem;
-    word-break: break-all;
-  }
+//   .email {
+//     opacity: 0.8;
+//     font-size: 0.9rem;
+//     word-break: break-all;
+//   }
   
-  .meta {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    margin-top: 0.35rem;
+//   .meta {
+//     display: flex;
+//     gap: 0.5rem;
+//     align-items: center;
+//     margin-top: 0.35rem;
   
-    small {
-      opacity: 0.7;
-    }
-  }
-  
+//     small {
+//       opacity: 0.7;
+//     }
+//   }
+  /* Safe-areas para que nada choque con barras del teléfono */
+:root{
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ink:#111;                 /* negro legible */
+  --ink-soft:#6b5858;
+  --card: #f6ecdc;            /* crema claro para tarjetas */
+  --card-border:#000;         /* borde negro como pediste en admin */
+}
+
+/* Fondo y padding seguro del content */
+.pend-content{
+  --background: transparent;                   /* deja ver tu patrón */
+  --padding-start: clamp(10px, 4vw, 16px);
+  --padding-end: clamp(10px, 4vw, 16px);
+  --padding-bottom: calc(var(--safe-bottom) + 80px); /* aire por FAB/barra gestual */
+  color: var(--ink);
+}
+
+/* Search sticky bajo el header (no se va para arriba) */
+.pend-search{
+  position: sticky;
+  top: 0;                 /* queda pegada debajo del ion-header */
+  z-index: 5;
+  margin: 8px 0 10px;
+  border-radius: 12px;
+  --box-shadow: 0 6px 14px rgba(61,43,43,.28);
+
+  /* fallback: si no te toma la clase de color, deja este por defecto */
+  --background: #5d2222;      /* burdeos por defecto */
+  --color: #fff;
+  --placeholder-color: rgba(255,255,255,.82);
+  --icon-color: #fff;
+  --clear-button-color: #fff;
+  --cancel-button-color: #fff;
+}
+/* Lista sin fondo propio; las tarjetas ponen el contraste */
+.pend-list{
+  background: transparent;
+  padding-bottom: 12px;
+}
+
+/* Tarjeta del pendiente (alto contraste, sin desbordes) */
+.pend-item{
+  --background: var(--card);
+  --min-height: 76px;
+  margin: 10px 0;
+  border: 2px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(61,43,43,.18);
+  color: var(--ink);
+}
+
+/* Contenido realmente centrado y alto completo */
+.pend-item::part(native){
+  align-items: center;
+}
+
+/* Avatar un poco más grande y redondeado */
+.pend-item ion-avatar{
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* Tipografías en negro */
+.pend-item .name{
+  margin: 0 0 4px 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+.pend-item .email{
+  margin: 0;
+  opacity: .9;
+  color: var(--ink);
+  font-size: .92rem;
+  word-break: break-all;
+}
+
+/* Línea de metadata */
+.pend-item .meta{
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  margin-top: .35rem;
+}
+.pend-item .meta small{
+  color: var(--ink-soft);
+}
+
+/* Botones de acción “ghost” (claros, no pegan con el fondo) */
+.pend-item ion-button{
+  --padding-start: 6px;
+  --padding-end: 6px;
+  --ripple-color: rgba(0,0,0,.1);
+}
+
+/* Evitá overflow horizontal en pantallas angostas */
+@media (max-width: 360px){
+  .pend-content{ --padding-start: 10px; --padding-end: 10px; }
+  .pend-item{ margin: 8px 0; }
+}
+
+/* Estados (cargando / vacío) con contraste */
+.estado-ctr{
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--ink);
+  opacity: .95;
+}
