@@ -355,6 +355,22 @@ export class SupabaseService {
 }
 
 
+    // 2) Foto opcional
+    // let foto_url: string | null = null;
+    // if (photoFile) {
+    //   // const up = await this.uploadAvatar(photoFile, form.email);
+    //   const up = await this.withTimeout(
+    //     this.uploadAvatar(photoFile, form.email),
+    //     'uploadAvatar',
+    //     40000
+    //   );
+      
+    //   foto_url = up.publicUrl;
+    // }
+
+//     console.log('[alta empleado] step: uploadAvatar (SKIPPED)');
+//     const foto_url = null;   
+
 
   /** Flujo exclusivo ANÓNIMO: crea user auto-confirmado en Edge, sube foto, inserta perfil y loguea */
   // async registrarAnonimoFlow(form: { nombre?: string|null; email: string; password: string }, photoFile?: File|null) {
@@ -422,6 +438,7 @@ export class SupabaseService {
 
   //   return true;
   // }
+  
   async registrarAnonimoFlow(
   form: { nombre: string; email: string; password: string },
   photoFile?: File | null
@@ -483,10 +500,104 @@ export class SupabaseService {
   }
 
   
+
 onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
   const { data: sub } = this._supabase.auth.onAuthStateChange((event) => handler(event));
   // devolvemos el unsubscribe para limpiar en OnDestroy
   return () => sub.subscription.unsubscribe();}
+  
+
+
+  async registrarEmpleado(
+    form: {
+      apellido: string;
+      nombre: string;
+      dni: string;          // 7–8 dígitos
+      cuil: string;         // 11 dígitos válido
+      email: string;
+      password: string;     // ≥ 8
+      perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
+    },
+    photoFile: File
+  ) {
+    // 0) Chequeos básicos
+    if (!photoFile) throw new Error('La foto es obligatoria.');
+    if (!/^\d{7,8}$/.test(form.dni)) throw new Error('DNI inválido.');
+    if (!/^\d{11}$/.test(form.cuil)) throw new Error('CUIL inválido.');
+    if (!form.perfil) throw new Error('Perfil inválido.');
+  
+    // 1) Unicidad rápida (email, dni, cuil)
+    // console.log('[alta empleado] step: check-duplicates');
+
+    // const q = this._supabase
+    //   .from('usuarios')
+    //   .select('email,dni,cuil', { head: false })
+    //   .or(
+    //     [
+    //       `email.eq.${form.email}`,
+    //       `dni.eq.${form.dni}`,
+    //       `cuil.eq.${form.cuil}`
+    //     ].join(',')
+    //   )
+    //   .limit(1)
+    //   .throwOnError(); // <- si RLS/otro falla, RECHAZA; no queda pendiente
+
+    // const { data: dup } = await q; // <- sin withTimeout aquí
+   // 2) Crear usuario de Auth
+    console.log('[alta empleado] step: signUp');
+    const { data: sign, error: signErr } = await this.withTimeout(
+      this._supabase.auth.signUp({ email: form.email, password: form.password }),
+      'signUp'
+    );
+    if (signErr) throw signErr;
+    const auth_id = sign.user?.id;
+    if (!auth_id) throw new Error('No se pudo crear el usuario de autenticación.');
+
+    // 3) Subir foto (Storage)
+    console.log('[alta empleado] step: uploadAvatar');
+    const up = await this.withTimeout(
+      this.uploadAvatar(photoFile, form.email),
+      'uploadAvatar'
+    );
+    const foto_url = up.publicUrl;
+
+    // 4) Insert en usuarios (estado ACTIVO)
+    console.log('[alta empleado] step: insert usuarios');
+    const { error: insErr } = await this.withTimeout(
+      this._supabase.from('usuarios').insert({
+        auth_id,
+        email: form.email,
+        nombres: form.nombre.trim(),
+        apellidos: form.apellido.trim(),
+        dni: form.dni,
+        cuil: form.cuil,
+        foto_url,
+        perfil: form.perfil,
+        estado: 'activo',
+      }),
+      'insertUsuarios'
+    );
+    if (insErr) throw insErr;
+
+    console.log('[alta empleado] OK');
+    return true;
+  }
+  
+  private async withTimeout<T>(p: PromiseLike<T>, label: string, ms = 20000): Promise<T> {
+    let to: any;
+    const killer = new Promise<never>((_, reject) =>
+      to = setTimeout(() => reject(new Error(`timeout:${label}`)), ms)
+    );
+    try {
+      const r = await Promise.race([p as any, killer]);
+      clearTimeout(to);
+      return r as T;
+    } catch (e) {
+      clearTimeout(to);
+      throw e;
+    }
+  }
+  
   
 
 }

@@ -1,3 +1,117 @@
-<p>
-  alta-usuario works!
-</p>
+<div class="wrapper">
+  <!-- <div class="contenedor-subidas">
+    <div class="avatar-ctr">
+      <img [src]="photoPreview || 'assets/imagenes/agregar-usuario.png'" alt="foto-personal" />
+    </div>
+    
+    <ion-button class="btn-subir" type="button" (click)="tomarFoto()">
+      <ion-icon name="camera"></ion-icon>
+      <p>TOMAR FOTO</p>
+    </ion-button>
+
+    <div class="scaner">
+      <ion-button class="btn-scanner" type="button" (click)="escanearDNI()">
+        <ion-icon name="barcode-outline"></ion-icon>
+        <p>ESCANEAR DNI</p>
+      </ion-button>
+    </div>
+  </div> -->
+  <div class="contenedor-subidas">
+    <div class="avatar-ctr">
+      <img [src]="photoPreview || 'assets/imagenes/agregar-usuario.png'" alt="foto-personal" />
+    </div>
+  
+    <div class="btn-row">
+      <ion-button class="btn-subir" type="button" (click)="tomarFoto()">
+        <ion-icon name="camera"></ion-icon>
+        <p>TOMAR FOTO</p>
+      </ion-button>
+  
+      <ion-button class="btn-scanner" type="button" (click)="escanearDNI()">
+        <ion-icon name="barcode-outline"></ion-icon>
+        <p>ESCANEAR DNI</p>
+      </ion-button>
+    </div>
+  </div>
+  
+  <form class="register-form" #f="ngForm" (ngSubmit)="onSubmit(f)" novalidate>
+    <!-- Apellido -->
+    <div class="form-group">
+      <label class="subTittle" for="apellido">Apellido</label>
+      <input id="apellido" name="apellido" type="text" [(ngModel)]="apellido" #apellidoModel="ngModel" required placeholder="Apellido" />
+      <small *ngIf="showError(apellidoModel, f)" class="error">El apellido es obligatorio.</small>
+    </div>
+
+    <!-- Nombre -->
+    <div class="form-group">
+      <label class="subTittle" for="nombre">Nombre</label>
+      <input id="nombre" name="nombre" type="text" [(ngModel)]="nombre" #nombreModel="ngModel" required placeholder="Nombre" />
+      <small *ngIf="showError(nombreModel, f)" class="error">El nombre es obligatorio.</small>
+    </div>
+
+    <!-- DNI -->
+    <div class="form-group">
+      <label class="subTittle" for="dni">DNI</label>
+      <input id="dni" name="dni" type="text" [(ngModel)]="dni" #dniModel="ngModel"
+             required inputmode="numeric" pattern="^[0-9]{7,8}$" maxlength="8"
+             placeholder="Sólo números (7–8 dígitos)" />
+      <small *ngIf="showError(dniModel, f)" class="error">Ingresá un DNI válido (7–8 dígitos).</small>
+    </div>
+
+    <!-- CUIL -->
+    <div class="form-group">
+      <label class="subTittle" for="cuil">CUIL</label>
+      <input id="cuil" name="cuil" type="text" [(ngModel)]="cuil" #cuilModel="ngModel"
+             required inputmode="numeric" pattern="^[0-9]{11}$" maxlength="11"
+             placeholder="11 dígitos (con verificador)" />
+      <small *ngIf="showError(cuilModel, f)" class="error">Ingresá un CUIL de 11 dígitos.</small>
+      <small *ngIf="f.submitted && cuilModel.valid && !cuilValido" class="error">CUIL inválido (dígito verificador incorrecto).</small>
+    </div>
+
+    <!-- Email -->
+    <div class="form-group">
+      <label class="subTittle" for="email">Correo</label>
+      <input id="email" name="email" type="email" [(ngModel)]="email" #emailModel="ngModel" required email placeholder="correo@ejemplo.com" />
+      <small *ngIf="showError(emailModel, f)" class="error">Ingresá un correo válido.</small>
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <label class="subTittle" for="password">Contraseña</label>
+      <input id="password" name="password" type="password" [(ngModel)]="password" #passwordModel="ngModel"
+             required minlength="8" placeholder="Mínimo 8 caracteres" />
+      <small *ngIf="showError(passwordModel, f)" class="error">La contraseña debe tener al menos 8 caracteres.</small>
+    </div>
+
+    <!-- Confirm -->
+    <div class="form-group">
+      <label class="subTittle" for="confirm">Repetir contraseña</label>
+      <input id="confirm" name="confirm" type="password" [(ngModel)]="confirm" #confirmModel="ngModel"
+             required minlength="8" placeholder="Vuelva a escribir la contraseña" />
+      <small *ngIf="showError(confirmModel, f)" class="error">Repetí la contraseña.</small>
+      <small *ngIf="passwordsMismatch && (f.submitted || confirmModel.touched)" class="error">Las contraseñas no coinciden.</small>
+    </div>
+
+    <!-- Perfil -->
+    <div class="form-group">
+      <label class="subTittle" for="perfil">Perfil</label>
+      <select id="perfil" name="perfil" [(ngModel)]="perfil" #perfilModel="ngModel" required>
+        <option [ngValue]="null" disabled>Seleccioná un perfil</option>
+        <option value="maitre">Maître</option>
+        <option value="mozo">Mozo</option>
+        <option value="cocinero">Cocinero</option>
+        <option value="bartender">Bartender</option>
+      </select>
+      
+      <small *ngIf="showError(perfilModel, f)" class="error">Seleccioná un perfil.</small>
+    </div>
+
+    <!-- Botón enviar -->
+    <button class="buttonLogin" type="submit" [disabled]="loading">
+      {{ loading ? 'Validando…' : 'Crear empleado' }}
+    </button>
+
+    <!-- Error general -->
+    <div *ngIf="errorMsg" class="error" style="margin-top:8px;">{{ errorMsg }}</div>
+  </form>
+</div>
