@@ -1,0 +1,38 @@
+<ion-header class="client-header">
+  <ion-toolbar>
+    <div class="nav-pill">Trivia</div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="wrap">
+    <ion-card class="panel">
+      <ion-card-content>
+        <ng-container *ngIf="!finished; else fin">
+          <div class="meta">Pregunta {{ idx + 1 }} / {{ questions.length }}</div>
+          <div class="q">{{ questions[idx].q }}</div>
+
+          <div class="opts">
+            <ion-button expand="block" class="opt"
+              *ngFor="let op of questions[idx].options; let i = index"
+              (click)="select(i)" [disabled]="answering">
+              {{ op }}
+            </ion-button>
+          </div>
+        </ng-container>
+
+        <ng-template #fin>
+          <div class="res">
+            <div class="score">Puntaje: <b>{{ score }}</b> / {{ questions.length }}</div>
+            <div class="disc" [class.ok]="discount">Descuento: <b>{{ discount }}%</b></div>
+          </div>
+          <div class="actions">
+            <ion-button class="primary" expand="block" (click)="claim()">Reclamar descuento</ion-button>
+            <ion-button expand="block" routerLink="/juegos">Volver</ion-button>
+            <ion-button expand="block" fill="outline" (click)="restart()">Jugar de nuevo</ion-button>
+          </div>
+        </ng-template>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

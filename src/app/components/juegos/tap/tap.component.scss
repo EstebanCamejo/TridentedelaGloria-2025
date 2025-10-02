@@ -1,0 +1,29 @@
+.client-header .nav-pill{ background:#5d2222; color:#fff7ea; text-align:center; padding:12px; font-weight:800; }
+.wrap{ max-width: 720px; margin: 0 auto; }
+.panel{ background: rgba(0,0,0,.82); color:#fff; border:1px solid rgba(255,255,255,.08); border-radius:16px; }
+.panel ion-card-content{ padding:16px; }
+.status{ display:flex; justify-content:space-between; margin-bottom:12px; }
+.disc{ color:#9cf59c; }
+
+.arena{
+  position: relative;
+  height: 320px;
+  background: #fff7ea;
+  border: 2px solid #000;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.target{
+  position: absolute;
+  inset: 0 auto auto 0;
+  transform: translate(10px, 10px);
+  width: 64px; height: 64px;
+  border-radius: 999px;
+  border: 2px solid #000;
+  background: #5d2222; color: #fff7ea;
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(0,0,0,.25);
+}
+.actions{ display:grid; gap:10px; }
+.primary{ --background:#5d2222; --color:#fff7ea; }

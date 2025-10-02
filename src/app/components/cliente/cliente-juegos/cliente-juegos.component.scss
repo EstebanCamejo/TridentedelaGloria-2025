@@ -1,0 +1,107 @@
+/* Header pill */
+.client-header{ position: sticky; top:0; z-index:10; background: transparent; }
+.client-header .nav-pill{
+  inline-size: calc(100dvw + 2px);
+  margin-inline: calc(50% - 50dvw - 1px);
+  padding: 12px 16px;
+  background:#5d2222; color:#fff7ea; text-align:center;
+  font-family:"Inter",sans-serif; font-weight:700; letter-spacing:.2px;
+  box-shadow: 0 6px 14px rgba(61,43,43,.25);
+}
+
+/* Layout base */
+.client-content{ --background: transparent; }
+.client-wrap{
+  min-height: 100%;
+  padding: 16px 16px calc(var(--safe-bottom) + 84px);
+  display: grid; gap: 16px;
+}
+
+/* Intro */
+.intro-card{
+  background: rgba(0,0,0,.82);
+  color:#fff; border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.06);
+  box-shadow: 0 14px 34px rgba(0,0,0,.24);
+}
+.intro-card ion-card-content{ padding: 14px 16px; }
+.intro-title{ font-weight: 800; margin-bottom: 2px; }
+.intro-sub{ opacity:.9; }
+
+/* Stack de botones (espacio fijo por botón, sin variables globales) */
+.game-stack{ display:block; }
+
+/* Botón base estilo “tarjeta” */
+ion-button.option-card{
+  display:block; width:100%;
+  margin: 0; /* controlamos margen por variante */
+  --border-radius: 16px;
+  font-family: "Inter", sans-serif;
+  font-weight: 800;
+  letter-spacing:.2px;
+  text-transform: none;
+}
+ion-button.option-card::part(native){
+  min-height: 120px;
+  padding: 0 22px;
+  border-radius: 16px;
+  justify-content: flex-start;
+  gap: 14px;
+  border: 2px solid #000;     /* borde negro */
+  box-shadow: 0 10px 22px rgba(0,0,0,.16);
+}
+
+/* Tamaño del icono */
+.option-card ion-icon[slot="start"]{ font-size: 26px; }
+
+/* Colores + ESPACIO INDIVIDUAL (sin vars globales) */
+ion-button.option-card.var1{
+  --background:#5d2222; --color:#fff7ea;
+  margin-bottom: 28px;
+}
+ion-button.option-card.var2{
+  --background:#8f6a4f; --color:#fff7ea;
+  margin-bottom: 28px;
+}
+ion-button.option-card.var3{
+  --background:#e6d7c5; --color:#2b2323;
+  /* último sin margen inferior extra */
+}
+
+/* Compacto en pantallas muy bajas */
+@media (max-height: 700px){
+  ion-button.option-card::part(native){ min-height: 110px; }
+  ion-button.option-card.var1, 
+  ion-button.option-card.var2{ margin-bottom: 22px; }
+}
+/* ── Compactar la tarjeta informativa ─────────────────────────────── */
+.intro-card{
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.20);
+}
+
+/* menos padding y espacios internos */
+.intro-card ion-card-content{
+  padding: 10px 12px;     /* antes: 14px 16px */
+  display: grid;
+  gap: 4px;
+}
+
+/* textos más chicos y apretados */
+.intro-title{
+  font-size: 0.98rem;     /* antes heredado */
+  line-height: 1.12;
+  margin: 0;
+}
+.intro-sub{
+  font-size: 0.84rem;
+  line-height: 1.14;
+  opacity: .9;
+  margin: 0;
+}
+
+/* límite duro por si algún WebView exagera la altura */
+.intro-card{ 
+  max-height: 112px;      /* ajustá 96–120px a gusto */
+  overflow: hidden;
+}

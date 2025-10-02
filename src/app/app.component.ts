@@ -356,7 +356,9 @@ export class AppComponent implements OnInit, OnDestroy {
     private haptics: HapticsService,
     private toastr: ToastrService,
     public spinner: SpinnerService
-  ) {}
+  ) {
+  }
+  
 public spinnerVisible$ = this.spinner.visible$;
   async ngOnInit(): Promise<void> {
     // ===== Spinner entre rutas (habilitado recién post-splash) =====
