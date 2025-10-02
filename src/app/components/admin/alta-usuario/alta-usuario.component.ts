@@ -5,10 +5,16 @@ import { ToastrService } from 'ngx-toastr';
 import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { BarcodeScanner, BarcodeFormat, PermissionStatus } from '@capacitor-mlkit/barcode-scanning';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { addIcons } from 'ionicons';
 import { camera, barcodeOutline } from 'ionicons/icons';
+
+// QR DNI
+import {
+  BarcodeScanner,
+  BarcodeFormat,
+  PermissionStatus,
+} from '@capacitor-mlkit/barcode-scanning';
 
 @Component({
   selector: 'app-alta-usuario',
@@ -18,6 +24,7 @@ import { camera, barcodeOutline } from 'ionicons/icons';
   imports: [CommonModule, FormsModule, IonButton, IonIcon],
 })
 export class AltaUsuarioComponent {
+  // tus bindings del template
   apellido = '';
   nombre = '';
   dni = '';
@@ -25,206 +32,186 @@ export class AltaUsuarioComponent {
   email = '';
   password = '';
   confirm = '';
-  perfil: ('maitre'|'mozo'|'cocinero'|'bartender'|null) = null;
-
+  perfil: 'maitre' | 'mozo' | 'cocinero' | 'bartender' | null = null;
 
   loading = false;
   errorMsg = '';
   passwordsMismatch = false;
 
-  photoPreview: string | null = null;
-  photoFile: File | null = null;
+  photoPreview: string | null = null; // muestra en UI
+  photoBase64: string | null = null;  // se envía a la Edge Function
 
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>; // (no usamos galería; queda por si luego querés web)
-
-  // --- Helpers de UI ---
-  private isNative(): boolean { return Capacitor.isNativePlatform(); }
-  private toastOk(msg: string) { this.toastr.success(msg, '', { positionClass:'toast-center', timeOut:3000, progressBar:true }); }
-  private toastError(msg: string) { this.toastr.error(msg, 'Error', { positionClass:'toast-center', closeButton:true, progressBar:true, timeOut:4500 }); }
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   constructor(private toastr: ToastrService, private supa: SupabaseService) {
     addIcons({ camera, barcodeOutline });
   }
 
+  // ===== utilidades =====
+  private isNative(): boolean { return Capacitor.isNativePlatform(); }
+  private toastOk(msg: string)    { this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 2500 }); }
+  private toastError(msg: string) { this.toastr.error(msg, 'Error', { positionClass: 'toast-center', timeOut: 4000 }); }
+
   showError(ctrl: any, form: NgForm): boolean {
     return !!ctrl?.invalid && (ctrl?.touched || form?.submitted);
   }
 
-  // === FOTO: sólo cámara ===
+  // DNI 7–8 dígitos
+  private isDniValido(v: string) {
+    return /^[0-9]{7,8}$/.test((v || '').trim());
+  }
+
+  // CUIL 11 dígitos con verificador
+  get cuilValido(): boolean {
+    const s = (this.cuil || '').trim();
+    if (!/^\d{11}$/.test(s)) return false;
+    const a = s.split('').map(n => +n);
+    const pesos = [5,4,3,2,7,6,5,4,3,2];
+    const sum = pesos.reduce((acc, p, i) => acc + p * a[i], 0);
+    let dv = 11 - (sum % 11);
+    if (dv === 11) dv = 0;
+    if (dv === 10) dv = 9;
+    return dv === a[10];
+  }
+
+  // ===== Cámara: foto comprimida =====
   async tomarFoto() {
     try {
-      if (!this.isNative()) {
-        this.toastError('La captura de foto requiere dispositivo móvil.');
-        return;
-      }
-      // Sólo cámara (sin galería)
-      const perms = await Camera.requestPermissions({ permissions:['camera'] });
+      if (!this.isNative()) { this.toastError('La cámara requiere dispositivo móvil.'); return; }
+
+      const perms = await Camera.requestPermissions({ permissions: ['camera'] });
       if (perms.camera !== 'granted') { this.toastError('Habilitá la cámara.'); return; }
+
       const img = await Camera.getPhoto({
-        quality: 70,
         resultType: CameraResultType.Base64,
         source: CameraSource.Camera,
+        quality: 55,     // más liviana
+        width: 900,      // limita lado mayor
         allowEditing: false,
-        saveToGallery: false,
       });
-      if (!img?.base64String) { this.toastError('No se obtuvo la imagen.'); return; }
 
-      // Preview
+      if (!img?.base64String) { this.toastError('No se obtuvo la foto.'); return; }
+
       const mime = img.format ? `image/${img.format}` : 'image/jpeg';
-      this.photoPreview = `data:${mime};base64,${img.base64String}`;
-
-      // File desde base64 (sin fetch)
-      const fileName = `empleado-${Date.now()}.jpg`;
-      const file = this.base64ToFile(img.base64String, fileName, mime);
-      this.photoFile = file;
-      // if (img?.webPath) {
-      //   this.photoPreview = img.webPath;
-      //   this.photoFile = await this.uriToFile(img.webPath, `empleado-${Date.now()}`);
-      // }
+      this.photoBase64 = `data:${mime};base64,${img.base64String}`;
+      this.photoPreview = this.photoBase64;
     } catch (e) {
-      console.warn('Cámara cancelada o error:', e);
+      console.warn('Cámara cancelada/error:', e);
     }
   }
-  private base64ToFile(b64: string, fileName: string, mime = 'image/jpeg'): File {
-    const byteChars = atob(b64);
-    const byteNumbers = new Array(byteChars.length);
-    for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
-    const byteArray = new Uint8Array(byteNumbers);
-    return new File([byteArray], fileName, { type: mime });
-  }
-  
-  get cuilValido(): boolean {
-    return this.validarCUIL(this.cuil);
-  }
-  
 
-  // === DNI: escaneo PDF417 ===
-  private async ensureScanPermission(): Promise<boolean> {
-    if (!this.isNative()) return false;
-    let perms: PermissionStatus = await BarcodeScanner.checkPermissions();
-    if (perms.camera !== 'granted') perms = await BarcodeScanner.requestPermissions();
-    return perms.camera === 'granted';
+  // ===== Lector de DNI (PDF417) =====
+  private parseArgDniPdf417(raw: string) {
+    // Formato clásico con @
+    if (raw.includes('@')) {
+      const p = raw.split('@');
+      const apellidos = (p[1] || '').trim();
+      const nombres   = (p[2] || '').trim();
+      const cand = [p[4], p[5], p[6]].map(x => (x || '').trim());
+      const dni = (cand.find(x => /^[0-9]{7,8}$/.test(x)) || '').trim();
+      return { apellidos, nombres, dni };
+    }
+    // Variante con separador "|"
+    const parts = raw.split('|');
+    let apellidos = '', nombres = '';
+    if (parts.length >= 2) { apellidos = (parts[0] || '').trim(); nombres = (parts[1] || '').trim(); }
+    const mDni = raw.match(/(^|[^0-9])([0-9]{7,8})(?![0-9])/);
+    const dni = mDni ? mDni[2] : '';
+    return { apellidos, nombres, dni };
   }
 
   async escanearDNI() {
     try {
-      if (!this.isNative()) { this.toastError('El escaneo requiere un dispositivo móvil.'); return; }
-      const ok = await this.ensureScanPermission();
-      if (!ok) { this.toastError('Habilitá la cámara para escanear.'); return; }
-
-      const { barcodes } = await BarcodeScanner.scan({ formats: [BarcodeFormat.Pdf417] });
-      if (!barcodes?.length) { this.toastError('No se detectó ningún código.'); return; }
-
-      const raw = barcodes[0].rawValue ?? '';
-      const parsed = this.parseDniPdf417(raw);
-
-      if (parsed.lastName)  this.apellido = parsed.lastName;
-      if (parsed.firstName) this.nombre = parsed.firstName;
-      if (parsed.dni)       this.dni = parsed.dni;
-
+      let perm: PermissionStatus = await BarcodeScanner.checkPermissions();
+      if (!perm.camera || perm.camera === 'denied') {
+        perm = await BarcodeScanner.requestPermissions();
+      }
+      if (!perm.camera || perm.camera === 'denied') {
+        this.toastError('Sin permisos de cámara.');
+        return;
+      }
+  
+      const { barcodes } = await BarcodeScanner.scan({
+        // ⬅️ Enum correcto
+        formats: [BarcodeFormat.Pdf417],
+      });
+  
+      // Algunos wrappers devuelven número/enum; por las dudas, validamos ambos
+      const isPdf417 = (f: any) =>
+        f === BarcodeFormat.Pdf417 || String(f).toUpperCase() === 'PDF417';
+  
+      const b = barcodes.find(x => isPdf417((x as any).format));
+      if (!b?.rawValue) { this.toastError('No se pudo leer el DNI.'); return; }
+  
+      const { apellidos, nombres, dni } = this.parseArgDniPdf417(b.rawValue);
+      if (apellidos) this.apellido = apellidos;
+      if (nombres)   this.nombre   = nombres;
+      if (dni)       this.dni      = dni;
+  
       this.toastOk('Datos del DNI cargados.');
     } catch (e) {
-      console.error('Escaneo DNI error:', e);
+      console.warn('Scan cancelado/error:', e);
       this.toastError('No se pudo escanear el DNI.');
     }
   }
+  
 
-  // === VALIDACIONES ===
-  private validarCUIL(cuil: string): boolean {
-    // 11 dígitos con verificador (algoritmo AFIP)
-    if (!/^\d{11}$/.test(cuil)) return false;
-    const nums = cuil.split('').map(n => +n);
-    const pesos = [5,4,3,2,7,6,5,4,3,2];
-    const suma = pesos.reduce((acc, p, i) => acc + p*nums[i], 0);
-    let dv = 11 - (suma % 11);
-    if (dv === 11) dv = 0;
-    if (dv === 10) dv = 9; // ajuste AFIP
-    return dv === nums[10];
-  }
-
-  private validarFormulario(f: NgForm): string | null {
-    // Angular template-driven ya valida required/pattern/minlength;
-    // acá sumamos chequeos cruzados:
-    if (this.password !== this.confirm) {
-      this.passwordsMismatch = true;
-      return 'Las contraseñas no coinciden.';
-    }
-    if (!/^\d{7,8}$/.test(this.dni)) return 'Ingresá un DNI válido (7–8 dígitos).';
-    if (!this.validarCUIL(this.cuil)) return 'CUIL inválido (verificador incorrecto).';
-    if (!this.photoFile) return 'La foto es obligatoria (tomada con la cámara).';
-    return null;
-  }
-
-  onSubmit(f: NgForm) {
-    this.errorMsg = '';
+  // ===== Submit =====
+  async onSubmit(f: NgForm) {
+    console.log('[alta-usuario] onSubmit IN');
     if (this.loading) return;
-    Object.values(f.controls).forEach((c: any) => c.control?.markAsTouched?.());
-  
-    if (f.invalid) { this.toastError('Completá todos los campos correctamente.'); return; }
-    const err = this.validarFormulario(f);
-    if (err) { this.errorMsg = err; this.toastError(err); return; }
-  
+
     this.loading = true;
-  
- 
-    // constructor(private toastr: ToastrService, private supa: SupabaseService) {}
-    this.supa.registrarEmpleado({
-        apellido: this.apellido,
-        nombre: this.nombre,
-        dni: this.dni,
-        cuil: this.cuil,
-        email: this.email,
-        password: this.password,
-        perfil: this.perfil!,
-      }, this.photoFile!)
-      .then(() => {
-        this.toastOk('Empleado creado correctamente.');
-        // limpiar
-        this.apellido = '';
-        this.nombre = '';
-        this.dni = '';
-        this.cuil = '';
-        this.email = '';
-        this.password = '';
-        this.confirm = '';
-        this.perfil = null;
-        this.photoFile = null;
-        this.photoPreview = null;
-        f.resetForm();
-      })
-      .catch((e: any) => {
-        const msg = (e?.message || 'No se pudo crear el empleado.');
-        this.errorMsg = msg;
-        this.toastError(msg);
-        console.error('[alta-usuario] error:', e);
-      })
-      .finally(() => this.loading = false);
-  }
-  
+    this.errorMsg = '';
 
-  // === Utils ===
-  private async uriToFile(uri: string, fileName: string): Promise<File> {
-    const res = await fetch(uri);
-    const blob = await res.blob();
-    const ext = (blob.type?.split('/')?.[1]) || 'jpg';
-    return new File([blob], `${fileName}.${ext}`, { type: blob.type || 'image/jpeg' });
-  }
+    // marcar campos tocados para mostrar errores en UI
+    Object.values(f.controls).forEach((c: any) => c?.control?.markAsTouched?.());
 
-  private parseDniPdf417(raw: string): { firstName?: string; lastName?: string; dni?: string } {
-    const out: any = {};
-    const text = (raw || '').replace(/\r?\n/g, '').trim();
-    if (text.includes('@')) {
-      const parts = text.split('@').map(s => s?.trim());
-      const dniCandidate = parts.find(p => /^[0-9]{7,8}$/.test(p));
-      if (dniCandidate) out.dni = dniCandidate;
-      if (parts[1] && /^[A-ZÁÉÍÓÚÑ\s'-]+$/.test(parts[1])) out.lastName = this.tc(parts[1]);
-      if (parts[2] && /^[A-ZÁÉÍÓÚÑ\s'-]+$/.test(parts[2])) out.firstName = this.tc(parts[2]);
+    const apellidos = (this.apellido || '').trim();
+    const nombres   = (this.nombre   || '').trim();
+    const dni       = (this.dni      || '').replace(/\D/g, '');
+    const cuil      = (this.cuil     || '').replace(/\D/g, '');
+    const email     = (this.email    || '').trim().toLowerCase();
+    const password  = this.password || '';
+    const confirm   = this.confirm  || '';
+    const perfil    = (this.perfil  || null) as 'maitre'|'mozo'|'cocinero'|'bartender'|null;
+    const photoBase64 = this.photoBase64 || null;
+
+    const fail = (msg: string) => { this.errorMsg = msg; this.toastError(msg); };
+
+    if (!apellidos) { fail('El apellido es obligatorio.'); this.loading = false; return; }
+    if (!nombres)   { fail('El nombre es obligatorio.');  this.loading = false; return; }
+    if (!this.isDniValido(dni)) { fail('DNI inválido (7–8 dígitos).'); this.loading = false; return; }
+    if (!/^\d{11}$/.test(cuil) || !this.cuilValido) { fail('CUIL inválido (11 dígitos + verificador).'); this.loading = false; return; }
+    if (!email || !email.includes('@')) { fail('Ingresá un correo válido.'); this.loading = false; return; }
+    if (!password || password.length < 8) { fail('La contraseña debe tener al menos 8 caracteres.'); this.loading = false; return; }
+    if (password !== confirm) { fail('Las contraseñas no coinciden.'); this.loading = false; return; }
+    if (!perfil) { fail('Seleccioná un perfil.'); this.loading = false; return; }
+    // La foto no es obligatoria; si querés forzarla, descomentá:
+    // if (!photoBase64) { fail('La foto es obligatoria.'); this.loading = false; return; }
+
+    const payload = { apellidos, nombres, dni, cuil, email, password, perfil, photoBase64 };
+    console.log('[UI] listo payload', payload);
+
+    try {
+      const out = await this.supa.altaEmpleadoViaFunctionDirect(payload);
+      console.log('[UI] function OK', out);
+
+      this.toastOk('Empleado creado correctamente.');
+      // limpiar form
+      this.apellido = this.nombre = this.dni = this.cuil =
+      this.email = this.password = this.confirm = '';
+      this.perfil = null;
+      this.photoBase64 = this.photoPreview = null;
+      f.resetForm();
+
+    } catch (e: any) {
+      console.error('[UI] error en onSubmit', e);
+      this.errorMsg = e?.message || 'No se pudo crear el empleado.';
+      this.toastError(this.errorMsg);
+
+    } finally {
+      this.loading = false;
     }
-    if (!out.dni) {
-      const m = text.match(/(^|[^0-9])([0-9]{7,8})([^0-9]|$)/);
-      if (m) out.dni = m[2];
-    }
-    return out;
   }
-  private tc(s: string): string { return s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()).replace(/\s+/g,' ').trim(); }
 }

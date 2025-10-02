@@ -28,11 +28,22 @@ export interface ClienteRegistroData {
   nombre: string;
   apellido?: string | null;
   dni?: string | null;
-  email: string;
-  // estado se setea por defecto en la DB como 'pendiente'
+  email: string; 
   foto_path?: string | null;
   foto_url?: string | null;
 }
+
+// Tipo que usamos para el payload hacia la Edge Function
+export type AltaEmpleadoPayload = {
+  apellido: string;
+  nombre: string;
+  dni: string;
+  cuil: string;
+  email: string;
+  password: string;
+  perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
+  photoBase64: string | null; // dataURL o null
+};
 
 
 @Injectable({ providedIn: 'root' })
@@ -43,27 +54,44 @@ export class SupabaseService {
   private anonFnUrl = `${this.edgeBase}/functions/v1/register-anon`;
   private appEdgeKey = environment.appEdgeKey; // el mismo valor que APP_EDGE_KE
   public authEmail$ = new BehaviorSubject<string | null>(null);
+
   public idUsuario: string = "";
   constructor() {
 this._supabase = createClient(
   environment.supabaseUrl,
   environment.supabaseAnonKey,
+   opts,
   {
     auth: {
       // 👇 CLAVE para nativo
       storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
       persistSession: true,
-      autoRefreshToken: true,
-      // En nativo no hay “URL con fragmento” post-auth
+      autoRefreshToken: true, 
       detectSessionInUrl: false,
+      multiTab: false,  
     },
   }
 );
+
+
+//   constructor() {
+
+//     const opts: any = {
+//       auth: {
+//         persistSession: true,
+//         autoRefreshToken: true,
+//         multiTab: false,            // 👈 desactiva Navigator.locks en GoTrue
+//       },
+//       global: { headers: { apikey: environment.supabaseAnonKey } },
+//     };
+
+
     // Cargar email inicial (si hay sesión)
     this._supabase.auth.getUser().then((res) => {
       const user = res.data?.user;
       this.authEmail$.next(user?.email ?? null);
     });
+
 
     
 // Cargar email + id inicial
@@ -79,6 +107,13 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
   this.authEmail$.next(u?.email ?? null);
   this.idUsuario = u?.id ?? '';
 });
+
+//     // Mantenerlo actualizado ante cambios de sesión
+//     this._supabase.auth.onAuthStateChange((_event, session) => {
+//       this.authEmail$.next(session?.user?.email ?? null);
+//     });
+
+
   }
 
   // Acceso al cliente, por si lo necesitás en otros servicios
@@ -565,6 +600,37 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
 
   
 
+  async altaEmpleadoViaFunctionDirect(payload: {
+    apellidos: string; nombres: string; dni: string; cuil: string;
+    email: string; password: string;
+    perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
+    photoBase64: string | null;
+  }) {
+    const url = `${environment.supabaseUrl.replace(/\/$/, '')}/functions/v1/alta-empleado`;
+    const apikey = environment.supabaseAnonKey;
+
+    console.log('[svc] CALLED altaEmpleadoViaFunctionDirect');
+    console.log('[svc] URL:', url, 'apikey.len=', apikey?.length || 0);
+
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 10000); // 10s de timeout
+
+    const res = await fetch(url, {
+      method: 'POST',                    // ← forzamos POST
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': apikey                 // ← sólo apikey, sin Authorization
+      },
+      body: JSON.stringify(payload),
+      mode: 'cors',
+      signal: controller.signal,
+      keepalive: false
+    }).catch((err) => {
+      console.error('[svc] fetch error:', err);
+      throw new Error('No se pudo invocar la función (fetch error/timeout)');
+    });
+
+
 onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
   const { data: sub } = this._supabase.auth.onAuthStateChange((event) => handler(event));
   // devolvemos el unsubscribe para limpiar en OnDestroy
@@ -643,24 +709,19 @@ onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
     );
     if (insErr) throw insErr;
 
-    console.log('[alta empleado] OK');
-    return true;
-  }
-  
-  private async withTimeout<T>(p: PromiseLike<T>, label: string, ms = 20000): Promise<T> {
-    let to: any;
-    const killer = new Promise<never>((_, reject) =>
-      to = setTimeout(() => reject(new Error(`timeout:${label}`)), ms)
-    );
-    try {
-      const r = await Promise.race([p as any, killer]);
-      clearTimeout(to);
-      return r as T;
-    } catch (e) {
-      clearTimeout(to);
-      throw e;
+
+    clearTimeout(t);
+    console.log('[svc] FETCH RES status=', res.status);
+
+    const text = await res.text();
+    if (!res.ok) {
+      let msg = `Edge Function error (status=${res.status})`;
+      try { const j = JSON.parse(text); msg = j?.message || j?.error || msg; } catch {}
+      throw new Error(msg);
     }
+    try { return JSON.parse(text); } catch { return text; }
   }
+
   async getUserIdOrThrow(): Promise<string> {
   const { data } = await this._supabase.auth.getSession();
   const uid = data?.session?.user?.id;
