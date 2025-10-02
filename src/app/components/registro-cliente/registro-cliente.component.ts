@@ -54,7 +54,8 @@ photoFile: File | null = null;        // archivo listo para subir
   private mapRegisterError(error: any): string {
     const msg = (error?.message || '').toLowerCase();
     const status = error?.status;
-    if (msg.includes('already registered') || msg.includes('exists')) return 'Ya existe una cuenta con este correo.';
+    if (msg.includes('already registered') ||   msg.includes('already exists') ||
+    msg.includes('email already') || msg.includes('exists')) return 'Ya existe una cuenta con este correo.';
     if (msg.includes('invalid email')) return 'El correo ingresado no es válido.';
     if (msg.includes('password') && (msg.includes('short') || msg.includes('length') || msg.includes('weak'))) return 'La contraseña no cumple los requisitos mínimos.';
     if (status === 429 || msg.includes('rate limit')) return 'Demasiados intentos. Probá nuevamente en unos minutos.';
@@ -173,19 +174,91 @@ this.loading = true;
 this.toastOk('Formulario válido. Registrando...');
 
 // 👇 FLUJO COMPLETO: signUp + subir foto + insert en clientes_registrados
+// this.auth.registrarClienteFlow(
+//   {
+//     tipo_registro: 'cliente',   // << este componente es el “cliente”
+//     nombre: this.username,
+//     apellido: this.apellido,
+//     dni: this.dni,
+//     email: this.email,
+//     password: this.password,
+//   },
+//   this.photoFile // << se sube al bucket (avatars) si viene
+// )
+// .then(() => {
+//   this.toastOk('Registro enviado. ¡Revisá tu correo si requiere confirmación!');
+//   // limpiar
+//   this.username = '';
+//   this.apellido = '';
+//   this.dni = '';
+//   this.email = '';
+//   this.password = '';
+//   this.confirm = '';
+//   this.photoFile = null;
+//   this.photoPreview = null;
+//   registerForm.resetForm();
+//   this.router.navigate(['/login']);
+// })
+// .catch((error: any) => {
+//   const msg = this.mapRegisterError(error);
+//   this.errorMsg = msg;
+//   this.toastError(msg);
+//   console.error('Registrar cliente error:', error);
+// })
+// .finally(() => { this.loading = false; });
+
+// this.auth.registrarClienteFlow(
+//   {
+//     tipo_registro: 'cliente',
+//     nombre: this.username,
+//     apellido: this.apellido,
+//     dni: this.dni,
+//     email: this.email,
+//     password: this.password,
+//   },
+//   this.photoFile
+// )
+// .then(() => {
+//   this.toastOk('Registro enviado. ¡Revisá tu correo si requiere confirmación!');
+//   this.username = '';
+//   this.apellido = '';
+//   this.dni = '';
+//   this.email = '';
+//   this.password = '';
+//   this.confirm = '';
+//   this.photoFile = null;
+//   this.photoPreview = null;
+//   registerForm.resetForm();
+//   this.router.navigate(['/login']);
+// })
+// .catch((error: any) => {
+//   // 🔎 Log más verboso para ver el motivo real (RLS/401/403/etc.)
+//   console.error('Registrar cliente error (raw):', error, {
+//     status: (error as any)?.status,
+//     code: (error as any)?.code,
+//     details: (error as any)?.details,
+//     message: (error as any)?.message,
+//   });
+
+//   const msg = this.mapRegisterError(error);
+//   this.errorMsg = msg;
+//   this.toastError(msg);
+// })
+// .finally(() => { this.loading = false; });
+
 this.auth.registrarClienteFlow(
   {
-    tipo_registro: 'cliente',   // << este componente es el “cliente”
+    tipo_registro: 'cliente',
     nombre: this.username,
     apellido: this.apellido,
     dni: this.dni,
     email: this.email,
     password: this.password,
   },
-  this.photoFile // << se sube al bucket (avatars) si viene
+  this.photoFile
 )
 .then(() => {
-  this.toastOk('Registro enviado. ¡Revisá tu correo si requiere confirmación!');
+  this.toastOk('Tu cuenta fue creada y está en revisión. Revisá tu correo.');
   // limpiar
   this.username = '';
   this.apellido = '';
@@ -199,13 +272,23 @@ this.auth.registrarClienteFlow(
   this.router.navigate(['/login']);
 })
 .catch((error: any) => {
+  // Log verboso para depurar (RLS/401/403/etc.)
+  console.error('Registrar cliente error (raw):', error, {
+    status: (error as any)?.status,
+    code: (error as any)?.code,
+    details: (error as any)?.details,
+    message: (error as any)?.message,
+  });
+
   const msg = this.mapRegisterError(error);
   this.errorMsg = msg;
   this.toastError(msg);
-  console.error('Registrar cliente error:', error);
 })
 .finally(() => { this.loading = false; });
-  }
+
+
+  
+}
   
 // Convierte un webPath/base64 a File para subirlo (Storage/backend)
 private async uriToFile(uri: string, fileName: string): Promise<File> {

@@ -169,8 +169,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // Ionic standalone
-import { IonContent, IonCard, IonCardContent, IonToggle } from '@ionic/angular/standalone';
-
+import { IonContent, IonCard, IonCardContent, IonToggle, } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { body } from 'ionicons/icons'; 
 // Hijos (standalone)
 import { RegistroClienteComponent } from '../registro-cliente/registro-cliente.component';
 import { RegistroClienteAnonimoComponent } from '../registro-cliente-anonimo/registro-cliente-anonimo.component';
@@ -183,13 +184,16 @@ import { RegistroClienteAnonimoComponent } from '../registro-cliente-anonimo/reg
   imports: [
     CommonModule,
     FormsModule,
-    IonContent, IonCard, IonCardContent, IonToggle,
-    RegistroClienteComponent,
+    IonContent, IonCard, IonCardContent, IonToggle,RegistroClienteComponent,
     RegistroClienteAnonimoComponent,
   ],
 })
 export class RegisterComponent {
   // arranca en "usuario normal"
   ingresarAnonimo = false;
+    constructor() {
+    addIcons({ body }); // registra el ícono una sola vez
+  }
+  
   
 }

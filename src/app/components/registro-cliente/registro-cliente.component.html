@@ -1,4 +1,4 @@
-
+<!-- 
 <div class="wrapper">
   <div class="contenedor-subidas">
   <div class="avatar-ctr">
@@ -17,7 +17,7 @@
   </ion-button>
 </div>
 
-  <!-- Fallback para navegador/escritorio -->
+
   <input #fileInput type="file" accept="image/*" capture="environment"
          class="file-hidden" (change)="onFileSelected($event)">
 </div>
@@ -41,7 +41,7 @@
     El apellido es obligatorio.
   </small>
 </div>
-  <!-- Nombre -->
+
   <div class="form-group">
     <label for="username" class="subTittle">Nombre</label>
     <input id="username"
@@ -57,7 +57,7 @@
     </small>
   </div>
 
-  <!-- DNI -->
+
   <div class="form-group">
     <label for="dni" class="subTittle">DNI</label>
     <input id="dni"
@@ -76,7 +76,7 @@
     </small>
   </div>
 
-  <!-- Correo -->
+
   <div class="form-group">
     <label for="email" class="subTittle">Correo</label>
     <input id="email"
@@ -93,7 +93,7 @@
     </small>
   </div>
 
-  <!-- Contraseña -->
+
   <div class="form-group">
     <label for="password" class="subTittle">Contraseña</label>
     <input id="password"
@@ -110,7 +110,7 @@
     </small>
   </div>
 
-  <!-- Confirmación -->
+
   <div class="form-group">
     <label for="confirm" class="subTittle">Repetir contraseña</label>
     <input id="confirm"
@@ -131,17 +131,128 @@
     </small>
   </div>
 
-  <!-- Botones -->
+
   <button type="submit" class="buttonLogin">
     {{ loading ? 'Registrando…' : 'Registrarse' }}
   </button>
 
-  <!-- Error general -->
+ 
   <div *ngIf="errorMsg" style="margin-top:8px;color:#ffd1d1;font-weight:600;">
     {{ errorMsg }}
   </div>
 </form>
 
 
+</div> -->
+<div class="wrapper">
+  <form class="register-form"
+        (ngSubmit)="onSubmit(registerForm)"
+        #registerForm="ngForm"
+        novalidate>
+
+    <!-- == Header del form: avatar + acciones == -->
+    <div class="subidas">
+      <div class="avatar-ctr">
+        <img [src]="photoPreview || 'assets/imagenes/agregar-usuario.png'" alt="foto-perfil" />
+      </div>
+
+      <div class="acciones">
+        <ion-button class="btn-subir" type="button" (click)="subirFotoClick()">
+          <ion-icon name="camera"></ion-icon>
+          <span>SUBIR FOTO</span>
+        </ion-button>
+
+        <ion-button class="btn-scanner" type="button" (click)="escanearDNI()">
+          <ion-icon name="barcode-outline"></ion-icon>
+          <span>ESCANEAR DNI</span>
+        </ion-button>
+      </div>
+
+      <!-- Fallback navegador/escritorio -->
+      <input #fileInput type="file" accept="image/*" capture="environment"
+             class="file-hidden" (change)="onFileSelected($event)">
+    </div>
+
+    <!-- ===== Campos ===== -->
+    <!-- Apellido -->
+    <div class="form-group">
+      <label for="apellido" class="subTittle">Apellido</label>
+      <input id="apellido" name="apellido" type="text"
+             [(ngModel)]="apellido" #apellidoModel="ngModel"
+             required placeholder="Apellido"/>
+      <small *ngIf="showError(apellidoModel, registerForm)" class="msg">
+        El apellido es obligatorio.
+      </small>
+    </div>
+
+    <!-- Nombre -->
+    <div class="form-group">
+      <label for="username" class="subTittle">Nombre</label>
+      <input id="username" name="username" type="text"
+             [(ngModel)]="username" #usernameModel="ngModel"
+             required placeholder="Nombre"/>
+      <small *ngIf="showError(usernameModel, registerForm)" class="msg">
+        El nombre es obligatorio.
+      </small>
+    </div>
+
+    <!-- DNI -->
+    <div class="form-group">
+      <label for="dni" class="subTittle">DNI</label>
+      <input id="dni" name="dni" type="text"
+             [(ngModel)]="dni" #dniModel="ngModel"
+             required inputmode="numeric" pattern="^[0-9]{7,8}$" maxlength="8"
+             placeholder="Sólo números (7–8 dígitos)"/>
+      <small *ngIf="showError(dniModel, registerForm)" class="msg">
+        Ingresá un DNI válido (7–8 dígitos).
+      </small>
+    </div>
+
+    <!-- Correo -->
+    <div class="form-group">
+      <label for="email" class="subTittle">Correo</label>
+      <input id="email" name="email" type="email"
+             [(ngModel)]="email" #emailModel="ngModel"
+             required email placeholder="correo@ejemplo.com"/>
+      <small *ngIf="showError(emailModel, registerForm)" class="msg">
+        Ingresá un correo válido.
+      </small>
+    </div>
+
+    <!-- Contraseña -->
+    <div class="form-group">
+      <label for="password" class="subTittle">Contraseña</label>
+      <input id="password" name="password" type="password"
+             [(ngModel)]="password" #passwordModel="ngModel"
+             required minlength="8" placeholder="Mínimo 8 caracteres"/>
+      <small *ngIf="showError(passwordModel, registerForm)" class="msg">
+        La contraseña debe tener al menos 8 caracteres.
+      </small>
+    </div>
+
+    <!-- Confirmación -->
+    <div class="form-group">
+      <label for="confirm" class="subTittle">Repetir contraseña</label>
+      <input id="confirm" name="confirm" type="password"
+             [(ngModel)]="confirm" #confirmModel="ngModel"
+             required minlength="8" placeholder="Vuelva a escribir la contraseña"/>
+      <small *ngIf="showError(confirmModel, registerForm)" class="msg">
+        Repetí la contraseña (mínimo 8 caracteres).
+      </small>
+      <small *ngIf="passwordsMismatch && (registerForm.submitted || confirmModel.touched)" class="msg strong">
+        Las contraseñas no coinciden.
+      </small>
+    </div>
+
+    <!-- Botón enviar -->
+    <button type="submit" class="buttonLogin">
+      {{ loading ? 'Registrando…' : 'Registrarse' }}
+    </button>
+
+    <!-- Error general -->
+    <div *ngIf="errorMsg" class="msg strong" style="margin-top:8px;">
+      {{ errorMsg }}
+    </div>
+  </form>
 </div>
 
