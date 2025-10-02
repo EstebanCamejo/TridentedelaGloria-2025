@@ -16,6 +16,18 @@ export interface ClienteRegistroData {
   foto_url?: string | null;
 }
 
+// Tipo que usamos para el payload hacia la Edge Function
+export type AltaEmpleadoPayload = {
+  apellido: string;
+  nombre: string;
+  dni: string;
+  cuil: string;
+  email: string;
+  password: string;
+  perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
+  photoBase64: string | null; // dataURL o null
+};
+
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
   private _supabase: SupabaseClient;
@@ -24,11 +36,26 @@ export class SupabaseService {
   private anonFnUrl = `${this.edgeBase}/functions/v1/register-anon`;
   private appEdgeKey = environment.appEdgeKey; // el mismo valor que APP_EDGE_KE
 
+
+
   constructor() {
+
+    const opts: any = {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        multiTab: false,            // 👈 desactiva Navigator.locks en GoTrue
+      },
+      global: { headers: { apikey: environment.supabaseAnonKey } },
+    };
+
+
     this._supabase = createClient(
       environment.supabaseUrl,
       environment.supabaseAnonKey,
+      opts   
     ); 
+
   }
 
   // Acceso al cliente, por si lo necesitás en otros servicios
@@ -400,95 +427,49 @@ export class SupabaseService {
   }
 
   
-  async registrarEmpleado(
-    form: {
-      apellido: string;
-      nombre: string;
-      dni: string;          // 7–8 dígitos
-      cuil: string;         // 11 dígitos válido
-      email: string;
-      password: string;     // ≥ 8
-      perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
-    },
-    photoFile: File
-  ) {
-    // 0) Chequeos básicos
-    if (!photoFile) throw new Error('La foto es obligatoria.');
-    if (!/^\d{7,8}$/.test(form.dni)) throw new Error('DNI inválido.');
-    if (!/^\d{11}$/.test(form.cuil)) throw new Error('CUIL inválido.');
-    if (!form.perfil) throw new Error('Perfil inválido.');
-  
-    // 1) Unicidad rápida (email, dni, cuil)
-    // console.log('[alta empleado] step: check-duplicates');
+  async altaEmpleadoViaFunctionDirect(payload: {
+    apellidos: string; nombres: string; dni: string; cuil: string;
+    email: string; password: string;
+    perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
+    photoBase64: string | null;
+  }) {
+    const url = `${environment.supabaseUrl.replace(/\/$/, '')}/functions/v1/alta-empleado`;
+    const apikey = environment.supabaseAnonKey;
 
-    // const q = this._supabase
-    //   .from('usuarios')
-    //   .select('email,dni,cuil', { head: false })
-    //   .or(
-    //     [
-    //       `email.eq.${form.email}`,
-    //       `dni.eq.${form.dni}`,
-    //       `cuil.eq.${form.cuil}`
-    //     ].join(',')
-    //   )
-    //   .limit(1)
-    //   .throwOnError(); // <- si RLS/otro falla, RECHAZA; no queda pendiente
+    console.log('[svc] CALLED altaEmpleadoViaFunctionDirect');
+    console.log('[svc] URL:', url, 'apikey.len=', apikey?.length || 0);
 
-    // const { data: dup } = await q; // <- sin withTimeout aquí
-   // 2) Crear usuario de Auth
-    console.log('[alta empleado] step: signUp');
-    const { data: sign, error: signErr } = await this.withTimeout(
-      this._supabase.auth.signUp({ email: form.email, password: form.password }),
-      'signUp'
-    );
-    if (signErr) throw signErr;
-    const auth_id = sign.user?.id;
-    if (!auth_id) throw new Error('No se pudo crear el usuario de autenticación.');
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 10000); // 10s de timeout
 
-    // 3) Subir foto (Storage)
-    console.log('[alta empleado] step: uploadAvatar');
-    const up = await this.withTimeout(
-      this.uploadAvatar(photoFile, form.email),
-      'uploadAvatar'
-    );
-    const foto_url = up.publicUrl;
+    const res = await fetch(url, {
+      method: 'POST',                    // ← forzamos POST
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': apikey                 // ← sólo apikey, sin Authorization
+      },
+      body: JSON.stringify(payload),
+      mode: 'cors',
+      signal: controller.signal,
+      keepalive: false
+    }).catch((err) => {
+      console.error('[svc] fetch error:', err);
+      throw new Error('No se pudo invocar la función (fetch error/timeout)');
+    });
 
-    // 4) Insert en usuarios (estado ACTIVO)
-    console.log('[alta empleado] step: insert usuarios');
-    const { error: insErr } = await this.withTimeout(
-      this._supabase.from('usuarios').insert({
-        auth_id,
-        email: form.email,
-        nombres: form.nombre.trim(),
-        apellidos: form.apellido.trim(),
-        dni: form.dni,
-        cuil: form.cuil,
-        foto_url,
-        perfil: form.perfil,
-        estado: 'activo',
-      }),
-      'insertUsuarios'
-    );
-    if (insErr) throw insErr;
+    clearTimeout(t);
+    console.log('[svc] FETCH RES status=', res.status);
 
-    console.log('[alta empleado] OK');
-    return true;
-  }
-  
-  private async withTimeout<T>(p: PromiseLike<T>, label: string, ms = 20000): Promise<T> {
-    let to: any;
-    const killer = new Promise<never>((_, reject) =>
-      to = setTimeout(() => reject(new Error(`timeout:${label}`)), ms)
-    );
-    try {
-      const r = await Promise.race([p as any, killer]);
-      clearTimeout(to);
-      return r as T;
-    } catch (e) {
-      clearTimeout(to);
-      throw e;
+    const text = await res.text();
+    if (!res.ok) {
+      let msg = `Edge Function error (status=${res.status})`;
+      try { const j = JSON.parse(text); msg = j?.message || j?.error || msg; } catch {}
+      throw new Error(msg);
     }
+    try { return JSON.parse(text); } catch { return text; }
   }
+
+  
   
   
 }

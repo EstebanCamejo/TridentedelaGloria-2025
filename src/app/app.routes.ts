@@ -118,5 +118,16 @@ export const routes: Routes = [
     loadComponent: () => import('./components/maitre/mesa-info/mesa-info.component').then(m => m.MesaInfoComponent) 
   },
   
-];
 
+
+
+  ////////////////////////////ESTEBAN//////////////////////////
+  {
+    path: 'resultados-encuestas',
+    loadComponent: () =>
+      import('./components/pagina-resultados-encuestas/pagina-resultados-encuestas')
+        .then(m => m.PaginaResultadosEncuestasPage)
+  },
+  
+  // { path: '', redirectTo: 'resultados-encuestas', pathMatch: 'full' },
+];

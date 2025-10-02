@@ -7,17 +7,18 @@
 <ion-content class="pa-4">
   <ion-item>
     <ion-label position="stacked">Número de mesa</ion-label>
-    <ion-input type="number" [(ngModel)]="numero" placeholder="Ej: 12"></ion-input>
+    
+    <ion-input type="number" [(ngModel)]="numero"    (ionInput)="updateBtnDisabled()" placeholder="Ej: 12"></ion-input>
   </ion-item>
 
   <ion-item>
     <ion-label position="stacked">Capacidad (1 a 12)</ion-label>
-    <ion-input type="number" [(ngModel)]="capacidad" placeholder="Ej: 4"></ion-input>
+    <ion-input type="number" [(ngModel)]="capacidad" (ionInput)="updateBtnDisabled()"  placeholder="Ej: 4"></ion-input>
   </ion-item>
 
   <ion-item>
     <ion-label position="stacked">Tipo</ion-label>
-    <ion-select [(ngModel)]="tipo">
+    <ion-select [(ngModel)]="tipo" (ionChange)="updateBtnDisabled()">
       <ion-select-option value="estandar">Estándar</ion-select-option>
       <ion-select-option value="vip">VIP</ion-select-option>
       <ion-select-option value="mov_reducida">Movilidad reducida</ion-select-option>
@@ -37,23 +38,39 @@
   </div>
 
   <div style="padding:16px;">
-    <ion-button expand="block" color="primary" [disabled]="guardando || formularioInvalido" (click)="guardar()">
+    <ion-button
+      expand="block"
+      color="primary"
+      [disabled]="btnDisabled" 
+      (click)="guardar()">
       <ion-icon name="save" slot="start"></ion-icon>
-      Guardar mesa
+      <!-- Guardar mesa -->
+      {{ guardando ? 'Guardando...' : 'Guardar mesa' }}
     </ion-button>
   </div>
 
-  <div *ngIf="qrDataUrl" style="padding:16px; text-align:center;">
-    <img [src]="qrDataUrl" alt="QR de la mesa" style="max-width:240px; width:100%; border-radius:12px;" />
+  <!-- BLOQUE QR (reemplaza tu bloque actual de QR) -->
+  <div *ngIf="qrPublicUrl || qrDataUrl" style="padding:16px; text-align:center;">
+    <img
+      [src]="qrDataUrl || qrPublicUrl"
+      alt="QR de la mesa"
+      style="max-width:240px; width:100%; border-radius:12px;"
+    />
     <div style="margin-top:8px; opacity:.7;">Código QR generado</div>
-  
-    <ion-button style="margin-top:12px;" (click)="descargarQR()">
+
+    <!-- <ion-button style="margin-top:12px;" (click)="descargarQR()">
       <ion-icon name="download" slot="start"></ion-icon>
       Descargar QR
+    </ion-button> -->
+    <ion-button style="margin-top:14px;" (click)="nuevaMesa()">
+      Crear otra mesa
     </ion-button>
-  
-    <div *ngIf="qrPublicUrl" style="margin-top:8px;">
+
+    <!-- <div *ngIf="qrPublicUrl" style="margin-top:8px;">
       <a [href]="qrPublicUrl" target="_blank" rel="noopener">Ver QR en la nube</a>
-    </div>
+    </div> -->
   </div>
+
+
+
 </ion-content>

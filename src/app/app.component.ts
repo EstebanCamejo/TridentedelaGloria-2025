@@ -34,6 +34,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { App } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
+import { environment } from 'src/environments/environment';
+console.log('[ENV AT RUNTIME]', environment);
 
 @Component({
   selector: 'app-root',

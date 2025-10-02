@@ -4,6 +4,13 @@ const config: CapacitorConfig = {
   appId: 'io.ionic.starter',
   appName: 'El Tridente',
   webDir: 'www',
+  server: {
+    androidScheme: 'https',
+    allowNavigation: [
+      'ujpfjthcqpenkizxjimp.supabase.co', // tu proyecto Supabase
+      'supabase.co',
+    ],
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
