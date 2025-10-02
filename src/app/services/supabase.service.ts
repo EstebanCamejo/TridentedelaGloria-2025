@@ -5,14 +5,30 @@ import { BehaviorSubject } from 'rxjs';
 import { AuthChangeEvent } from '@supabase/supabase-js';
 export type TipoRegistro = 'cliente' | 'anonimo';
 type RolUsuario = 'clienteReg' | 'clienteAnon' | 'mozo' | 'maitre' | 'dueno' | 'supervisor' | 'bartender' | 'cocinero';
+import { Preferences } from '@capacitor/preferences';
+import { Capacitor } from '@capacitor/core';
+type EstadoLE = 'noAtendido' | 'esperando' | 'asignado';
+
+const capacitorAuthStorage = {
+  getItem: (key: string) => Preferences.get({ key }).then(r => r.value ?? null),
+  setItem: (key: string, value: string) => Preferences.set({ key, value }),
+  removeItem: (key: string) => Preferences.remove({ key }),
+};
+const nativeStorage = {
+  getItem: (key: string) => Preferences.get({ key }).then(r => r.value ?? null),
+  setItem: (key: string, value: string) => Preferences.set({ key, value }),
+  removeItem: (key: string) => Preferences.remove({ key }),
+};
+
+const isNative = Capacitor.isNativePlatform();
+const storage = isNative ? nativeStorage : window.localStorage;
 
 export interface ClienteRegistroData {
   tipo_registro: TipoRegistro;
   nombre: string;
   apellido?: string | null;
   dni?: string | null;
-  email: string;
-  // estado se setea por defecto en la DB como 'pendiente'
+  email: string; 
   foto_path?: string | null;
   foto_url?: string | null;
 }
@@ -29,6 +45,7 @@ export type AltaEmpleadoPayload = {
   photoBase64: string | null; // dataURL o null
 };
 
+
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
   private _supabase: SupabaseClient;
@@ -38,37 +55,64 @@ export class SupabaseService {
   private appEdgeKey = environment.appEdgeKey; // el mismo valor que APP_EDGE_KE
   public authEmail$ = new BehaviorSubject<string | null>(null);
 
+  public idUsuario: string = "";
   constructor() {
+this._supabase = createClient(
+  environment.supabaseUrl,
+  environment.supabaseAnonKey,
+   opts,
+  {
+    auth: {
+      // 👇 CLAVE para nativo
+      storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
+      persistSession: true,
+      autoRefreshToken: true, 
+      detectSessionInUrl: false,
+      multiTab: false,  
+    },
+  }
+);
 
-    const opts: any = {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        multiTab: false,            // 👈 desactiva Navigator.locks en GoTrue
-      },
-      global: { headers: { apikey: environment.supabaseAnonKey } },
-    };
+
+//   constructor() {
+
+//     const opts: any = {
+//       auth: {
+//         persistSession: true,
+//         autoRefreshToken: true,
+//         multiTab: false,            // 👈 desactiva Navigator.locks en GoTrue
+//       },
+//       global: { headers: { apikey: environment.supabaseAnonKey } },
+//     };
 
 
-    this._supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey,
-      opts   
-    ); 
-
-
-      environment.supabaseAnonKey, 
-    ); 
     // Cargar email inicial (si hay sesión)
     this._supabase.auth.getUser().then((res) => {
       const user = res.data?.user;
       this.authEmail$.next(user?.email ?? null);
     });
 
-    // Mantenerlo actualizado ante cambios de sesión
-    this._supabase.auth.onAuthStateChange((_event, session) => {
-      this.authEmail$.next(session?.user?.email ?? null);
-    });
+
+    
+// Cargar email + id inicial
+this._supabase.auth.getSession().then(({ data }) => {
+  const u = data?.session?.user;
+  this.authEmail$.next(u?.email ?? null);
+  this.idUsuario = u?.id ?? '';
+});
+
+// Mantener actualizado
+this._supabase.auth.onAuthStateChange((_e, s) => {
+  const u = s?.user;
+  this.authEmail$.next(u?.email ?? null);
+  this.idUsuario = u?.id ?? '';
+});
+
+//     // Mantenerlo actualizado ante cambios de sesión
+//     this._supabase.auth.onAuthStateChange((_event, session) => {
+//       this.authEmail$.next(session?.user?.email ?? null);
+//     });
+
 
   }
 
@@ -162,10 +206,20 @@ export class SupabaseService {
         : 'Tu registro está pendiente de aprobación.';
       throw new Error(msg);
     }
+    this.idUsuario = auth_id;
 
     return data; // mantiene tu contrato actual
   }
-    
+
+  //   public guardarSesion(userData: any): void {
+  //   sessionStorage.setItem(this.storageKey, JSON.stringify(userData));
+  //   this.userSubject.next(userData);
+  // }
+  // getUserData(): any {
+  //   const data = sessionStorage.getItem(this.storageKey);
+  //   return data ? JSON.parse(data) : null;
+  // }
+
   async logout() {
     const { error } = await this._supabase.auth.signOut();
     if (error) throw error;
@@ -370,16 +424,28 @@ export class SupabaseService {
   const { estado } = await res.json();
 
   // 3) Enviar tu mail "en revisión"
-  if (estado === 'pendiente') {
-    this._supabase.functions.invoke('notificar-cliente', {
-      body: {
-        email: form.email,
-        nombres: form.nombre,
-        apellidos: form.apellido ?? '',
-        estado: 'pendiente',
-      },
-    }).catch(err => console.warn('notificar-cliente (pendiente) falló:', err));
-  }
+  // if (estado === 'pendiente') {
+  //   this._supabase.functions.invoke('notificar-cliente', {
+  //     body: {
+  //       email: form.email,
+  //       nombres: form.nombre,
+  //       apellidos: form.apellido ?? '',
+  //       estado: 'pendiente',
+  //     },
+  //   }).catch(err => console.warn('notificar-cliente (pendiente) falló:', err));
+  // }
+
+ 
+  // 👉 NUEVO: iniciar sesión localmente
+  const { error: signInErr } = await this._supabase.auth.signInWithPassword({
+    email: form.email,
+    password: form.password,
+  });
+  if (signInErr) throw signInErr;
+
+  // Esperá a que quede “firme”
+  const session = await this.waitForSession(4000);
+  if (!session?.user?.id) throw new Error('No se pudo establecer la sesión local');
 
   return true;
 }
@@ -486,14 +552,17 @@ export class SupabaseService {
     body: JSON.stringify({ email, password: form.password, nombre: form.nombre }),
   });
   if (!res.ok) throw new Error((await res.json().catch(()=>({})))?.error || `register-anon ${res.status}`);
-  const { auth_id } = await res.json();
+   const { error: signInErr } = await this._supabase.auth.signInWithPassword({
+    email,
+    password: form.password,
+  });
+  if (signInErr) throw signInErr;
+  await this.waitForSession(4000);
 
   // 2) (Opcional) subir foto y actualizar su URL
   if (photoFile) {
     const up = await this.uploadAvatar(photoFile, email);
-    await this._supabase.from('usuarios')
-      .update({ foto_url: up.publicUrl })
-      .eq('auth_id', auth_id);
+    await this._supabase.from('usuarios').update({ foto_url: up.publicUrl }).eq('email', email);
   }
 
   return { ok: true };
@@ -653,8 +722,271 @@ onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
     try { return JSON.parse(text); } catch { return text; }
   }
 
+  async getUserIdOrThrow(): Promise<string> {
+  const { data } = await this._supabase.auth.getSession();
+  const uid = data?.session?.user?.id;
+  if (!uid) throw new Error('No auth user');
+  return uid;
+}
+
+
+
+async ensureSessionOrThrow() {
+  const s0 = await this._supabase.auth.getSession();
+  if (s0.data?.session?.user) return s0.data.session;
+  const s1 = await this.waitForSession(4000);
+  if (!s1?.user) throw new Error('No auth user');
+  console.log(s1 + "ensureSessionOrThrow");
+  return s1;
   
+}
   
+  //maitre
+// async joinWaitlist(cantidad: number, nota?: string) {
+//   const uid =  this.idUsuario;
+//   const { data, error } = await this._supabase
+//     .from('lista_espera')
+//     .insert([{ usuario_id: uid, cantidad_comensales: cantidad, nota }])
+//     .select()
+//     .single();
+//   if (error) {
+//     if ((error as any).code === '23505') throw new Error('Ya estás en la lista de espera.');
+//     throw error;
+//   }
+//   return data;
+// }
+
+// Cliente/Maître: pasar noAtendido -> esperando (o crear esperando si no hay activa)
+async joinWaitlist(cantidad: number, nota?: string) {
+  const uid = this.idUsuario; // o: (await this._supabase.auth.getUser()).data.user?.id
+  if (!uid) throw new Error('Sin sesión');
+
+  // ¿Tiene alguna activa? (incluyo noAtendido porque es tu “borrador”)
+  const { data: activa, error: qErr } = await this._supabase
+    .from('lista_espera')
+    .select('id, estado')
+    .eq('usuario_id', uid)
+    .in('estado', ['noAtendido','esperando','asignado'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (qErr) throw qErr;
+
+  // ya está esperando/asignado -> no duplicar
+  if (activa?.estado === 'esperando' || activa?.estado === 'asignado') {
+    throw new Error('Ya estás en la lista de espera.');
+  }
+
+  // si existe "noAtendido", actualizarla a "esperando"
+  if (activa?.estado === 'noAtendido') {
+    const { data, error } = await this._supabase
+      .from('lista_espera')
+      .update({
+        cantidad_comensales: cantidad,
+        nota: nota ?? null,
+        estado: 'esperando',
+      })
+      .eq('id', activa.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  // no había activa -> crear nueva en "esperando"
+  const { data, error } = await this._supabase
+    .from('lista_espera')
+    .insert([{
+      usuario_id: uid,
+      cantidad_comensales: cantidad,
+      nota: nota ?? null,
+      estado: 'esperando',
+      mesa_id: null,
+      numero_mesa: null,
+    }])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+
+async getMyActiveWait() {
+  console.log('entre a get my active');
+  const uid = await this.getUserIdOrThrow(); // 👈 usa la nueva
+  console.log('pase el get user', uid);
+  const { data, error } = await this.client
+    .from('lista_espera')
+    .select('*')
+    .eq('usuario_id', uid)
+    .in('estado', ['esperando','asignado'])
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return data?.[0] || null;
+}
+// SupabaseService
+// En tu SupabaseService (usa this.client y this.idUsuario)
+async getWaitStatusStr(): Promise<'asignado' | 'esperando' | ''> {
+  // Traigo cualquier fila activa del usuario (sin ordenar por created_at)
+  const { data, error } = await this.client
+    .from('lista_espera')
+    .select('estado')
+    .eq('usuario_id', this.idUsuario)
+    .in('estado', ['asignado', 'esperando', 'noAtendido']); // incluí noAsignado para decidir luego
+
+  if (error) throw error;
+  const estados = (data ?? []).map(r => r.estado as string);
+
+  // Prioridad: asignado > esperando > '' (noActivo o solo noAsignado)
+  if (estados.includes('asignado')) return 'asignado';
+  if (estados.includes('esperando')) return 'esperando';
+  return ''; // sin activas o solamente 'noAsignado' → mostrás el form
+}
+
+
+// SupabaseService
+async ensureWaitRow(cant?: number, nota?: string) {
+  const uid = this.idUsuario;
+
+  const payload: any = {
+    usuario_id: uid,
+    estado: 'noAtendido',
+    ...(Number.isInteger(cant!) ? { cantidad_comensales: cant } : {}),
+    ...(nota ? { nota } : {}),
+  };
+
+  const { data, error } = await this.client
+    .from('lista_espera')
+    .upsert(payload, { onConflict: 'usuario_id' }) // usa el índice parcial
+    .select('id, estado, numero_mesa, cantidad_comensales, nota')
+    .single();
+
+  if (error) throw error;
+  return data; // fila activa (nueva o existente)
+}
+
+async setWaitToEsperando(cant: number, nota?: string) {
+  const uid = this.idUsuario;
+  const { data, error } = await this.client
+    .from('lista_espera')
+    .update({
+      estado: 'esperando',
+      cantidad_comensales: cant,
+      nota: nota ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('usuario_id', uid)
+    .in('estado', ['noAtendido','esperando']) // evita actualizar algo ya asignado
+    .select('id, estado')
+    .single();
+  if (error) throw error;
+  return data;
+}
+// async getAuthUidOrThrow(): Promise<string> {
+//   const { data, error } = await this.client.auth.getUser();
+//   if (error || !data?.user) throw new Error('Sesión no encontrada');
+//   return data.user.id; // UUID de auth
+// }
+
+/** Crea una fila 'noAsignado' si el usuario no tiene una espera activa */
+async waitlistAutoEnroll(defaultCant = 2, nota: string | null = null) {
+  //const uid = await this.getAuthUidOrThrow();
+
+  // ¿ya tiene una activa?
+  const { data: rows, error } = await this.client
+    .from('lista_espera')
+    .select('id, estado')
+    .eq('usuario_id', this.idUsuario)
+    .in('estado', ['noAtendido','esperando','asignado'])
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (error) throw error;
+  if (rows && rows.length) return rows[0]; // ya tenía algo activo
+
+  // crear nueva
+  const { data: inserted, error: e2 } = await this.client
+    .from('lista_espera')
+    .insert([{
+      usuario_id: this.idUsuario,
+      cantidad_comensales: defaultCant,
+      nota,
+      estado: 'noAtendido',
+      mesa_id: null,
+      numero_mesa: null,
+    }])
+    .select('id, estado')
+    .single();
+
+  if (e2) throw e2;
+  return inserted;
+}
+// async getWaitStatusDetail(): Promise<{ id: number; estado: EstadoLE; numero_mesa: number|null } | null> {
+//   console.log('hola entre a obtener estado');
+//    var IdUsuario = this.idUsuario;
+//   const uid = IdUsuario; 
+//   console.log(IdUsuario);
   
+//   if (!uid) throw new Error('Sin sesión');
+//   console.log('pase el error de sin sesion');
+
+//   const { data, error } = await this.client
+//     .from('lista_espera')
+//     .select('id, estado, numero_mesa')
+//     .eq('usuario_id', uid)
+//     .in('estado', ['noAtendido','esperando','asignado'])
+//     .order('created_at', { ascending: false })
+//     .limit(1)
+//     .maybeSingle();
+
+//   console.log('data:',data);
+
+//   if (error) throw error;
+//   return data
+//     ? { id: data.id as number, estado: data.estado as EstadoLE, numero_mesa: data.numero_mesa ?? null }
+//     : null;
+  //   const { data: s } = await this.client.auth.getSession();
+  // const uid = s.session?.user?.id || this.idUsuario;
+  // console.log('uid efectivo:', uid);
+  // if (!uid) throw new Error('Sin sesión');
+
+  // const { data, error } = await this.client
+  //   .from('lista_espera')
+  //   .select('id, estado, numero_mesa')
+  //   .eq('usuario_id', uid)
+  //   // ⚠️ Asegurate que los valores coincidan con lo grabado en DB:
+  //   .in('estado', ['noAtendido','esperando','asignado'])
+  //   .order('created_at', { ascending: false })
+  //   .limit(1)
+  //   .maybeSingle();
+
+  // console.log('data:', data);
+  // if (error) throw error;
+
+  // return data
+  //   ? { id: data.id as number, estado: data.estado as EstadoLE, numero_mesa: data.numero_mesa ?? null }
+  //   : null;
+//}
+async getWaitStatusDetail(): Promise<{ id: number; estado: EstadoLE; numero_mesa: number|null } | null> {
+  console.log('hola entre a obtener estado');
+
+  const { data: s } = await this.client.auth.getSession(); // 👈 token real del cliente
+  const uid = s.session?.user?.id || this.idUsuario;
+  console.log('uid efectivo:', uid);
+  if (!uid) throw new Error('Sin sesión');
+
+  const { data, error } = await this.client
+    .from('lista_espera')
+    .select('id, estado, numero_mesa')
+    .eq('usuario_id', uid)
+    .in('estado', ['noAtendido','esperando','asignado']) // incluye solo los que usás
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ? { id: data.id, estado: data.estado as EstadoLE, numero_mesa: data.numero_mesa ?? null } : null;
+}
 
 }

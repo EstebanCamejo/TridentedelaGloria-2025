@@ -1,72 +1,73 @@
-/* ===== Safe areas (iOS/Android con notch o barra gestual) ===== */
+/* ===== Espaciados configurables ===== */
 :root{
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* separación entre tarjetas/botones */
+  --stack-gap: clamp(6px, 1.2svh, 10px);
+  /* “aire” entre el header y el primer botón */
+  --header-clearance: clamp(12px, 2.6svh, 18px);
 }
 
 /* --- Contenedor principal del panel --- */
 .admin-wrap{
-  --wrap-x: clamp(10px, 4vw, 16px);
+  --stack-gap: clamp(12px, 2.4svh, 18px); 
   min-height: 100%;
   display: grid;
   grid-template-rows: auto 1fr;
-
-  /* margen lateral normal + aire inferior seguro para FAB / barra gestual */
-  padding: 0 var(--wrap-x) calc(var(--safe-bottom) + 90px);
+  padding: 0 var(--wrap-x) calc(var(--safe-bottom) + 84px);
 }
 
-/* --- Header fijo full-bleed que respeta la barra de estado --- */
-/* --- Header fijo estilo “Cliente” (con pill centrada) --- */
-/* Header fijo (déjalo como lo tenés) */
+/* --- Header fijo estilo “Cliente” --- */
 .admin-wrap .client-header{
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: calc(var(--safe-top) + 10px) 0 10px;
+  /* más padding abajo para separar del primer botón */
+  padding: calc(var(--safe-top) + 10px) 0 var(--header-clearance);
   background:#5d2222;
   backdrop-filter: blur(2px);
   box-shadow: 0 4px 8px rgba(61,43,43,.28);
 }
 
-/* Pill FULL-BLEED con “overscan” para evitar rendijas */
-.admin-wrap .client-header .nav-pill{
-  /* usa el viewport dinámico para móviles */
-  inline-size: calc(100dvw + 4px);                 /* 4px extra */
-  margin-inline: calc(50% - 50dvw - 2px);          /* compensa el overscan */
+.admin-wrap .client-header + ion-grid{
+  margin-top: 140px !important;   /* ajustá 16–28px a gusto */
+}
 
-  /* respeta safe areas */
+/* Pill full-bleed */
+.admin-wrap .client-header .nav-pill{
+  inline-size: calc(100dvw + 4px);
+  margin-inline: calc(50% - 50dvw - 2px);
   padding: 12px calc(env(safe-area-inset-right,0px) + 16px)
            12px calc(env(safe-area-inset-left,0px) + 16px);
-
   background:#5d2222;
   color: var(--cream-25);
-  text-align: center;
+  text-align:center;
   font-family: "Inter", sans-serif;
-  font-weight: 700;
+  font-weight:700;
   letter-spacing:.2px;
-  font-size: 1.25rem;
-  border-radius: 0;                                 /* barra recta */
+  font-size:1.25rem;
+  border-radius:0;
   box-shadow: 0 6px 14px rgba(61,43,43,.25);
 }
-/* --- Grid de acciones ocupa el resto del alto --- */
-.admin-wrap ion-grid,
-.admin-wrap ion-row{ height: 100%; }
 
+/* --- Grid de acciones (sin alturas forzadas) --- */
+.admin-wrap ion-grid{ margin-top: 0; }
 .admin-wrap ion-row{
   display: grid;
-  grid-template-rows: repeat(4, 1fr);
-  row-gap: clamp(6px, 1.2svh, 10px);
+  grid-auto-rows: auto; /* altura mínima saludable */
+  row-gap: var(--stack-gap);
+}
+.admin-wrap ion-col{
+  display: block;           /* dejamos que el botón maneje su alto */
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
-.admin-wrap ion-col{ display: flex; padding-top: clamp(1px,.3svh,4px); padding-bottom: clamp(1px,.3svh,4px); }
-
+/* --- Botones “tarjeta” --- */
 .admin-wrap ion-button{
   width: 100%;
-  height: 75%;
+  /* SIN height fija: que crezca por padding */
   margin: 0;
-  --padding-top: 0;
-  --padding-bottom: 0;
+  --padding-top: clamp(10px, 1.6svh, 14px);
+  --padding-bottom: clamp(10px, 1.6svh, 14px);
   --border-radius: 14px;
   font-family: "Inter", sans-serif;
   font-weight: 700;
@@ -74,17 +75,28 @@
   text-transform: none;
 }
 .admin-wrap ion-button::part(native){
-  height: 100%;
-  justify-content: center;
-  align-items: center;
+ min-height: 104px;      
   padding: 0 clamp(14px, 3.6vw, 20px);
-  border: 2px solid #000;      /* borde negro como pediste */
+  border: 2px solid #000;
   border-radius: 14px;
 }
-.admin-wrap ion-button [slot="start"]{ margin-inline-end: 10px; font-size: 1.1em; }
+.admin-wrap ion-button{ font-size: 1.06rem; }
+.admin-wrap ion-button [slot="start"]{ font-size: 1.2em; }
 
-/* XS muy bajo (landscape/teclado): ajustamos gaps y aire inferior */
+/* XS/alturas muy bajas: comprimimos aún más */
+@media (max-height: 700px){
+  :root{
+    --stack-gap: 6px;
+    --header-clearance: 12px;
+  }
+  .admin-wrap ion-button{
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    font-size: .98rem;
+  }
+}
 @media (max-height: 560px){
-  .admin-wrap ion-row{ row-gap: 8px; }
+  :root{ --stack-gap: 5px; --header-clearance: 10px; }
   .admin-wrap{ padding-bottom: calc(var(--safe-bottom) + 72px); }
 }
+

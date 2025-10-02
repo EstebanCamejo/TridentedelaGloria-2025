@@ -1,0 +1,175 @@
+/* Tokens de marca (adaptados a tu paleta) */
+:root{
+  --maroon-700:#5d2222;
+  --maroon-800:#3f1717;
+  --cream-25:#fbf3e4;
+  --ink:#2c2222;
+}
+
+/* Contenedor de la lista */
+.waitlist{
+  display: grid;
+  gap: clamp(10px, 2.2svh, 14px);
+}
+
+/* Card compacta */
+.wl-card{
+  background: rgba(0,0,0,.86);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+}
+
+/* Barra superior (prioridad arriba del “cartel”) */
+.wl-topbar{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(0deg, rgba(255,255,255,.02), rgba(255,255,255,.04));
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+/* Chip de prioridad (diferente y bien visible) */
+.wl-prio{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--maroon-700);
+  color: var(--cream-25);
+  padding: 6px 10px;
+  border-radius: 999px;
+  line-height: 1;
+}
+.wl-prio-label{
+  opacity: .9;
+  font-size: .78rem;
+  letter-spacing: .2px;
+}
+.wl-prio-value{
+  background: var(--cream-25);
+  color: var(--maroon-800);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .82rem;
+}
+
+/* Meta (estado + hora) */
+.wl-meta{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.wl-status{
+  --background: #c8891a; /* badge warning mejorado */
+  --color: #1b1207;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+.wl-time{
+  opacity: .85;
+  font-size: .8rem;
+}
+
+/* Cuerpo */
+.wl-body{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding: 12px;
+  align-items: center;
+}
+.wl-avatar{
+  --size: 44px;
+  width: var(--size);
+  height: var(--size);
+  border: 2px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  overflow: hidden;
+}
+.wl-info{
+  min-width: 0; /* evita overflow */
+}
+.wl-name{
+  margin: 0 0 2px 0;
+  color: #fff;
+  font-size: 1.02rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wl-email{
+  margin: 0;
+  color: rgba(255,255,255,.8);
+  font-size: .9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Footer / acciones: se diferencia del contenido */
+.wl-actions{
+  padding: 10px 12px 12px;
+  background: rgba(255,255,255,.02);
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.btn-asignar{
+  /* fondo bordó + texto crema */
+  --background:#6b2626;
+  --background-focused: #6b2626;
+  --background-activated: #804242;
+  --color: var(--cream-25);
+
+  --border-radius: 12px;
+  --ripple-color: rgba(251,243,228,.35);
+  height: 44px;
+  box-shadow: 0 6px 16px rgba(93,34,34,.35);
+}
+.btn-asignar::part(native){
+  border: 1px solid rgba(255,255,255,.08);
+}
+.btn-asignar:focus-visible{
+  outline: 2px solid rgba(215, 209, 198, 0.5);
+  outline-offset: 2px;
+}
+/* Estado vacío/cargando */
+.wl-state{
+  text-align: center;
+  opacity:.9;
+  margin-top: 20px;
+  color: black;
+}
+/* === ActionSheet claro con acentos bordó === */
+.mesa-sheet-light{
+  --background:#ffffff;
+  --ion-color-step-850:#ffffff;
+  --ion-color-step-900:#ffffff;
+  --ion-text-color:#2c2222;
+}
+
+.mesa-sheet-light .action-sheet-title{ color:#2c2222; font-weight:700; }
+.mesa-sheet-light .action-sheet-sub-title{ color:#4a3a3a; }
+
+.mesa-sheet-light .action-sheet-group{
+  background:#fff;
+  border-top: 1px solid #eee4d5;
+}
+
+/* filas “Mesa N” en bordó */
+.mesa-sheet-light .action-sheet-button{
+  color:#5d2222;
+  font-weight:600;
+  border-bottom:1px solid #f0e6d8;
+}
+
+/* Cancelar gris oscuro o rojo: elegí uno */
+.mesa-sheet-light .action-sheet-cancel{
+  background:#5d2222;   /* ← ponelo en gris #f5f0e6 si querés neutro */
+  color:#fbf3e4;
+  font-weight:700;
+}
+.mesa-sheet-light .action-sheet-cancel .button-inner{ justify-content:center; }

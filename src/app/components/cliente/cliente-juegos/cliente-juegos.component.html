@@ -1,0 +1,36 @@
+<ion-header class="client-header">
+  <ion-toolbar>
+    <div class="nav-pill">Juegos</div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="client-content">
+  <div class="client-wrap">
+
+    <ion-card class="intro-card">
+      <ion-card-content>
+        <div class="intro-title">Elegí un juego para empezar</div>
+        <div class="intro-sub">Ganá un descuento mientras esperás!</div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Stack de botones (sin ion-grid para evitar problemas de gap) -->
+    <div class="game-stack">
+      <ion-button class="option-card var1" expand="block" routerLink="/juegos/trivia">
+        <ion-icon slot="start" name="help-circle-outline"></ion-icon>
+        <span class="btn-text">Trivia</span>
+      </ion-button>
+
+      <ion-button class="option-card var2" expand="block" routerLink="/juegos/memoria">
+        <ion-icon slot="start" name="shapes-outline"></ion-icon>
+        <span class="btn-text">Memoria</span>
+      </ion-button>
+
+      <ion-button class="option-card var3" expand="block" routerLink="/juegos/tap">
+        <ion-icon slot="start" name="game-controller-outline"></ion-icon>
+        <span class="btn-text">Tap rápido</span>
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>

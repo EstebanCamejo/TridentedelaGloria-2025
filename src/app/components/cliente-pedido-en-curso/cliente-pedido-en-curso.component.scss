@@ -1,0 +1,219 @@
+/* ===== Tokens compartidos (copiados del home admin y adaptados) ===== */
+:root{
+  --wrap-x: clamp(10px, 4vw, 16px);
+  --stack-gap: clamp(12px, 2.4svh, 18px);
+  --header-clearance: clamp(12px, 2.6svh, 18px);
+  --brand-bg: var(--cream-50, #fbf3e4);
+  --brand-primary: var(--maroon-700, #5d2222);
+  --brand-primary-ink: var(--cream-25, #fff7ea);
+    --stack-gap: clamp(18px, 3.8svh, 28px);     /* ↑ separación base */
+  --actions-gap: clamp(240px, 58svh, 400px);
+  /* ↑ separación entre botones */
+  --header-clearance: clamp(18px, 3.2svh, 28px);
+}
+
+/* ===== Header “pill” a lo cliente/admin ===== */
+.client-header{
+  position: sticky; top: 0; z-index: 10;
+  background: transparent;
+  box-shadow: 0 4px 8px rgba(61,43,43,.18);
+}
+.client-header .nav-pill{
+  inline-size: calc(100dvw + 4px);
+  margin-inline: calc(50% - 50dvw - 2px);
+  padding: 12px calc(env(safe-area-inset-right,0px) + 16px)
+           12px calc(env(safe-area-inset-left,0px) + 16px);
+  background: var(--brand-primary);
+  color: var(--brand-primary-ink);
+  text-align:center;
+  font-family: "Inter", sans-serif;
+  font-weight:700; letter-spacing:.2px; font-size:1.12rem;
+  box-shadow: 0 6px 14px rgba(61,43,43,.25);
+}
+
+/* ===== Fondo y layout ===== */
+.client-content{
+  /* usá tu patrón de fondo aquí si lo tenés */
+  --background: transparent;
+}
+.client-wrap{
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: 0 var(--wrap-x) calc(var(--safe-bottom) + 84px);
+  gap: var(--stack-gap);
+  margin-top: var(--header-clearance);
+}
+
+/* ===== Card de pedido (estado/total/demora) ===== */
+.pedido-card{
+  margin: 0 auto;
+  background: rgba(0,0,0,.82);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 16px;
+  box-shadow: 0 14px 34px rgba(0,0,0,.24);
+  color: #fff;
+  width: min(560px, 100%);
+  margin-bottom: var(--actions-gap);
+}
+.pedido-card ion-card-content{ padding: 16px 14px; }
+
+.estado-pill{
+  display: inline-block;
+  width: 100%;
+  background: #7d3b3b;
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.12);
+}
+.estado-pill span{ opacity: .9; display:block; font-weight:600; }
+
+.totales{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 12px;
+}
+.total{ font-size: 1.06rem; }
+.demora{ opacity: .9; }
+
+/* CTA dentro de la card */
+.pedido-card .cta{
+  margin-top: 12px;
+  --background: var(--brand-primary);
+  --color: var(--brand-primary-ink);
+  --border-radius: 12px;
+  font-weight: 700;
+}
+
+/* ===== Botones tipo “tarjeta” (mismo estilo que admin) ===== */
+ion-grid{ margin-top: 0; }
+ion-row{
+  display: grid;
+  grid-auto-rows: auto;
+  row-gap: var(--actions-gap);
+}
+ion-col{ padding-top: 0; padding-bottom: 0; }
+
+.option-card{
+  width: 100%;
+  margin: 0;
+  --padding-top: clamp(16px, 2.6svh, 22px);   /* ↑ */
+  --padding-bottom: clamp(16px, 2.6svh, 22px);/* ↑ */
+  --border-radius: 16px;
+  --background: #e6d7c5;     /* crema */
+  --color: #2b2323;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  letter-spacing: .2px;
+  text-transform: none;
+}
+.option-card::part(native){
+  min-height: 128px;
+  padding: 0 clamp(18px, 4.8vw, 26px);
+  border: 2px solid #000;
+  border-radius: 14px;
+  justify-content: flex-start;
+  gap: 14px;
+}
+
+/* Icono de tus assets */
+.option-card .icono{
+   width: 40px; height: 40px;
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.15));
+}
+.option-card .btn-text{ font-size: 1.06rem; }
+
+/* Variante “primaria” si querés resaltar alguna */
+.option-card.primary{
+  --background: var(--brand-primary);
+  --color: var(--brand-primary-ink);
+}
+
+/* XS/alturas bajas */
+@media (max-height: 700px){
+  :root{ --stack-gap: 10px; --header-clearance: 12px; }
+  .option-card{ font-size: .98rem; }
+}
+@media (max-height: 560px){
+  :root{ --stack-gap: 8px; --header-clearance: 10px; }
+  .client-wrap{ padding-bottom: calc(var(--safe-bottom) + 72px); }
+}
+/* === ESPACIO ENTRE BOTONES === */
+
+/* Usamos flex en columna + gap */
+ion-row{
+  display: flex;
+  flex-direction: column;
+  gap: var(--actions-gap); /* p.ej. 20–34px */
+}
+
+/* Fallback para motores sin soporte de flex-gap (no duplica gracias a @supports) */
+@supports not (gap: 1rem) {
+  ion-col + ion-col { margin-top: var(--actions-gap); }
+}
+/* === ESPACIO ENTRE BOTONES (robusto) === */
+/* === Espaciado confiable entre botones === */
+:root{
+  --actions-gap: clamp(24px, 5svh, 40px); /* ajustá a gusto */
+}
+
+.action-stack{
+  display: grid;
+  gap: var(--actions-gap);
+  margin-top: var(--actions-gap);
+}
+
+/* mantené tu estilo de botón-tarjeta */
+.action-stack ion-button.option-card::part(native){
+  min-height: 128px;
+  padding: 0 clamp(18px, 4.8vw, 26px);
+  border-radius: 16px;
+  justify-content: flex-start;
+  gap: 16px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.18);
+  border: 1px solid rgba(0,0,0,.22);
+}
+/* === BORDE NEGRO + MÁS ESPACIO ENTRE BOTONES === */
+/* override de separación (ajustá si querés) */
+
+
+/* borde negro más marcado y look consistente */
+.option-card::part(native){
+  border: 2px solid #000 !important;  /* BORDE NEGRO */
+  border-radius: 16px;
+  padding: 0 clamp(18px, 4.8vw, 26px);
+  min-height: 128px;
+  justify-content: flex-start;
+  gap: 16px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.16);
+}
+/* --- Reset para que los márgenes se noten --- */
+.client-wrap ion-grid{ --ion-grid-column-padding: 0 !important; }
+.client-wrap ion-row{ display: block !important; }
+.client-wrap ion-col{ display: block !important; }
+
+/* --- Botón base --- */
+ion-button.option-card{
+  display: block;
+  width: 100%;
+  margin: 0 !important;            /* sin margen por defecto */
+}
+ion-button.option-card::part(native){
+  min-height: 128px;
+  padding: 0 22px;
+  border-radius: 16px;
+  justify-content: flex-start;
+  gap: 16px;
+  border: 2px solid #000;          /* borde negro */
+  box-shadow: 0 10px 22px rgba(0,0,0,.16);
+}
+
+/* --- Espacio fijo por cada botón (SIN variables) --- */
+ion-button.option-card.var1{ margin-bottom: 26px !important; }
+ion-button.option-card.var2{ margin-bottom: 26px !important; }
+ion-button.option-card.var3{ margin-bottom: 0   !important;  } /* último */
