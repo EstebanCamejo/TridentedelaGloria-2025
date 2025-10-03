@@ -1,0 +1,71 @@
+<ion-header class="client-header">
+  <ion-toolbar>
+    <div class="nav-pill">
+      Inicio | Bienvenido
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="client-content">
+  <div class="client-wrap">
+
+    <!-- Resumen del pedido (solo visual) -->
+    <ion-card class="pedido-card">
+      <ion-card-content>
+        <div class="estado-pill">
+          <span>Estado del pedido:</span>
+          <strong>Pedido a confirmar</strong>
+        </div>
+
+        <div class="totales">
+          <div class="total"><strong>Total: $</strong>0</div>
+          <div class="demora"><strong>Demora estimada:</strong> 0min.</div>
+        </div>
+
+        <!-- Botón de ejemplo (no hace nada) -->
+        <ion-button expand="block" class="cta">
+          Pedir la cuenta
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Acciones (solo visual) -->
+    <ion-grid fixed>
+      <ion-row>
+      <div class="action-stack">
+  <ion-button class="option-card var1" expand="block">
+    <img src="../../../assets/plato.png" class="icono" alt="">
+    <span class="btn-text">Realizar el pedido</span>
+  </ion-button>
+
+  <ion-button class="option-card var2" expand="block">
+    <img src="../../../assets/chat.png" class="icono" alt="">
+    <span class="btn-text">Consultas a los mozos</span>
+  </ion-button>
+
+  <ion-button class="option-card var3" expand="block">
+    <img src="../../../assets/dado.png" class="icono" alt="">
+    <span class="btn-text">Juegos</span>
+  </ion-button>
+</div>
+
+
+        <!-- Extras opcionales (visuales)
+        <ion-col size="12">
+          <ion-button class="option-card" expand="block">
+            <img src="../../../assets/iconos/encuesta.png" class="icono" alt="">
+            <span class="btn-text">Completar Encuesta</span>
+          </ion-button>
+        </ion-col>
+
+        <ion-col size="12">
+          <ion-button class="option-card" expand="block">
+            <img src="../../../assets/iconos/pedir-cuenta.png" class="icono" alt="">
+            <span class="btn-text">Ver detalle de cuenta</span>
+          </ion-button>
+        </ion-col> -->
+      </ion-row>
+    </ion-grid>
+
+  </div>
+</ion-content>
