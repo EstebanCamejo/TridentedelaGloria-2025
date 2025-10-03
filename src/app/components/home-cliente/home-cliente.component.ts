@@ -10,6 +10,8 @@ import { Observable } from 'rxjs';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { Router } from '@angular/router';
 
+import { OnInit } from '@angular/core';
+
 @Component({
   selector: 'app-home-cliente',
   standalone: true,
@@ -17,13 +19,18 @@ import { Router } from '@angular/router';
   templateUrl: './home-cliente.component.html',
   styleUrls: ['./home-cliente.component.scss'],
 })
-export class HomeClienteComponent {
+export class HomeClienteComponent implements OnInit {
   email$!: Observable<string | null>;
   loadingLogout = false;
 
   constructor(private supa: SupabaseService, private router: Router){
     addIcons({ qrCodeOutline, albumsOutline });
     this.email$ = this.supa.authEmail$;
+  }
+
+  /* Codigo temporal */
+  ngOnInit(): void {
+    this.router.navigate(['/cliente/cliente-realiza-pedido']);
   }
 
   scanQr(){ /* ... */ }

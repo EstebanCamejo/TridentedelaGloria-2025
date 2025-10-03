@@ -107,6 +107,13 @@ export const routes: Routes = [
     import('./components/maitre/lista-espera/lista-espera.component')
     .then(m => m.ListaEsperaComponent),
   },
+  {
+    path: 'cliente/cliente-realiza-pedido',
+    loadComponent: () =>
+      import(
+        './components/cliente/cliente-realiza-pedido/cliente-realiza-pedido.component'
+      ).then((m) => m.ClienteRealizaPedidoComponent),
+  },
   // {
   //   path: 'maitre/asignar-mesa',
   //   loadComponent: () =>
