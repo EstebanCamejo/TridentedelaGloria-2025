@@ -130,4 +130,13 @@ export const routes: Routes = [
   },
   
   // { path: '', redirectTo: 'resultados-encuestas', pathMatch: 'full' },
+
+ ////////////////////////////ESTEBAN//////////////////////////
+  {
+    path: 'form-encuesta',
+    loadComponent: () =>
+      import('./components/pagina-formulario-encuesta/pagina-formulario-encuesta')
+        .then(m => m.PaginaFormularioEncuestaPage)
+  }
+  
 ];

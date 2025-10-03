@@ -5,6 +5,8 @@ import { BehaviorSubject } from 'rxjs';
 import { AuthChangeEvent } from '@supabase/supabase-js';
 export type TipoRegistro = 'cliente' | 'anonimo';
 type RolUsuario = 'clienteReg' | 'clienteAnon' | 'mozo' | 'maitre' | 'dueno' | 'supervisor' | 'bartender' | 'cocinero';
+import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+
 
 export interface ClienteRegistroData {
   tipo_registro: TipoRegistro;
@@ -57,8 +59,7 @@ export class SupabaseService {
     ); 
 
 
-      environment.supabaseAnonKey, 
-    ); 
+  
     // Cargar email inicial (si hay sesión)
     this._supabase.auth.getUser().then((res) => {
       const user = res.data?.user;
@@ -560,101 +561,12 @@ export class SupabaseService {
       console.error('[svc] fetch error:', err);
       throw new Error('No se pudo invocar la función (fetch error/timeout)');
     });
-
-
-onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
-  const { data: sub } = this._supabase.auth.onAuthStateChange((event) => handler(event));
-  // devolvemos el unsubscribe para limpiar en OnDestroy
-  return () => sub.subscription.unsubscribe();}
-  
-
-
-  async registrarEmpleado(
-    form: {
-      apellido: string;
-      nombre: string;
-      dni: string;          // 7–8 dígitos
-      cuil: string;         // 11 dígitos válido
-      email: string;
-      password: string;     // ≥ 8
-      perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
-    },
-    photoFile: File
-  ) {
-    // 0) Chequeos básicos
-    if (!photoFile) throw new Error('La foto es obligatoria.');
-    if (!/^\d{7,8}$/.test(form.dni)) throw new Error('DNI inválido.');
-    if (!/^\d{11}$/.test(form.cuil)) throw new Error('CUIL inválido.');
-    if (!form.perfil) throw new Error('Perfil inválido.');
-  
-    // 1) Unicidad rápida (email, dni, cuil)
-    // console.log('[alta empleado] step: check-duplicates');
-
-    // const q = this._supabase
-    //   .from('usuarios')
-    //   .select('email,dni,cuil', { head: false })
-    //   .or(
-    //     [
-    //       `email.eq.${form.email}`,
-    //       `dni.eq.${form.dni}`,
-    //       `cuil.eq.${form.cuil}`
-    //     ].join(',')
-    //   )
-    //   .limit(1)
-    //   .throwOnError(); // <- si RLS/otro falla, RECHAZA; no queda pendiente
-
-    // const { data: dup } = await q; // <- sin withTimeout aquí
-   // 2) Crear usuario de Auth
-    console.log('[alta empleado] step: signUp');
-    const { data: sign, error: signErr } = await this.withTimeout(
-      this._supabase.auth.signUp({ email: form.email, password: form.password }),
-      'signUp'
-    );
-    if (signErr) throw signErr;
-    const auth_id = sign.user?.id;
-    if (!auth_id) throw new Error('No se pudo crear el usuario de autenticación.');
-
-    // 3) Subir foto (Storage)
-    console.log('[alta empleado] step: uploadAvatar');
-    const up = await this.withTimeout(
-      this.uploadAvatar(photoFile, form.email),
-      'uploadAvatar'
-    );
-    const foto_url = up.publicUrl;
-
-    // 4) Insert en usuarios (estado ACTIVO)
-    console.log('[alta empleado] step: insert usuarios');
-    const { error: insErr } = await this.withTimeout(
-      this._supabase.from('usuarios').insert({
-        auth_id,
-        email: form.email,
-        nombres: form.nombre.trim(),
-        apellidos: form.apellido.trim(),
-        dni: form.dni,
-        cuil: form.cuil,
-        foto_url,
-        perfil: form.perfil,
-        estado: 'activo',
-      }),
-      'insertUsuarios'
-    );
-    if (insErr) throw insErr;
-
-
-    clearTimeout(t);
-    console.log('[svc] FETCH RES status=', res.status);
-
-    const text = await res.text();
-    if (!res.ok) {
-      let msg = `Edge Function error (status=${res.status})`;
-      try { const j = JSON.parse(text); msg = j?.message || j?.error || msg; } catch {}
-      throw new Error(msg);
-    }
-    try { return JSON.parse(text); } catch { return text; }
   }
 
-  
-  
+  onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
+    const { data: sub } = this._supabase.auth.onAuthStateChange((event) => handler(event));
+    // devolvemos el unsubscribe para limpiar en OnDestroy
+    return () => sub.subscription.unsubscribe();}
   
 
 }
