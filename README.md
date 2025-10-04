@@ -97,24 +97,35 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 
 **Diseño**
   - Arreglo de las correcciones esteticas realizadas por el profesor → *Sofia Dorbessan*
-  - Juegos parte cliente → *Sofia Dorbessan*
+  - Home juegos → *Sofia Dorbessan*
+  - Juegos: Trivia , Memoria y Tap Rapido → *Sofia Dorbessan*
   - Vista Cliente pedido en curso → *Sofia Dorbessan*
   - Encuesta por parte de los clientes → *Esteban Camejo*
   - Resultado encuestas (Graficos) → *Esteban Camejo*
+  - Alta Plato y bebida → *Ivan Laurito*
+  - Home Bartender → *Ivan Laurito*
+  - Home Cocinero → *Ivan Laurito*
 
 **Gestión**
 - Componente maitre cliente ingresa al local , gestion de ingresar mesa al cliente , lado del maitre y lado del cliente → *Sofia Dorbessan*
 - Push notificacion maitre nueva incorporacion a la lista de espera.
 - Push notification cliente mesa asignada → *Sofia Dorbessan*
 - Escanneo QR para ingreso local + Mesa → *Sofia Dorbessan*
-- Juegos vista cliente → *Sofia Dorbessan*
+- Componente Juegos → *Sofia Dorbessan*
 - Pagina Formulario Encuesta → *Esteban Camejo*
 - Pagina Resultados encuesta → *Esteban Camejo*
+- Componenete Menu → *Ivan Laurito*
+- Alta De Plato → *Ivan Laurito*
+- Alta De Bebida → *Ivan Laurito*
 
+  **Altas**
+- Alta Plato y bebida → *Ivan Laurito*
 
   ✅ **Entrega:**
-Correccion realizada en la anterior entrega :vista admin y vista maitre + puntos 1, 2 ,3 y 4.
-
+- Correccion realizada en la anterior entrega :vista admin y vista maitre
+- Puntos 1, 2 ,3 y 4.
+- Funcionalidad Juegos
+  
   ## 📆 Semana 5: *Sábado 04/10 al 11/10* PARCIAL
 **Diseño**
 
