@@ -144,6 +144,16 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 | Imagen             | Explicacion                                   
 |--------------------|---------------------------------------|
 | <img width="312" height="649" alt="image" src="https://github.com/user-attachments/assets/d15bbfbf-186c-4296-bfff-b0655d00f713" /> | Inicio de sesion con boton de usuarios (acceso rapido) desplegado |
+| <img width="308" height="645" alt="image" src="https://github.com/user-attachments/assets/7c012853-7edc-4e55-b827-8e277b3a8c7f" /> | Pantalla registro nuevo cliente |
+| <img width="307" height="658" alt="image" src="https://github.com/user-attachments/assets/88d4864e-ba6b-4f13-8455-721c60c256ce" /> | Pantalla vista dueño/supervisor |
+| <img width="309" height="647" alt="image" src="https://github.com/user-attachments/assets/a2e396d7-0f07-439b-8db8-6b9cabacab14" /> | Vista clientes en espera por perfil dueño/supervisor |
+| <img width="315" height="659" alt="image" src="https://github.com/user-attachments/assets/2ee2fc7a-080a-4e06-b73e-0e7f52ea145e" /> | Panel Cliente |
+
+
+
+
+
+
 
 
 ---
