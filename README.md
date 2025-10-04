@@ -107,10 +107,10 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
   - Home Cocinero → *Ivan Laurito*
 
 **Gestión**
-- Componente maitre cliente ingresa al local , gestion de ingresar mesa al cliente , lado del maitre y lado del cliente → *Sofia Dorbessan*
-- Push notificacion maitre nueva incorporacion a la lista de espera.
+- Componente maitre cliente ingresa al local , gestion de asignar mesa al cliente (lado del maitre y lado del cliente)→ *Sofia Dorbessan*
+- Push notificacion maitre nueva incorporacion a la lista de espera → *Sofia Dorbessan*
 - Push notification cliente mesa asignada → *Sofia Dorbessan*
-- Escanneo QR para ingreso local + Mesa → *Sofia Dorbessan*
+- Escanneo QR para ingreso local: Lista de espera → *Sofia Dorbessan*
 - Componente Juegos → *Sofia Dorbessan*
 - Pagina Formulario Encuesta → *Esteban Camejo*
 - Pagina Resultados encuesta → *Esteban Camejo*
@@ -125,6 +125,7 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 - Correccion realizada en la anterior entrega :vista admin y vista maitre
 - Puntos 1, 2 ,3 y 4.
 - Funcionalidad Juegos
+- 
   
   ## 📆 Semana 5: *Sábado 04/10 al 11/10* PARCIAL
 **Diseño**
