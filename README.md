@@ -76,7 +76,7 @@
 ✅ **Entrega:**  Envio de captura de pantalla del diseño general de la app y los componentes
 
 ### 📆 Semana 3: *Sábado 20/09 al 27/09*
-//enviamos fotos del diseño de los diferentes componentes y nos marcan las siguientes correcciones:
+//Crrecciones:
 
 - A alta de mesa y clientes pendientes le falta estilos, los formularios deben ser siempre iguales, es decir usen como ejemplo el de registro.
 - Los botones de alta de usuarios y alta de mesa no contrastan bien con el fondo.
@@ -96,16 +96,30 @@ Los títulos blancos tampoco se distinguen.
 - Alta Empleados (Admin) → *Esteban Camejo*
 
   ✅ **Entrega:**
-
+  //correcciones realizadas de la visual + videos puntos 5,6,7,8 y 9
   ### 📆 Semana 4: *Sábado 27/09 al 04/10*
-**Diseño**
+  //correcion: 
+Github: correcto.
+Pantalla de clientes pendientes: por lo que entiendo ponen un check verde o un acruz roja imagino que es para hacer una acción o sea eso sería un botón? si es así procuren hacerlo más grande porque un dedo normal tiene que procurar de no tocar la equivocada, o sea puede tocar cualquiera por error.
+Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo a cualquier pantalla similar.
 
+**Diseño**
+  - Arreglo de las correcciones esteticas realizadas por el profesor → *Sofia Dorbessan*
+  - Juegos parte cliente → *Sofia Dorbessan*
+  - Vista Cliente pedido en curso → *Sofia Dorbessan*
+  - Encuesta por parte de los clientes → *Esteban Camejo*
+  - Graficos → *Esteban Camejo*
 
 **Gestión**
+- Componente maitre cliente ingresa al local , gestion de ingresar mesa al cliente , lado del maitre y lado del cliente → *Sofia Dorbessan*
+- Push notificacion maitre nueva incorporacion a la lista de espera.
+- Push notification cliente mesa asignada → *Sofia Dorbessan*
+- Escanneo QR para ingreso local + Mesa → *Sofia Dorbessan*
+- Juegos vista cliente → *Sofia Dorbessan*
 
 
   ✅ **Entrega:**
-
+Correccion visual + puntos 1, 2 ,3 y 4.
   ## 📆 Semana 5: *Sábado 04/10 al 11/10* PARCIAL
 **Diseño**
 
