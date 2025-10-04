@@ -143,8 +143,7 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 
 | Imagen             | Explicacion                                   
 |--------------------|---------------------------------------|
-| <img width="312" height="649" alt="image" src="https://github.com/user-attachments/assets/d15bbfbf-186c-4296-bfff-b0655d00f713" />
-      Pantalla login con botón de usuarios (acceso rápido) desplegado| Pantalla login con botón de usuarios (acceso rápido) desplegado | 
+| <img width="312" height="649" alt="image" src="https://github.com/user-attachments/assets/d15bbfbf-186c-4296-bfff-b0655d00f713" /> | Login |
 
 
 ---
