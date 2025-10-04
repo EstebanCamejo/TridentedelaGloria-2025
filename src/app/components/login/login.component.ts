@@ -103,33 +103,7 @@ export class loginComponent {
     // Animación del logo
     setTimeout(() => (this.logoReady = true), 10);
   }
-  
-  // async login() {
-  //   this.auths
-  //   .login(this.email, this.password)
-  //   .then((user) => {
-  //     console.log('User logged in:', user);
-  //     this.toastr.success('Sesión iniciada correctamente', '', {
-  //       positionClass: 'toast-center',
-  //       timeOut: 3000
-  //     });
-  //     this.email = '';
-  //     this.password = '';
-  //     this.router.navigate(['/home']);
-  //   })
-  //   .catch((error) => {
-  //     const msg = this.getErrorMessage(error);
-  //     this.toastr.error(msg, 'Error', {
-  //       positionClass: 'toast-center',
-  //       closeButton: true,
-  //       progressBar: true,
-  //       timeOut: 4000
-  //     });
-  //     console.error('Error logging in:', error);
-  //   });
-  //   if (this.loading) return;
-  //   this.loading = true;  
-  // }
+
   async login() {
     if (this.loading) return;
     this.loading = true;
@@ -140,8 +114,47 @@ export class loginComponent {
     try {
       const email = this.email.trim();
       const password = this.password;
+console.log('[1] Iniciando login con', { email });
 
       await this.auths.login(email, password);
+console.log('Login OK');
+      
+//insert new
+// 2) UID fresco (evita carreras con this.idUsuario)
+    const { data: authUser, error: auErr } = await this.auths.client.auth.getUser();
+     console.log('getSession =>');
+    if (auErr) throw auErr;
+    const uid = authUser?.user?.id;
+    console.log(uid);
+    if (!uid) throw new Error('No se obtuvo el UID luego del login.');
+
+    // 3) INSERT directo en 'noAsignado'
+      console.log('Intentando INSERT en lista_espera…');
+    try {
+      const { data: inserted, error: insErr } = await this.auths.client
+        .from('lista_espera')
+        .insert([{
+          usuario_id: uid,
+          cantidad_comensales: 2,     
+          nota: null,
+          estado: 'noAtendido',
+          mesa_id: null,
+          numero_mesa: null,
+        }])
+        .select('id, estado')
+        .single();
+
+      if (insErr) throw insErr;
+      console.log('Inscripto a lista_espera:', inserted);
+    } catch (e: any) {
+      // Si tenés índice único de “una activa por usuario”, capturás 23505 y seguís
+      if (e?.code === '23505') {
+        console.warn('[lista_espera] ya tenía una activa, no inserto otra.');
+      } else {
+        console.warn('[lista_espera] insert falló (no bloquea login):', e);
+      }
+    }
+
 
       this.toastr.success('Sesión iniciada correctamente', '', {
         positionClass: 'toast-center',

@@ -60,6 +60,11 @@ export class RegistroClienteAnonimoComponent {
           source: CameraSource.Prompt,  // cámara o galería
           allowEditing: false,
           saveToGallery: false,
+
+        promptLabelHeader: 'Foto',
+        promptLabelPhoto: 'Elegir de la galería',
+        promptLabelPicture: 'Tomar foto',
+        promptLabelCancel: 'Cancelar',
         });
 
         if (img?.webPath) {
@@ -106,94 +111,6 @@ export class RegistroClienteAnonimoComponent {
     return 'No pudimos completar el registro. Intentá de nuevo.';
   }
 
-  // onSubmit(form: NgForm) {
-  //   this.errorMsg = '';
-  //   this.passwordsMismatch = false;
-
-  //   this.markAllAsTouched(form);
-  //   if (form.invalid) {
-  //     this.toastError('Por favor completá todos los campos correctamente.');
-  //     return;
-  //   }
-
-  //   if (this.password !== this.confirm) {
-  //     this.passwordsMismatch = true;
-  //     this.toastError('Las contraseñas no coinciden.');
-  //     return;
-  //   }
-
-  //   if (this.requirePhoto && !this.photoFile) {
-  //     this.toastError('Subí una foto de perfil para continuar.');
-  //     return;
-  //   }
-
-  //   if (this.loading) return;
-  //   this.loading = true;
-  //   this.toastOk('Formulario válido. Registrando...');
-
-  //   this.auth.register(this.email, this.password)
-  //     .then(() => {
-  //       this.nombre = this.email = this.password = this.confirm = '';
-  //       this.photoFile = null; this.photoPreview = null;
-  //       form.resetForm();
-  //       this.router.navigate(['/login']);
-  //     })
-  //     .catch((error: any) => {
-  //       const msg = this.mapRegisterError(error);
-  //       this.errorMsg = msg;
-  //       this.toastError(msg);
-  //       console.error('Register anon error:', error);
-  //     })
-  //     .finally(() => { this.loading = false; });
-  // }
-
-// async onSubmit(form: NgForm) {
-//   this.errorMsg = '';
-//   this.passwordsMismatch = false;
-
-//   this.markAllAsTouched(form);
-//   if (form.invalid) { this.toastError('Por favor completá todos los campos correctamente.'); return; }
-//   if (this.password !== this.confirm) { this.passwordsMismatch = true; this.toastError('Las contraseñas no coinciden.'); return; }
-//   if (this.requirePhoto && !this.photoFile) { this.toastError('Subí una foto de perfil para continuar.'); return; }
-//   if (this.loading) return;
-
-//   this.loading = true;
-//   try {
-//    // await this.spinner.run;
-//     // 1) Alta + (foto) + inserción en usuarios con perfil=clienteAnon y estado=aprobado
-// await this.auth.registrarAnonimoFlow(
-//   { nombre: this.nombre || 'Anónimo', email: this.email, password: this.password },
-//   this.photoFile
-// );
-
-//     // 2) Iniciar sesión automáticamente (sin espera de admin)
-//     await this.auth.login(this.email, this.password);
-
-//     // 3) (Opcional) verificar rol/estado por si querés ser 100% estrictx:
-//     // const { data: row } = await this.auth.client
-//     //   .from('usuarios')
-//     //   .select('perfil, estado')
-//     //   .eq('email', this.email)
-//     //   .single();
-//     // if (row?.perfil !== 'clienteAnon' || row?.estado !== 'aprobado') throw new Error('Perfil no válido');
-
-//     this.toastOk('¡Bienvenido! Registro anónimo completado.');
-//     // limpiar UI
-//     this.nombre = this.email = this.password = this.confirm = '';
-//     this.photoFile = null; this.photoPreview = null;
-//     form.resetForm();
-
-//     // 4) Ir directo al home del cliente
-//     this.router.navigate(['/home-cliente']); 
-//   } catch (error: any) {
-//     const msg = this.mapRegisterError(error);
-//     this.errorMsg = msg;
-//     this.toastError(msg);
-//     console.error('Registrar anónimo error:', error);
-//   } finally {
-//     this.loading = false;
-//   }
-// }
 async onSubmit(form: NgForm) {
   this.errorMsg = '';
   this.passwordsMismatch = false;

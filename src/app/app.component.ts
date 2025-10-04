@@ -310,6 +310,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { App } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
+import { environment } from 'src/environments/environment';
 import { AppAudioService } from './services/app-audio.service';
 import { Capacitor } from '@capacitor/core';
 import { SupabaseService } from './services/supabase.service';
@@ -356,7 +357,9 @@ export class AppComponent implements OnInit, OnDestroy {
     private haptics: HapticsService,
     private toastr: ToastrService,
     public spinner: SpinnerService
-  ) {}
+  ) {
+  }
+  
 public spinnerVisible$ = this.spinner.visible$;
   async ngOnInit(): Promise<void> {
     // ===== Spinner entre rutas (habilitado recién post-splash) =====

@@ -7,6 +7,10 @@ import { RegistroClienteAnonimoComponent } from './components/registro-cliente-a
 import { RegistroClienteComponent } from './components/registro-cliente/registro-cliente.component';
 import { HomeBartenderCocineroComponent } from './components/home-bartender-cocinero/home-bartender-cocinero.component';
 import { HomeClienteComponent } from './components/home-cliente/home-cliente.component';
+import { IngresoClienteComponent } from './components/ingreso-cliente/ingreso-cliente.component';
+import { ClientePedidoEnCursoComponent } from './components/cliente-pedido-en-curso/cliente-pedido-en-curso.component';
+import { ClienteJuegosComponent } from './components/cliente/cliente-juegos/cliente-juegos.component';
+
 
 export const routes: Routes = [
   {
@@ -120,10 +124,67 @@ export const routes: Routes = [
   //     import('./components/maitre/asignar-mesa/asignar-mesa.component')
   //       .then(m => m.AsignarMesaComponent),
   // },
+    {
+    path: 'ingreso-cliente',
+    loadComponent: () =>
+    import('./components/ingreso-cliente/ingreso-cliente.component')
+    .then(m => m.IngresoClienteComponent),
+  },
+      {
+    path: 'cliente-pedido-en-curso',
+    loadComponent: () =>
+    import('./components/cliente-pedido-en-curso/cliente-pedido-en-curso.component')
+    .then(m => m.ClientePedidoEnCursoComponent),
+  },
+        {
+    path: 'cliente/cliente-juegos',
+    loadComponent: () =>
+    import('./components/cliente/cliente-juegos/cliente-juegos.component')
+    .then(m => m.ClienteJuegosComponent),
+  },
+  // Juegos individuales
+  {
+    path: 'juegos/trivia',
+    loadComponent: () =>
+      import('./components/juegos/trivia/trivia.component')
+        .then(m => m.TriviaComponent),
+  },
+  {
+    path: 'juegos/memoria',
+    loadComponent: () =>
+      import('./components/juegos/memoria/memoria.component')
+        .then(m => m.MemoriaComponent),
+  },
+  {
+    path: 'juegos/tap',
+    loadComponent: () =>
+      import('./components/juegos/tap/tap.component')
+        .then(m => m.TapComponent),
+  },
   { 
     path: 'maitre/mesa/:id', 
     loadComponent: () => import('./components/maitre/mesa-info/mesa-info.component').then(m => m.MesaInfoComponent) 
   },
   
-];
 
+
+
+  ////////////////////////////ESTEBAN//////////////////////////
+  {
+    path: 'resultados-encuestas',
+    loadComponent: () =>
+      import('./components/pagina-resultados-encuestas/pagina-resultados-encuestas')
+        .then(m => m.PaginaResultadosEncuestasPage)
+  },
+  
+  // { path: '', redirectTo: 'resultados-encuestas', pathMatch: 'full' },
+
+ ////////////////////////////ESTEBAN//////////////////////////
+  {
+    path: 'form-encuesta',
+    loadComponent: () =>
+      import('./components/pagina-formulario-encuesta/pagina-formulario-encuesta')
+        .then(m => m.PaginaFormularioEncuestaPage)
+  }
+  
+];

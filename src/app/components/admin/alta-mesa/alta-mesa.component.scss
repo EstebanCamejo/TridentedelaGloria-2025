@@ -1,0 +1,28 @@
+/* src/app/components/admin/alta-mesa/alta-mesa.component.scss */
+.alta-mesa {
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+  
+  .preview {
+    margin: 12px 0;
+    display: grid;
+    place-items: center;
+    img {
+      width: 60%;    /* compacto */
+      max-width: 280px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.18);
+    }
+  }
+  
+  .qr-wrap {
+    display: grid;
+    place-items: center;
+    margin: 8px 0 12px;
+    img {
+      width: 220px;
+      height: auto;
+    }
+  }
+  

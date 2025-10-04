@@ -1,0 +1,18 @@
+.center {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 40vh;
+}
+.hint { opacity: .7; }
+
+.chart {
+  width: 100%;
+  height: 260px;
+}
+
+.empty {
+  text-align: center;
+  opacity: .6;
+  padding: 8px 0;
+}

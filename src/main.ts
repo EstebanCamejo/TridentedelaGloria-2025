@@ -3,7 +3,7 @@ import {
   RouteReuseStrategy,
   provideRouter,
   withPreloading,
-  PreloadAllModules,
+  PreloadAllModules, withHashLocation
 } from '@angular/router';
 import {
   IonicRouteStrategy,
@@ -27,6 +27,7 @@ registerLocaleData(localeEsAr);
 
 
 
+registerLocaleData(localeEsAr);
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -41,7 +42,7 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     { provide: LOCALE_ID, useValue: 'es-AR' }, 
-
+    provideRouter(routes, withHashLocation()),// ESTEBAN
     /*provideFirebaseApp(() =>
       initializeApp({
         projectId: 'ionicapp-e1773',

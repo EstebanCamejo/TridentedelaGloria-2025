@@ -1,0 +1,160 @@
+<!-- <ion-header class="client-header">
+  <ion-toolbar>
+    <div class="nav-pill">
+      Bienvenido a El Tridente de la gloria
+    </div>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="client-content" fullscreen>
+  <div class="client-wrap">
+    <div class="client-stack">
+      <ion-button class="cta btn-scan" fill="solid" expand="block" size="large"  (click)="inscribirme()">
+        <ion-icon slot="start" name="qr-code-outline"></ion-icon>
+         Inscribirme a la lista de espera
+      </ion-button>
+
+      <ion-button class="cta btn-history" fill="solid" expand="block" size="large">
+        <ion-icon slot="start" name="albums-outline"></ion-icon>
+        Ver encuestas anteriores
+      </ion-button>
+    </div>
+  </div>
+
+ 
+<ion-modal [isOpen]="ui==='mesa-lista'" class="sheet success" (didDismiss)="cerrarModal()">
+  <ng-template>
+    <div class="card">
+      <h3>¡Tu mesa está lista!</h3>
+      <p *ngIf="mesa_numero">Tu número de mesa es: <span class="badge">{{ mesa_numero }}</span></p>
+      <p>Gracias por elegirnos!</p>
+      <div class="actions">
+        <ion-button expand="block" (click)="cerrarModal()">Cerrar</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+
+<ion-modal [isOpen]="ui==='esperando'" class="sheet info" (didDismiss)="cerrarModal()">
+  <ng-template>
+    <div class="card">
+      <h3>Estás en la lista de espera!</h3>
+      <p>El maître te asignará una mesa pronto. Te avisaremos cuando este disponible tu mesa</p>
+      <div class="actions">
+        <ion-button expand="block" (click)="cerrarModal()">Entendido</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+
+<ion-modal [isOpen]="ui==='form'" class="sheet form" (didDismiss)="cerrarModal()" [breakpoints]="[0,0.4,0.9]" [initialBreakpoint]="0.6">
+  <ng-template>
+    <div class="card">
+      <h3>Lista de espera</h3>
+      <label class="field">
+        <span>Cantidad de personas</span>
+        <input type="number" min="1" max="12" [(ngModel)]="cant"/>
+      </label>
+      <label class="field">
+        <span>Nota (opcional)</span>
+        <input type="text" placeholder="Cochecito, silla alta…" [(ngModel)]="nota"/>
+      </label>
+      <div class="actions two">
+        <ion-button fill="outline" (click)="cerrarModal()">Cancelar</ion-button>
+        <ion-button (click)="confirmarInscripcion()">Confirmar</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+</ion-content> -->
+<ion-header class="client-header">
+  <ion-toolbar>
+    <div class="nav-pill">
+      Bienvenido a El Tridente de la gloria 
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="client-content" fullscreen>
+  <div class="client-wrap">
+    <div class="client-stack">
+      <ion-button class="cta btn-scan" fill="solid" expand="block" size="large" (click)="inscribirme()">
+        <ion-icon slot="start" name="qr-code-outline"></ion-icon>
+        Inscribirme a la lista de espera
+      </ion-button>
+
+      <ion-button class="cta btn-history" fill="solid" expand="block" size="large" (click)="verEncuestas()">
+        <ion-icon slot="start" name="albums-outline"></ion-icon>
+        Ver encuestas anteriores
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- MODAL: Mesa lista -->
+  <ion-modal
+    [isOpen]="ui === 'mesa-lista'"
+    class="sheet success"
+    [breakpoints]="[0.5, 0.9]"
+    [initialBreakpoint]="0.5"
+    (didDismiss)="cerrarModal()"
+  >
+    <ng-template>
+      <div class="card">
+        <h3>¡Tu mesa está lista!</h3>
+        <p *ngIf="mesa_numero">Tu número de mesa es: <span class="badge">{{ mesa_numero }}</span></p>
+        <p>¡Gracias por elegirnos!</p>
+        <div class="actions">
+          <ion-button expand="block" (click)="cerrarModal()">Cerrar</ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- MODAL: Aún esperando -->
+  <ion-modal
+    [isOpen]="ui === 'esperando'"
+    class="sheet info"
+    [breakpoints]="[0.5, 0.9]"
+    [initialBreakpoint]="0.5"
+    (didDismiss)="cerrarModal()"
+  >
+    <ng-template>
+      <div class="card">
+        <h3>¡Estás en la lista de espera!</h3>
+        <p>El maître te asignará una mesa pronto. Te avisaremos cuando esté disponible.</p>
+        <div class="actions">
+          <ion-button expand="block" (click)="cerrarModal()">Entendido</ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- MODAL: Formulario de inscripción -->
+  <ion-modal
+    [isOpen]="ui === 'form'"
+    class="sheet form"
+    [breakpoints]="[0, 0.6, 0.9]"   
+    [initialBreakpoint]="0.6"
+    (didDismiss)="cerrarModal()"
+  >
+    <ng-template>
+      <div class="card">
+        <h3>Lista de espera</h3>
+        <label class="field">
+          <span>Cantidad de personas</span>
+          <input type="number" min="1" max="12" [(ngModel)]="cant" />
+        </label>
+        <label class="field">
+          <span>Nota (opcional)</span>
+          <input type="text" placeholder="Cochecito, silla alta…" [(ngModel)]="nota" />
+        </label>
+        <div class="actions two">
+          <ion-button fill="outline" (click)="cerrarModal()">Cancelar</ion-button>
+          <ion-button (click)="confirmarInscripcion()">Confirmar</ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>

@@ -1,0 +1,31 @@
+<ion-header class="client-header">
+  <ion-toolbar>
+    <div class="nav-pill">Tap Rápido</div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="wrap">
+    <ion-card class="panel">
+      <ion-card-content>
+
+        <div class="status">
+          <div>Tiempo: <b>{{ timeLeft | number:'2.0' }}</b>s</div>
+          <div>Puntos: <b>{{ score }}</b></div>
+          <div *ngIf="!started && timeLeft===0" class="disc">Descuento: <b>{{ discount }}%</b></div>
+        </div>
+
+        <div class="arena" #arena>
+          <button class="target" (click)="tap()" [disabled]="!started">¡Tocá!</button>
+        </div>
+
+        <div class="actions">
+          <ion-button class="primary" expand="block" (click)="start()">Comenzar</ion-button>
+          <ion-button expand="block" (click)="claim()">Reclamar descuento</ion-button>
+          <ion-button expand="block" routerLink="/cliente/cliente-juegos">Volver</ion-button>
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

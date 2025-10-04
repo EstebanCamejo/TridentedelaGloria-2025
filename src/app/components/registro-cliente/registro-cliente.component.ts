@@ -7,14 +7,15 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Device } from '@capacitor/device';
 import { AppLauncher } from '@capacitor/app-launcher';
-import { IonButton, IonIcon,  IonContent,
-  IonHeader,
- } from '@ionic/angular/standalone';
+import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { BarcodeScanner, BarcodeFormat, PermissionStatus  } from '@capacitor-mlkit/barcode-scanning';
 
+// 👇 importa util y los íconos que vas a usar
+import { addIcons } from 'ionicons';
+import { camera, barcodeOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-registro-cliente',
@@ -45,7 +46,9 @@ photoFile: File | null = null;        // archivo listo para subir
     private auth: SupabaseService,
     private router: Router,
     private toastr: ToastrService
-  ) {}
+  ) {
+     addIcons({ camera, barcodeOutline });
+  }
 
   ionViewDidEnter() {
     requestAnimationFrame(() => (this.logoReady = true));
