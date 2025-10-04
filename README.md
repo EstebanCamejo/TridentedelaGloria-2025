@@ -14,14 +14,6 @@
 - Camejo Esteban
 - Dorbessan Sofia
 - Ivan Laurito  
-
----
-
-## ✨ Ramas / Branches ✨
-- `branch-esteban`  
-- `branch-sofia`  
-- `branch-ivan`  
-
 ---
 
 ## 📲 Arquitectura del Proyecto 📲
@@ -108,7 +100,7 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
   - Juegos parte cliente → *Sofia Dorbessan*
   - Vista Cliente pedido en curso → *Sofia Dorbessan*
   - Encuesta por parte de los clientes → *Esteban Camejo*
-  - Graficos → *Esteban Camejo*
+  - Resultado encuestas (Graficos) → *Esteban Camejo*
 
 **Gestión**
 - Componente maitre cliente ingresa al local , gestion de ingresar mesa al cliente , lado del maitre y lado del cliente → *Sofia Dorbessan*
@@ -116,10 +108,13 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 - Push notification cliente mesa asignada → *Sofia Dorbessan*
 - Escanneo QR para ingreso local + Mesa → *Sofia Dorbessan*
 - Juegos vista cliente → *Sofia Dorbessan*
+- Pagina Formulario Encuesta → *Esteban Camejo*
+- Pagina Resultados encuesta → *Esteban Camejo*
 
 
   ✅ **Entrega:**
-Correccion visual + puntos 1, 2 ,3 y 4.
+Correccion realizada en la anterior entrega :vista admin y vista maitre + puntos 1, 2 ,3 y 4.
+
   ## 📆 Semana 5: *Sábado 04/10 al 11/10* PARCIAL
 **Diseño**
 
