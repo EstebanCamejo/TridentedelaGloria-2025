@@ -12,6 +12,8 @@ import { Router } from '@angular/router';
 import { QrService, QrPayload } from 'src/app/services/qr.service';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
+import { OnInit } from '@angular/core';
+
 @Component({
   selector: 'app-home-cliente',
   standalone: true,
@@ -19,7 +21,7 @@ import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
   templateUrl: './home-cliente.component.html',
   styleUrls: ['./home-cliente.component.scss'],
 })
-export class HomeClienteComponent {
+export class HomeClienteComponent implements OnInit {
   email$!: Observable<string | null>;
   loadingLogout = false;
 
@@ -32,6 +34,9 @@ export class HomeClienteComponent {
     addIcons({ qrCodeOutline, albumsOutline });
     this.email$ = this.supa.authEmail$;
   }
+
+  scanQr(){ /* ... */ }
+  verEncuestas(){ /* ... */ }
 
   // 👇 Escanea y navega DIRECTO a la ruta
   async scanQr() {
