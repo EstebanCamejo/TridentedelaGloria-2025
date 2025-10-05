@@ -56,65 +56,95 @@ export class SupabaseService {
   public authEmail$ = new BehaviorSubject<string | null>(null);
 
   public idUsuario: string = "";
-  constructor() {
-this._supabase = createClient(
-  environment.supabaseUrl,
-  environment.supabaseAnonKey,
-   opts,
-  {
-    auth: {
-      // 👇 CLAVE para nativo
-      storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
-      persistSession: true,
-      autoRefreshToken: true, 
-      detectSessionInUrl: false,
-      multiTab: false,  
-    },
-  }
-);
-
-
 //   constructor() {
+// this._supabase = createClient(
+//   environment.supabaseUrl,
+//   environment.supabaseAnonKey,
+//    opts,
+//   {
+//     auth: {
+//       // 👇 CLAVE para nativo
+//       storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
+//       persistSession: true,
+//       autoRefreshToken: true, 
+//       detectSessionInUrl: false,
+//       multiTab: false,  
+//     },
+  
+// );
 
-//     const opts: any = {
-//       auth: {
-//         persistSession: true,
-//         autoRefreshToken: true,
-//         multiTab: false,            // 👈 desactiva Navigator.locks en GoTrue
-//       },
-//       global: { headers: { apikey: environment.supabaseAnonKey } },
-//     };
+
+// //   constructor() {
+
+// //     const opts: any = {
+// //       auth: {
+// //         persistSession: true,
+// //         autoRefreshToken: true,
+// //         multiTab: false,            // 👈 desactiva Navigator.locks en GoTrue
+// //       },
+// //       global: { headers: { apikey: environment.supabaseAnonKey } },
+// //     };
 
 
-    // Cargar email inicial (si hay sesión)
-    this._supabase.auth.getUser().then((res) => {
-      const user = res.data?.user;
-      this.authEmail$.next(user?.email ?? null);
-    });
+//     // Cargar email inicial (si hay sesión)
+//     this._supabase.auth.getUser().then((res) => {
+//       const user = res.data?.user;
+//       this.authEmail$.next(user?.email ?? null);
+//     });
 
 
     
-// Cargar email + id inicial
-this._supabase.auth.getSession().then(({ data }) => {
-  const u = data?.session?.user;
-  this.authEmail$.next(u?.email ?? null);
-  this.idUsuario = u?.id ?? '';
-});
+// // Cargar email + id inicial
+// this._supabase.auth.getSession().then(({ data }) => {
+//   const u = data?.session?.user;
+//   this.authEmail$.next(u?.email ?? null);
+//   this.idUsuario = u?.id ?? '';
+// });
 
-// Mantener actualizado
-this._supabase.auth.onAuthStateChange((_e, s) => {
-  const u = s?.user;
-  this.authEmail$.next(u?.email ?? null);
-  this.idUsuario = u?.id ?? '';
-});
+// // Mantener actualizado
+// this._supabase.auth.onAuthStateChange((_e, s) => {
+//   const u = s?.user;
+//   this.authEmail$.next(u?.email ?? null);
+//   this.idUsuario = u?.id ?? '';
+// });
 
 //     // Mantenerlo actualizado ante cambios de sesión
 //     this._supabase.auth.onAuthStateChange((_event, session) => {
 //       this.authEmail$.next(session?.user?.email ?? null);
 //     });
 
+constructor() {
+  const options = {
+    auth: {
+      storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+      multiTab: false,
+    },
+    global: { headers: { apikey: environment.supabaseAnonKey } },
+  } as const;
 
-  }
+  this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, options);
+
+  // Cargar email inicial
+  this._supabase.auth.getUser().then(res => this.authEmail$.next(res.data?.user?.email ?? null));
+
+  // Cargar email + id inicial
+  this._supabase.auth.getSession().then(({ data }) => {
+    const u = data?.session?.user;
+    this.authEmail$.next(u?.email ?? null);
+    this.idUsuario = u?.id ?? '';
+  });
+
+  // Mantener actualizado
+  this._supabase.auth.onAuthStateChange((_e, s) => {
+    const u = s?.user;
+    this.authEmail$.next(u?.email ?? null);
+    this.idUsuario = u?.id ?? '';
+  });
+}
+
 
   // Acceso al cliente, por si lo necesitás en otros servicios
   get client(): SupabaseClient {
@@ -131,46 +161,21 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
     }
     return null;
   }
-  
-  // ---- Auth mínima (podés ajustar más tarde) ----
-  // async login(email: string, password: string) {
-  //   const { data, error } = await this._supabase.auth.signInWithPassword({
-  //     email,
-  //     password,
-  //   });
 
-  //   /////////////
-  //   const { data: s } = await this._supabase.auth.getSession();
-  //   console.log('auth_id:', s?.session?.user?.id);
-  //   /////////////
-    
-  //   if (error) throw error;
-  //   const auth_id = data.user?.id;
-  //   const { data: rows, error: qErr } = await this._supabase
-  //     .from('usuarios')
-  //     .select('id, perfil, estado')
-  //     .eq('auth_id', auth_id)
-  //     .limit(1);
-  
-  //   if (qErr) {
-  //     // si falla la consulta, salimos por seguridad
-  //     await this._supabase.auth.signOut();
-  //     throw qErr;
-  //   }
-  
-  //   const u = rows?.[0];
-  //   // habilitado si es aprobado (clientes) o activo (staff)
-  //   const habilitado = u && (u.estado === 'aprobado' || u.estado === 'activo');
+//   private async withTimeout<T>(p: Promise<T>, label = 'op', ms = 15000): Promise<T> {
+//   const controller = new AbortController();
+//   const to = setTimeout(() => controller.abort(`timeout:${label}`), ms);
+//   try {
+//     // Si necesitás abortar fetch, pasá controller.signal en ese fetch.
+//     return await p;
+//   } catch (e) {
+//     throw e;
+//   } finally {
+//     clearTimeout(to);
+//   }
+// }
 
-  //   if (!habilitado) {
-  //     await this._supabase.auth.signOut();
-  //     const msg = u?.estado === 'rechazado'
-  //       ? 'Tu registro fue rechazado. Consultá al local.'
-  //       : 'Tu registro está pendiente de aprobación.';
-  //     throw new Error(msg);
-  //   }
-  //   return data;
-  // }
+  
     // ---- Auth ----
   async login(email: string, password: string) {
     const { data, error } = await this._supabase.auth.signInWithPassword({ email, password });
@@ -259,135 +264,6 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
     return { path: filePath, publicUrl: data.publicUrl };
   }
 
-//INSERTAR EN USUARIOS
-
-// async registrarClienteFlow(
-//   form: {
-//     tipo_registro: 'cliente' | 'anonimo';
-//     nombre: string; apellido?: string | null; dni?: string | null;
-//     email: string; password: string;
-//   },
-//   photoFile?: File | null
-// ) {
-//   // 1) Alta en auth
-//   const { data: signData, error: signErr } = await this._supabase.auth.signUp({
-//     email: form.email,
-//     password: form.password,
-//   });
-//   if (signErr) throw signErr;
-//   const auth_id = signData?.user?.id || null;
-
-//   // 2) Foto (opcional)
-//   let foto_url: string | null = null;
-//   if (photoFile) {
-//     const up = await this.uploadAvatar(photoFile, form.email);
-//     foto_url = up.publicUrl;
-//   }
-
-//   // 3) Perfil según tipo de registro
-//   const perfil = form.tipo_registro === 'anonimo' ? 'clienteAnon' : 'clienteReg';
-
-//   // 4) Normalización de campos:
-//   //    - Para anónimo: apellidos/dni => null; nombre por defecto si viene vacío.
-//   //    - Para cliente: trim y vacíos => null (evita strings vacíos en DB).
-//   const trimOrNull = (v?: string | null) => {
-//     const t = (v ?? '').trim();
-//     return t.length ? t : null;
-//   };
-
-//   const isAnon = perfil === 'clienteAnon';
-//   const nombres   = isAnon ? (trimOrNull(form.nombre) ?? 'Anónimo') : trimOrNull(form.nombre)!;
-//   const apellidos = isAnon ? null : trimOrNull(form.apellido ?? null);
-//   const dni       = isAnon ? null : trimOrNull(form.dni ?? null);
-
-//   // 5) Insert en usuarios
-//   const { data, error } = await this._supabase
-//     .from('usuarios')
-//     .insert({
-//       auth_id,
-//       email: form.email,
-//       nombres,
-//       apellidos,      // null si es anónimo
-//       dni,            // null si es anónimo
-//       foto_url,
-//       perfil,         // 'clienteAnon' | 'clienteReg'
-//       estado: 'pendiente',
-//     })
-//     .select()
-//     .single();
-
-//   if (error) throw error;
-//   return data;
-// }
-
-  // async registrarClienteFlow(
-  //   form: {
-  //     tipo_registro: 'cliente' | 'anonimo';
-  //     nombre: string; apellido?: string | null; dni?: string | null;
-  //     email: string; password: string;
-  //   },
-  //   photoFile?: File | null
-  // ) {
-  //   // 1) Alta en auth
-  //   const { data: signData, error: signErr } = await this._supabase.auth.signUp({
-  //     email: form.email,
-  //     password: form.password,
-  //   });
-  //   if (signErr) throw signErr;
-  //   const auth_id = signData?.user?.id || null;
-
-  //   // 2) Foto (opcional)
-  //   let foto_url: string | null = null;
-  //   if (photoFile) {
-  //     const up = await this.uploadAvatar(photoFile, form.email);
-  //     foto_url = up.publicUrl;
-  //   }
-
-  //   // 3) Perfil según tipo de registro
-  //   const perfil = form.tipo_registro === 'anonimo' ? 'clienteAnon' : 'clienteReg';
-
-  //   // 4) Campos normalizados
-  //   const trimOrNull = (v?: string | null) => {
-  //     const t = (v ?? '').trim();
-  //     return t.length ? t : null;
-  //   };
-  //   const isAnon = perfil === 'clienteAnon';
-  //   const nombres   = isAnon ? (trimOrNull(form.nombre) ?? 'Anónimo') : trimOrNull(form.nombre)!;
-  //   const apellidos = isAnon ? null : trimOrNull(form.apellido ?? null);
-  //   const dni       = isAnon ? null : trimOrNull(form.dni ?? null);
-
-  //   // 5) Estado → depende del tipo
-  //   const estado = isAnon ? 'aprobado' : 'pendiente';
-
-  //   // 6) Insert en usuarios
-  //   const { data, error } = await this._supabase
-  //     .from('usuarios')
-  //     .insert({
-  //       auth_id,
-  //       email: form.email,
-  //       nombres,
-  //       apellidos,
-  //       dni,
-  //       foto_url,
-  //       perfil,   // clienteAnon | clienteReg
-  //       estado,   
-  //     })
-  //     .select()
-  //     .single();
-
-  //   if (error) throw error;
-
-  //   this._supabase.functions.invoke('notificar-cliente', {
-  //     body: {
-  //       email: form.email,
-  //       nombres,
-  //       apellidos: apellidos ?? '',
-  //       estado: 'pendiente',
-  //     },
-  //   }).catch(err => console.warn('notificar-cliente (pendiente) falló:', err));
-
-  //   return data;
-  // }
   async registrarClienteFlow(
   form: { tipo_registro: 'cliente'|'anonimo'; nombre: string; apellido?: string|null; dni?: string|null; email: string; password: string; },
   photoFile?: File|null
@@ -424,17 +300,16 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
   const { estado } = await res.json();
 
   // 3) Enviar tu mail "en revisión"
-  // if (estado === 'pendiente') {
-  //   this._supabase.functions.invoke('notificar-cliente', {
-  //     body: {
-  //       email: form.email,
-  //       nombres: form.nombre,
-  //       apellidos: form.apellido ?? '',
-  //       estado: 'pendiente',
-  //     },
-  //   }).catch(err => console.warn('notificar-cliente (pendiente) falló:', err));
-  // }
-
+  if (estado === 'pendiente') {
+    this._supabase.functions.invoke('notificar-cliente', {
+      body: {
+        email: form.email,
+        nombres: form.nombre,
+        apellidos: form.apellido ?? '',
+        estado: 'pendiente',
+      },
+    }).catch(err => console.warn('notificar-cliente (pendiente) falló:', err));
+  }
  
   // 👉 NUEVO: iniciar sesión localmente
   const { error: signInErr } = await this._supabase.auth.signInWithPassword({
@@ -448,97 +323,12 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
   if (!session?.user?.id) throw new Error('No se pudo establecer la sesión local');
 
   return true;
-}
-
-
-    // 2) Foto opcional
-    // let foto_url: string | null = null;
-    // if (photoFile) {
-    //   // const up = await this.uploadAvatar(photoFile, form.email);
-    //   const up = await this.withTimeout(
-    //     this.uploadAvatar(photoFile, form.email),
-    //     'uploadAvatar',
-    //     40000
-    //   );
-      
-    //   foto_url = up.publicUrl;
-    // }
-
-//     console.log('[alta empleado] step: uploadAvatar (SKIPPED)');
-//     const foto_url = null;   
-
-
-  /** Flujo exclusivo ANÓNIMO: crea user auto-confirmado en Edge, sube foto, inserta perfil y loguea */
-  // async registrarAnonimoFlow(form: { nombre?: string|null; email: string; password: string }, photoFile?: File|null) {
-  //   // 1) Crear user auto-confirmado (Edge)
-  //   const res = await fetch(this.anonFnUrl, {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Authorization': `Bearer ${environment.supabaseAnonKey}`, // 👈 requerido con Verify JWT ON
-  //       // 'x-app-key': environment.appEdgeKey, // sólo si decidiste usar este extra
-  //     },
-  //     body: JSON.stringify({
-  //       email: form.email,
-  //       password: form.password,
-  //       nombre: form.nombre ?? 'Anónimo',
-  //     }),
-  //   });
-
-
-  //   if (!res.ok) {
-  //     const j = await res.json().catch(() => ({}));
-  //     throw new Error(j?.error || `Edge register-anon falló (${res.status})`);
-  //   }
-  //   const { auth_id } = await res.json();
-
-  //   // 2) Foto opcional
-  //   let foto_url: string | null = null;
-  //   if (photoFile) {
-  //     const up = await this.uploadAvatar(photoFile, form.email);
-  //     foto_url = up.publicUrl;
-  //   }
-
-  //   // 3) Insert en tu tabla (yo recomiendo seguir usando 'usuarios' con perfil/estado)
-  //   const { error: insErr } = await this._supabase
-  //     .from('usuarios')
-  //     .insert({
-  //       auth_id,
-  //       email: form.email,
-  //       nombres: (form.nombre ?? 'Anónimo').trim() || 'Anónimo',
-  //       apellidos: null,
-  //       dni: null,
-  //       foto_url,
-  //       perfil: 'clienteAnon',
-  //       estado: 'aprobado', // entra directo
-  //     });
-
-  //   if (insErr) throw insErr;
-
-  //   // 4) Login directo (ya está auto-confirmado)
-  //   const { error: loginErr } = await this._supabase.auth.signInWithPassword({
-  //     email: form.email,
-  //     password: form.password,
-  //   });
-  //   if (loginErr) throw loginErr;
-
-  //   // tras el signInWithPassword exitoso:
-  //   this._supabase.functions.invoke('notificar-cliente', {
-  //     body: {
-  //       email: form.email,
-  //       nombres: (form.nombre ?? 'Anónimo'),
-  //       apellidos: '',
-  //       estado: 'aprobado',
-  //     },
-  //   }).catch(err => console.warn('notificar-cliente (anon/aprobado) falló:', err));
-
-  //   return true;
-  // }
+}  
   
   async registrarAnonimoFlow(
   form: { nombre: string; email: string; password: string },
   photoFile?: File | null
-) {
+  ) {
   const email = form.email.trim().toLowerCase();
 
   // 1) Crear user + fila usuarios via Edge
@@ -598,16 +388,14 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
     if (error) throw error;
   }
 
-  
-
   async altaEmpleadoViaFunctionDirect(payload: {
     apellidos: string; nombres: string; dni: string; cuil: string;
     email: string; password: string;
     perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
     photoBase64: string | null;
   }) {
-    const url = `${environment.supabaseUrl.replace(/\/$/, '')}/functions/v1/alta-empleado`;
-    const apikey = environment.supabaseAnonKey;
+   const url = `${environment.supabaseUrl.replace(/\/$/, '')}/functions/v1/alta-empleado`;  
+   const apikey = environment.supabaseAnonKey;
 
     console.log('[svc] CALLED altaEmpleadoViaFunctionDirect');
     console.log('[svc] URL:', url, 'apikey.len=', apikey?.length || 0);
@@ -628,99 +416,14 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
     }).catch((err) => {
       console.error('[svc] fetch error:', err);
       throw new Error('No se pudo invocar la función (fetch error/timeout)');
-    });
+    });
+  }
 
 
 onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
   const { data: sub } = this._supabase.auth.onAuthStateChange((event) => handler(event));
   // devolvemos el unsubscribe para limpiar en OnDestroy
-  return () => sub.subscription.unsubscribe();}
-  
-
-
-  async registrarEmpleado(
-    form: {
-      apellido: string;
-      nombre: string;
-      dni: string;          // 7–8 dígitos
-      cuil: string;         // 11 dígitos válido
-      email: string;
-      password: string;     // ≥ 8
-      perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
-    },
-    photoFile: File
-  ) {
-    // 0) Chequeos básicos
-    if (!photoFile) throw new Error('La foto es obligatoria.');
-    if (!/^\d{7,8}$/.test(form.dni)) throw new Error('DNI inválido.');
-    if (!/^\d{11}$/.test(form.cuil)) throw new Error('CUIL inválido.');
-    if (!form.perfil) throw new Error('Perfil inválido.');
-  
-    // 1) Unicidad rápida (email, dni, cuil)
-    // console.log('[alta empleado] step: check-duplicates');
-
-    // const q = this._supabase
-    //   .from('usuarios')
-    //   .select('email,dni,cuil', { head: false })
-    //   .or(
-    //     [
-    //       `email.eq.${form.email}`,
-    //       `dni.eq.${form.dni}`,
-    //       `cuil.eq.${form.cuil}`
-    //     ].join(',')
-    //   )
-    //   .limit(1)
-    //   .throwOnError(); // <- si RLS/otro falla, RECHAZA; no queda pendiente
-
-    // const { data: dup } = await q; // <- sin withTimeout aquí
-   // 2) Crear usuario de Auth
-    console.log('[alta empleado] step: signUp');
-    const { data: sign, error: signErr } = await this.withTimeout(
-      this._supabase.auth.signUp({ email: form.email, password: form.password }),
-      'signUp'
-    );
-    if (signErr) throw signErr;
-    const auth_id = sign.user?.id;
-    if (!auth_id) throw new Error('No se pudo crear el usuario de autenticación.');
-
-    // 3) Subir foto (Storage)
-    console.log('[alta empleado] step: uploadAvatar');
-    const up = await this.withTimeout(
-      this.uploadAvatar(photoFile, form.email),
-      'uploadAvatar'
-    );
-    const foto_url = up.publicUrl;
-
-    // 4) Insert en usuarios (estado ACTIVO)
-    console.log('[alta empleado] step: insert usuarios');
-    const { error: insErr } = await this.withTimeout(
-      this._supabase.from('usuarios').insert({
-        auth_id,
-        email: form.email,
-        nombres: form.nombre.trim(),
-        apellidos: form.apellido.trim(),
-        dni: form.dni,
-        cuil: form.cuil,
-        foto_url,
-        perfil: form.perfil,
-        estado: 'activo',
-      }),
-      'insertUsuarios'
-    );
-    if (insErr) throw insErr;
-
-
-    clearTimeout(t);
-    console.log('[svc] FETCH RES status=', res.status);
-
-    const text = await res.text();
-    if (!res.ok) {
-      let msg = `Edge Function error (status=${res.status})`;
-      try { const j = JSON.parse(text); msg = j?.message || j?.error || msg; } catch {}
-      throw new Error(msg);
-    }
-    try { return JSON.parse(text); } catch { return text; }
-  }
+  return () => sub.subscription.unsubscribe();}  
 
   async getUserIdOrThrow(): Promise<string> {
   const { data } = await this._supabase.auth.getSession();
@@ -728,8 +431,6 @@ onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
   if (!uid) throw new Error('No auth user');
   return uid;
 }
-
-
 
 async ensureSessionOrThrow() {
   const s0 = await this._supabase.auth.getSession();
@@ -922,52 +623,7 @@ async waitlistAutoEnroll(defaultCant = 2, nota: string | null = null) {
   if (e2) throw e2;
   return inserted;
 }
-// async getWaitStatusDetail(): Promise<{ id: number; estado: EstadoLE; numero_mesa: number|null } | null> {
-//   console.log('hola entre a obtener estado');
-//    var IdUsuario = this.idUsuario;
-//   const uid = IdUsuario; 
-//   console.log(IdUsuario);
-  
-//   if (!uid) throw new Error('Sin sesión');
-//   console.log('pase el error de sin sesion');
 
-//   const { data, error } = await this.client
-//     .from('lista_espera')
-//     .select('id, estado, numero_mesa')
-//     .eq('usuario_id', uid)
-//     .in('estado', ['noAtendido','esperando','asignado'])
-//     .order('created_at', { ascending: false })
-//     .limit(1)
-//     .maybeSingle();
-
-//   console.log('data:',data);
-
-//   if (error) throw error;
-//   return data
-//     ? { id: data.id as number, estado: data.estado as EstadoLE, numero_mesa: data.numero_mesa ?? null }
-//     : null;
-  //   const { data: s } = await this.client.auth.getSession();
-  // const uid = s.session?.user?.id || this.idUsuario;
-  // console.log('uid efectivo:', uid);
-  // if (!uid) throw new Error('Sin sesión');
-
-  // const { data, error } = await this.client
-  //   .from('lista_espera')
-  //   .select('id, estado, numero_mesa')
-  //   .eq('usuario_id', uid)
-  //   // ⚠️ Asegurate que los valores coincidan con lo grabado en DB:
-  //   .in('estado', ['noAtendido','esperando','asignado'])
-  //   .order('created_at', { ascending: false })
-  //   .limit(1)
-  //   .maybeSingle();
-
-  // console.log('data:', data);
-  // if (error) throw error;
-
-  // return data
-  //   ? { id: data.id as number, estado: data.estado as EstadoLE, numero_mesa: data.numero_mesa ?? null }
-  //   : null;
-//}
 async getWaitStatusDetail(): Promise<{ id: number; estado: EstadoLE; numero_mesa: number|null } | null> {
   console.log('hola entre a obtener estado');
 
