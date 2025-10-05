@@ -1,110 +1,125 @@
 <div class="wrapper"> 
   
-  <ion-header>
+  <ion-header class="client-header">
     <ion-toolbar>
-      <ion-title>Ingresar los datos del plato</ion-title>
+      <div class="nav-pill">
+        Ingresar los datos del plato
+      </div>
     </ion-toolbar>
   </ion-header>
 
+  <div class="form-container">
+    <form class="nuevo-plato-form"
+        (ngSubmit)="onSubmit(registerForm)"
+        #registerForm="ngForm"
+        novalidate>
+      <!-- Nombre -->
+      <div class="form-group">
+        <label for="nombre" class="subTittle">Nombre</label>
+        <input id="nombre"
+              name="nombre"
+              type="text"
+              [(ngModel)]="nombre"
+              #nombreModel="ngModel"
+              required
+              pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]+" 
+              placeholder="Nombre" />
+        <small *ngIf="showError(nombreModel, registerForm)"
+              style="color:#ffd1d1;font-weight:600;">
+          El nombre es obligatorio.
+        </small>
+      </div>
 
-  <form class="nuevo-plato-form"
-      (ngSubmit)="onSubmit(registerForm)"
-      #registerForm="ngForm"
-      novalidate>
-    <!-- Nombre -->
-    <div class="form-group">
-      <label for="nombre" class="subTittle">Nombre</label>
-      <input id="nombre"
-            name="nombre"
-            type="text"
-            [(ngModel)]="nombre"
-            #nombreModel="ngModel"
-            required
-            pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]+" 
-            placeholder="Nombre" />
-      <small *ngIf="showError(nombreModel, registerForm)"
-            style="color:#ffd1d1;font-weight:600;">
-        El nombre es obligatorio.
-      </small>
-    </div>
+      <!-- Descripción -->
+      <div class="form-group">
+        <label for="descripcion" class="subTittle">Descripción</label>
+        <input id="descripcion"
+              name="descripcion"
+              type="text"
+              [(ngModel)]="descripcion"
+              #descripcionModel="ngModel"
+              required
+              pattern=".{10,}"
+              maxlength="300"
+              placeholder="Descripción" />
+        <small *ngIf="showError(descripcionModel, registerForm)"
+              style="color:#ffd1d1;font-weight:600;">
+          Ingresá una descripción válida.
+        </small>
+      </div>
 
-    <!-- Descripción -->
-    <div class="form-group">
-      <label for="descripcion" class="subTittle">Descripción</label>
-      <input id="descripcion"
-            name="descripcion"
-            type="text"
-            [(ngModel)]="descripcion"
-            #descripcionModel="ngModel"
-            required
-            pattern=".{10,}"
-            maxlength="500"
-            placeholder="Descripción" />
-      <small *ngIf="showError(descripcionModel, registerForm)"
-            style="color:#ffd1d1;font-weight:600;">
-        Ingresá una descripción válida.
-      </small>
-    </div>
+      <!-- Tiempo de elaboración -->
+      <div class="form-group">
+        <label for="tiempoElaboracion" class="subTittle">Tiempo de elaboración (en minutos)</label>
+        <input id="tiempoElaboracion"
+              name="tiempoElaboracion"
+              type="text"
+              [(ngModel)]="tiempoElaboracion"
+              #tiempoElaboracionModel="ngModel"
+              required
+              inputmode="numeric"
+              pattern="^[0-9]{1,2}$"
+              maxlength="2"
+              placeholder="Tiempo de elaboración" />
+        <small *ngIf="showError(tiempoElaboracionModel, registerForm)"
+              style="color:#ffd1d1;font-weight:600;">
+          El tiempo de elaboración debe ser numérico y no puede ser mayor a 99 minutos.
+        </small>
+      </div>
 
-    <!-- Tiempo de elaboración -->
-    <div class="form-group">
-      <label for="tiempo-elaboracion" class="subTittle">Tiempo de elaboración (en minutos)</label>
-      <input id="tiempo-elaboracion"
-            name="tiempo-elaboracion"
-            type="text"
-            [(ngModel)]="tiempoElaboracion"
-            #tiempoElaboracionModel="ngModel"
-            required
-            inputmode="numeric"
-            pattern="^[0-9]{7,8}$"
-            maxlength="2"
-            placeholder="Tiempo de elaboración" />
-      <small *ngIf="showError(descripcionModel, registerForm)"
-            style="color:#ffd1d1;font-weight:600;">
-        El tiempo de elaboración debe ser numérico y no puede ser mayor a 99 minutos.
-      </small>
-    </div>
+        <!-- Precio -->
+      <div class="form-group">
+        <label for="precio" class="subTittle">Precio</label>
+        <input id="precio"
+              name="precio"
+              type="text"
+              [(ngModel)]="precio"
+              #precioModel="ngModel"
+              required
+              inputmode="numeric"
+              pattern="^\d+(\.\d{1,2})?$"
+              maxlength="10"
+              placeholder="Precio" />
+        <small *ngIf="showError(precioModel, registerForm)"
+              style="color:#ffd1d1;font-weight:600;">
+          El precio solo puede contener números con hasta dos decimales y no puede contener más de 10 caracteres.
+        </small>
+      </div>
 
-      <!-- Precio -->
-    <div class="form-group">
-      <label for="precio" class="subTittle">Precio</label>
-      <input id="precio"
-            name="precio"
-            type="text"
-            [(ngModel)]="precio"
-            #precioModel="ngModel"
-            required
-            inputmode="numeric"
-            pattern="^\d+(\.\d{1,2})?$"
-            maxlength="10"
-            placeholder="Precio" />
-      <small *ngIf="showError(descripcionModel, registerForm)"
-            style="color:#ffd1d1;font-weight:600;">
-        El precio solo puede contener números con hasta dos decimales y no puede contener más de 10 caracteres.
-      </small>
-    </div>
+        <input 
+              type="file" 
+              accept="image/*" 
+              multiple 
+              (change)="onFileSelected($event)" 
+              hidden 
+              #fileInput />
+        <ion-button expand="full" (click)="fileInput.click()" 
+                    [disabled]="fotos.length >= 3">
+          Agregar fotos
+        </ion-button>
 
-      <ion-button expand="full" (click)="seleccionarFoto()" 
-                  [disabled]="fotos.length >= 3">
-        Agregar fotos
+      <ion-grid>
+        <ion-row>
+          <ion-col size="4" *ngFor="let foto of fotos; let i = index">
+            <ion-card>
+              <img [src]="foto" />
+              <ion-button color="danger" size="small" (click)="eliminarFoto(i)">
+                Eliminar
+              </ion-button>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-button expand="full" 
+            type="submit">
+        Confirmar (3 fotos)
       </ion-button>
 
-    <ion-grid>
-      <ion-row>
-        <ion-col size="4" *ngFor="let foto of fotos; let i = index">
-          <ion-card>
-            <img [src]="foto" />
-            <ion-button color="danger" size="small" (click)="eliminarFoto(i)">
-              Eliminar
-            </ion-button>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-
-    <ion-button expand="full" [disabled]="fotos.length !== 3" (click)="finalizarCargaPlato()">
-      Confirmar (3 fotos)
-    </ion-button>
-  </form>
+      <div *ngIf="errorMsg" style="margin-top:8px;color:#ffd1d1;font-weight:600;">
+        {{ errorMsg }}
+      </div>
+    </form>
+  </div>
 
 </div>

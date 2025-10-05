@@ -111,6 +111,19 @@ export const routes: Routes = [
     import('./components/maitre/lista-espera/lista-espera.component')
     .then(m => m.ListaEsperaComponent),
   },
+  {
+    path: 'cliente/cliente-realiza-pedido',
+    loadComponent: () =>
+      import(
+        './components/cliente/cliente-realiza-pedido/cliente-realiza-pedido.component'
+      ).then((m) => m.ClienteRealizaPedidoComponent),
+  },
+  // {
+  //   path: 'maitre/asignar-mesa',
+  //   loadComponent: () =>
+  //     import('./components/maitre/asignar-mesa/asignar-mesa.component')
+  //       .then(m => m.AsignarMesaComponent),
+  // },
     {
     path: 'ingreso-cliente',
     loadComponent: () =>
@@ -176,4 +189,13 @@ export const routes: Routes = [
   },
   
   // { path: '', redirectTo: 'resultados-encuestas', pathMatch: 'full' },
+
+ ////////////////////////////ESTEBAN//////////////////////////
+  {
+    path: 'form-encuesta',
+    loadComponent: () =>
+      import('./components/pagina-formulario-encuesta/pagina-formulario-encuesta')
+        .then(m => m.PaginaFormularioEncuestaPage)
+  }
+  
 ];
