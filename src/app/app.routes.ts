@@ -166,7 +166,18 @@ export const routes: Routes = [
     loadComponent: () => import('./components/maitre/mesa-info/mesa-info.component').then(m => m.MesaInfoComponent) 
   },
   
-
+{
+    path: 'home-bartender-cocinero',
+    component: HomeBartenderCocineroComponent,
+    pathMatch: 'full',
+  },
+{
+    path: 'bartender-cocinero/nueva-bebida',
+    loadComponent: () =>
+      import(
+        './components/bartender-cocinero/nueva-bebida/nueva-bebida.component'
+      ).then((m) => m.NuevaBebidaComponent),
+  },
 
 
   ////////////////////////////ESTEBAN//////////////////////////
