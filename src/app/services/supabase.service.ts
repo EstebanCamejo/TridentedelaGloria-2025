@@ -9,12 +9,6 @@ import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
 type EstadoLE = 'noAtendido' | 'esperando' | 'asignado';
 
-<<<<<<< HEAD
-=======
-import { Preferences } from '@capacitor/preferences';
-import { Capacitor } from '@capacitor/core';
-type EstadoLE = 'noAtendido' | 'esperando' | 'asignado';
-
 >>>>>>> f277dd87d4d75bd50328a0846106cc3d03f11fd0
 const capacitorAuthStorage = {
   getItem: (key: string) => Preferences.get({ key }).then(r => r.value ?? null),
@@ -29,10 +23,6 @@ const nativeStorage = {
 
 const isNative = Capacitor.isNativePlatform();
 const storage = isNative ? nativeStorage : window.localStorage;
-<<<<<<< HEAD
-=======
-
->>>>>>> f277dd87d4d75bd50328a0846106cc3d03f11fd0
 
 export interface ClienteRegistroData {
   tipo_registro: TipoRegistro;
@@ -99,100 +89,94 @@ export class SupabaseService {
   //   });
 =======
   public idUsuario: string = "";
-  constructor() {
-this._supabase = createClient(
-  environment.supabaseUrl,
-  environment.supabaseAnonKey,
-   opts,
-  {
-    auth: {
-      // 👇 CLAVE para nativo
-      storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
-      persistSession: true,
-      autoRefreshToken: true, 
-      detectSessionInUrl: false,
-      multiTab: false,  
-    },
-  }
-);
-
-
 //   constructor() {
+// this._supabase = createClient(
+//   environment.supabaseUrl,
+//   environment.supabaseAnonKey,
+//    opts,
+//   {
+//     auth: {
+//       // 👇 CLAVE para nativo
+//       storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
+//       persistSession: true,
+//       autoRefreshToken: true, 
+//       detectSessionInUrl: false,
+//       multiTab: false,  
+//     },
+  
+// );
 
-//     const opts: any = {
-//       auth: {
-//         persistSession: true,
-//         autoRefreshToken: true,
-//         multiTab: false,            // 👈 desactiva Navigator.locks en GoTrue
-//       },
-//       global: { headers: { apikey: environment.supabaseAnonKey } },
-//     };
+
+// //   constructor() {
+
+// //     const opts: any = {
+// //       auth: {
+// //         persistSession: true,
+// //         autoRefreshToken: true,
+// //         multiTab: false,            // 👈 desactiva Navigator.locks en GoTrue
+// //       },
+// //       global: { headers: { apikey: environment.supabaseAnonKey } },
+// //     };
 
 
-
-    // Cargar email inicial (si hay sesión)
-    this._supabase.auth.getUser().then((res) => {
-      const user = res.data?.user;
-      this.authEmail$.next(user?.email ?? null);
-    });
+//     // Cargar email inicial (si hay sesión)
+//     this._supabase.auth.getUser().then((res) => {
+//       const user = res.data?.user;
+//       this.authEmail$.next(user?.email ?? null);
+//     });
 
 
     
-// Cargar email + id inicial
-this._supabase.auth.getSession().then(({ data }) => {
-  const u = data?.session?.user;
-  this.authEmail$.next(u?.email ?? null);
-  this.idUsuario = u?.id ?? '';
-});
+// // Cargar email + id inicial
+// this._supabase.auth.getSession().then(({ data }) => {
+//   const u = data?.session?.user;
+//   this.authEmail$.next(u?.email ?? null);
+//   this.idUsuario = u?.id ?? '';
+// });
 
-// Mantener actualizado
-this._supabase.auth.onAuthStateChange((_e, s) => {
-  const u = s?.user;
-  this.authEmail$.next(u?.email ?? null);
-  this.idUsuario = u?.id ?? '';
-});
+// // Mantener actualizado
+// this._supabase.auth.onAuthStateChange((_e, s) => {
+//   const u = s?.user;
+//   this.authEmail$.next(u?.email ?? null);
+//   this.idUsuario = u?.id ?? '';
+// });
 
 //     // Mantenerlo actualizado ante cambios de sesión
 //     this._supabase.auth.onAuthStateChange((_event, session) => {
 //       this.authEmail$.next(session?.user?.email ?? null);
 //     });
 
->>>>>>> f277dd87d4d75bd50328a0846106cc3d03f11fd0
+constructor() {
+  const options = {
+    auth: {
+      storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+      multiTab: false,
+    },
+    global: { headers: { apikey: environment.supabaseAnonKey } },
+  } as const;
 
-  // }
+  this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, options);
 
-  constructor() {
-    const options = {
-      auth: {
-        storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: false,
-        multiTab: false,
-      },
-      global: { headers: { apikey: environment.supabaseAnonKey } },
-    } as const;
-  
-    this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, options);
-  
-    // Cargar email inicial
-    this._supabase.auth.getUser().then(res => this.authEmail$.next(res.data?.user?.email ?? null));
-  
-    // Cargar email + id inicial
-    this._supabase.auth.getSession().then(({ data }) => {
-      const u = data?.session?.user;
-      this.authEmail$.next(u?.email ?? null);
-      this.idUsuario = u?.id ?? '';
-    });
-  
-    // Mantener actualizado
-    this._supabase.auth.onAuthStateChange((_e, s) => {
-      const u = s?.user;
-      this.authEmail$.next(u?.email ?? null);
-      this.idUsuario = u?.id ?? '';
-    });
-  }
+  // Cargar email inicial
+  this._supabase.auth.getUser().then(res => this.authEmail$.next(res.data?.user?.email ?? null));
 
+  // Cargar email + id inicial
+  this._supabase.auth.getSession().then(({ data }) => {
+    const u = data?.session?.user;
+    this.authEmail$.next(u?.email ?? null);
+    this.idUsuario = u?.id ?? '';
+  });
+
+  // Mantener actualizado
+  this._supabase.auth.onAuthStateChange((_e, s) => {
+    const u = s?.user;
+    this.authEmail$.next(u?.email ?? null);
+    this.idUsuario = u?.id ?? '';
+  });
+}
 
 
   // Acceso al cliente, por si lo necesitás en otros servicios
@@ -210,6 +194,20 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
     }
     return null;
   }
+
+//   private async withTimeout<T>(p: Promise<T>, label = 'op', ms = 15000): Promise<T> {
+//   const controller = new AbortController();
+//   const to = setTimeout(() => controller.abort(`timeout:${label}`), ms);
+//   try {
+//     // Si necesitás abortar fetch, pasá controller.signal en ese fetch.
+//     return await p;
+//   } catch (e) {
+//     throw e;
+//   } finally {
+//     clearTimeout(to);
+//   }
+// }
+
   
     // ---- Auth ----
   async login(email: string, password: string) {
@@ -335,17 +333,16 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
   const { estado } = await res.json();
 
   // 3) Enviar tu mail "en revisión"
-  // if (estado === 'pendiente') {
-  //   this._supabase.functions.invoke('notificar-cliente', {
-  //     body: {
-  //       email: form.email,
-  //       nombres: form.nombre,
-  //       apellidos: form.apellido ?? '',
-  //       estado: 'pendiente',
-  //     },
-  //   }).catch(err => console.warn('notificar-cliente (pendiente) falló:', err));
-  // }
-
+  if (estado === 'pendiente') {
+    this._supabase.functions.invoke('notificar-cliente', {
+      body: {
+        email: form.email,
+        nombres: form.nombre,
+        apellidos: form.apellido ?? '',
+        estado: 'pendiente',
+      },
+    }).catch(err => console.warn('notificar-cliente (pendiente) falló:', err));
+  }
  
   // 👉 NUEVO: iniciar sesión localmente
   const { error: signInErr } = await this._supabase.auth.signInWithPassword({
@@ -369,12 +366,12 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
   if (!session?.user?.id) throw new Error('No se pudo establecer la sesión local');
 
   return true;
-}
+}  
   
   async registrarAnonimoFlow(
   form: { nombre: string; email: string; password: string },
   photoFile?: File | null
-) {
+  ) {
   const email = form.email.trim().toLowerCase();
 
   // 1) Crear user + fila usuarios via Edge
@@ -434,16 +431,14 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
     if (error) throw error;
   }
 
-  
-
   async altaEmpleadoViaFunctionDirect(payload: {
     apellidos: string; nombres: string; dni: string; cuil: string;
     email: string; password: string;
     perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
     photoBase64: string | null;
   }) {
-    const url = `${environment.supabaseUrl.replace(/\/$/, '')}/functions/v1/alta-empleado`;
-    const apikey = environment.supabaseAnonKey;
+   const url = `${environment.supabaseUrl.replace(/\/$/, '')}/functions/v1/alta-empleado`;  
+   const apikey = environment.supabaseAnonKey;
 
     console.log('[svc] CALLED altaEmpleadoViaFunctionDirect');
     console.log('[svc] URL:', url, 'apikey.len=', apikey?.length || 0);
@@ -464,8 +459,8 @@ this._supabase.auth.onAuthStateChange((_e, s) => {
     }).catch((err) => {
       console.error('[svc] fetch error:', err);
       throw new Error('No se pudo invocar la función (fetch error/timeout)');
-    });
-  }
+    });
+  }
 
 
   onAuthChange(handler: (event: AuthChangeEvent) => void): () => void {
@@ -896,53 +891,7 @@ async waitlistAutoEnroll(defaultCant = 2, nota: string | null = null) {
   if (e2) throw e2;
   return inserted;
 }
-// async getWaitStatusDetail(): Promise<{ id: number; estado: EstadoLE; numero_mesa: number|null } | null> {
-//   console.log('hola entre a obtener estado');
-//    var IdUsuario = this.idUsuario;
-//   const uid = IdUsuario; 
-//   console.log(IdUsuario);
 
-  
-//   if (!uid) throw new Error('Sin sesión');
-//   console.log('pase el error de sin sesion');
-
-//   const { data, error } = await this.client
-//     .from('lista_espera')
-//     .select('id, estado, numero_mesa')
-//     .eq('usuario_id', uid)
-//     .in('estado', ['noAtendido','esperando','asignado'])
-//     .order('created_at', { ascending: false })
-//     .limit(1)
-//     .maybeSingle();
-
-//   console.log('data:',data);
-
-//   if (error) throw error;
-//   return data
-//     ? { id: data.id as number, estado: data.estado as EstadoLE, numero_mesa: data.numero_mesa ?? null }
-//     : null;
-  //   const { data: s } = await this.client.auth.getSession();
-  // const uid = s.session?.user?.id || this.idUsuario;
-  // console.log('uid efectivo:', uid);
-  // if (!uid) throw new Error('Sin sesión');
-
-  // const { data, error } = await this.client
-  //   .from('lista_espera')
-  //   .select('id, estado, numero_mesa')
-  //   .eq('usuario_id', uid)
-  //   // ⚠️ Asegurate que los valores coincidan con lo grabado en DB:
-  //   .in('estado', ['noAtendido','esperando','asignado'])
-  //   .order('created_at', { ascending: false })
-  //   .limit(1)
-  //   .maybeSingle();
-
-  // console.log('data:', data);
-  // if (error) throw error;
-
-  // return data
-  //   ? { id: data.id as number, estado: data.estado as EstadoLE, numero_mesa: data.numero_mesa ?? null }
-  //   : null;
-//}
 async getWaitStatusDetail(): Promise<{ id: number; estado: EstadoLE; numero_mesa: number|null } | null> {
   console.log('hola entre a obtener estado');
 

@@ -22,7 +22,7 @@ import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
 
-
+registerLocaleData(localeEsAr);
 
 registerLocaleData(localeEsAr);
 
@@ -54,3 +54,5 @@ bootstrapApplication(AppComponent, {
     provideFirestore(() => getFirestore()),*/
   ],
 });
+
+

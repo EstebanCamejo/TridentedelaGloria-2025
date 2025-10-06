@@ -5,33 +5,16 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-grid fixed>
-    <ion-row>
-      <ion-col size="12" sizeMd="6">
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>Operaciones</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <ion-button expand="block" routerLink="/scan/mesa">
-              <ion-icon slot="start" name="qrCode"></ion-icon>
-              Escanear mesa
-            </ion-button>
+  <div class="ops-wrap">
+    <ion-button class="ops-btn primary" expand="block" routerLink="/scan/mesa">
+      <ion-icon slot="start" name="qr-code-outline"></ion-icon>
+      ESCANEAR MESA
+    </ion-button>
 
-            <ion-button expand="block" routerLink="/maitre/lista-espera" color="medium" class="ion-margin-top">
-              <ion-icon slot="start" name="list"></ion-icon>
-              Lista de espera
-            </ion-button>
-
-            <!--
-            <ion-button expand="block" routerLink="/maitre/asignar-mesa" color="tertiary" class="ion-margin-top">
-              <ion-icon slot="start" name="personAdd"></ion-icon>
-              Asignar mesa
-            </ion-button>
-            -->
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+    <ion-button class="ops-btn ghost" expand="block" routerLink="/maitre/lista-espera">
+      <ion-icon slot="start" name="reorder-three-outline"></ion-icon>
+      LISTA DE ESPERA
+    </ion-button>
+  </div>
 </ion-content>
+

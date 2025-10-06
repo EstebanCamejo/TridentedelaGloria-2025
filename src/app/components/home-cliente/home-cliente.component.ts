@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { Router } from '@angular/router';
 import { QrService, QrPayload } from 'src/app/services/qr.service';
-import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-home-cliente',
@@ -27,11 +27,14 @@ export class HomeClienteComponent {
     private supa: SupabaseService,
     private router: Router,
     private qr: QrService,  
-    private zone: NgZone            // 👈 inyectá tu QrService
+    private zone: NgZone            
   ) {
     addIcons({ qrCodeOutline, albumsOutline });
     this.email$ = this.supa.authEmail$;
   }
+
+  //scanQr(){ /* ... */ }
+  //verEncuestas(){ /* ... */ }
 
   // 👇 Escanea y navega DIRECTO a la ruta
   async scanQr() {
