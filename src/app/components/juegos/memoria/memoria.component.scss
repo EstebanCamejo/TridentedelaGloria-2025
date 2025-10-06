@@ -1,0 +1,36 @@
+.client-header .nav-pill{ background:#5d2222; color:#fff7ea; text-align:center; padding:12px; font-weight:800; }
+.wrap{ max-width: 720px; margin: 0 auto; }
+.panel{ background: rgba(0,0,0,.82); color:#fff; border:1px solid rgba(255,255,255,.08); border-radius:16px; }
+.panel ion-card-content{ padding:16px; }
+.status{ display:flex; justify-content:space-between; margin-bottom:12px; }
+.disc{ color:#9cf59c; }
+
+/* Tablero 3x4 responsive */
+.board{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (min-width: 420px){
+  .board{ grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Carta */
+.card{
+  position: relative; aspect-ratio: 3/4; perspective: 800px; cursor: pointer;
+}
+.card .front, .card .back{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size: 32px; font-weight: 800;
+  border: 2px solid #000; border-radius: 12px;
+  backface-visibility: hidden; transition: transform .35s ease;
+  box-shadow: 0 10px 20px rgba(0,0,0,.18);
+}
+.card .front{ background:#e6d7c5; color:#2b2323; }
+.card .back{ background:#fff7ea; transform: rotateY(180deg); }
+.card.face .front{ transform: rotateY(180deg); }
+.card.face .back{ transform: rotateY(0); }
+.card.done{ outline: 2px solid #9cf59c; }
+.actions{ margin-top:14px; display:grid; gap:10px; }
+.primary{ --background:#5d2222; --color:#fff7ea; }
