@@ -334,22 +334,22 @@ export class ScannerMesaComponent implements OnDestroy {
       const raw = barcodes?.[0]?.rawValue || '';
       if (!raw) { this.toast.error('No se detectó ningún QR.'); return; }
 
-      const parsed = this.qr.parseMesaQR(raw);
-      if (!parsed || parsed.t !== 'mesa' || !parsed.id) {
-        this.toast.error('Este QR no pertenece a una mesa.');
-        return;
-      }
+      //const parsed = this.qr.parseMesaQR(raw);
+      // if (!parsed || parsed.t !== 'mesa' || !parsed.id) {
+      //   this.toast.error('Este QR no pertenece a una mesa.');
+      //   return;
+      // // }
 
-      const mesa = await this.mesas.getMesaById(parsed.id);
-      if (!mesa) { this.toast.error('La mesa referida por el QR no existe.'); return; }
+      // const mesa = await this.mesas.getMesaById(parsed.id);
+      // if (!mesa) { this.toast.error('La mesa referida por el QR no existe.'); return; }
 
-      this.lastMesa = { id: mesa.id, numero: mesa.numero };
+      // this.lastMesa = { id: mesa.id, numero: mesa.numero };
 
-      this.toast.success(`Mesa #${mesa.numero} detectada correctamente.`);
+      // this.toast.success(`Mesa #${mesa.numero} detectada correctamente.`);
 
-      // cerramos cámara y oyentes ANTES de navegar
-      await this.cleanupScan();
-      await this.router.navigate(['/maitre/mesa', mesa.id]);
+      // // cerramos cámara y oyentes ANTES de navegar
+      // await this.cleanupScan();
+      // await this.router.navigate(['/maitre/mesa', mesa.id]);
 
     } catch (e: any) {
       console.error('[scan] error:', e);

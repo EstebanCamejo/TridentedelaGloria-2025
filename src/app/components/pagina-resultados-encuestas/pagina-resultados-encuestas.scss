@@ -16,3 +16,59 @@
   opacity: .6;
   padding: 8px 0;
 }
+:root{
+  --cream-25:#fbf3e4;
+  --maroon-600:#7b2f2f;
+  --maroon-700:#5d2222;
+  --ink:#3b2a2a;
+  --shadow: 0 10px 28px rgba(61,43,43,.22);
+}
+
+.resu-content{ --background: transparent; }
+
+.center{ display:grid; place-items:center; gap:8px; min-height:40vh; }
+.hint{ opacity:.7; }
+
+.viz-card{
+  margin: 14px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background:#1f1b1b; color:#fff7ea;
+}
+.card-cap{
+  font-size:.82rem; letter-spacing:.2px;
+  background: #eadccd; color:#5d2222;
+  padding: 6px 12px;
+}
+.card-head{
+  background: #382222;
+  color: #fff7ea;
+  padding: 10px 14px;
+}
+ion-card-title{ font-weight:800; }
+
+.chart{
+  width: 100%;
+  height: clamp(230px, 40vh, 360px);     /* responsive */
+  padding: 8px 2px 6px;
+}
+.empty{ text-align:center; opacity:.75; padding:12px 0; color:#000; }
+
+.err-card{ border-left:4px solid #e53935; }
+
+.btn-exit{
+  --background: #5d2222;
+  --color: #fff7ea;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+/* ngx-charts mejoras de contraste */
+::ng-deep .ngx-charts text{
+  fill: #fff7ea !important;                /* labels claros sobre fondo oscuro */
+}
+::ng-deep .ngx-charts .gridline-path, 
+::ng-deep .ngx-charts .grid-panel rect{
+  opacity:.18;
+}

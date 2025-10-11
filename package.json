@@ -34,6 +34,7 @@
     "@capacitor/haptics": "^7.0.2",
     "@capacitor/keyboard": "7.0.1",
     "@capacitor/local-notifications": "^7.0.3",
+    "@capacitor/network": "^7.0.2",
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/splash-screen": "^7.0.1",
     "@capacitor/status-bar": "7.0.1",

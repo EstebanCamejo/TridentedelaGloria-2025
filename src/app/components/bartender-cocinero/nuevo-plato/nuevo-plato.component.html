@@ -98,18 +98,22 @@
           Agregar fotos
         </ion-button>
 
-      <ion-grid>
-        <ion-row>
-          <ion-col size="4" *ngFor="let foto of fotos; let i = index">
-            <ion-card>
-              <img [src]="foto" />
-              <ion-button color="danger" size="small" (click)="eliminarFoto(i)">
-                Eliminar
-              </ion-button>
-            </ion-card>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+<ion-grid>
+  <ion-row>
+    <ion-col size="4" *ngFor="let foto of fotos; let i = index">
+      <ion-card class="thumb-card">
+        <img [src]="foto" class="thumb-img" />
+        <ion-button
+          class="delete-btn"
+          fill="clear"
+          aria-label="Eliminar foto"
+          (click)="eliminarFoto(i)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-card>
+    </ion-col>
+  </ion-row>
+</ion-grid>
 
       <ion-button expand="full" 
             type="submit">

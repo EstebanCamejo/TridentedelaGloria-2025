@@ -1,0 +1,118 @@
+/* ===== Colores base (ya tenés, por si falta) ===== */
+:root{
+  --cream-25:#fbf3e4;
+  --maroon-600:#7b2f2f;
+  --maroon-700:#5d2222;
+  --ink:#3b2a2a;
+  --shadow: 0 10px 28px rgba(61,43,43,.22);
+}
+
+/* ===== Barra de tabs (ya la tenés, retoques leves) ===== */
+.seg-strip{
+  position: sticky; top: 0; z-index: 15;
+  padding: 6px 10px 10px;
+  background: rgba(251,243,228,.96);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(61,43,43,.10);
+  box-shadow: 0 4px 12px rgba(61,43,43,.12);
+}
+.top-segment{ --background: transparent; justify-content:center; gap:10px; }
+.top-segment ion-segment-button{
+  --color:#fff; --color-checked:#fff;
+  --background:#7b2f2f55; --background-checked:#5d2222;
+  --indicator-color:transparent;
+  border-radius:999px; min-height:36px; padding-inline:16px;
+  box-shadow:0 2px 8px rgba(61,43,43,.18);
+  border:1px solid rgba(93,34,34,.18);
+}
+.top-segment ion-segment-button::part(native){ font-weight:700; letter-spacing:.3px; }
+
+/* ===== Cards de CONSULTAS (nuevo look) ===== */
+.chat-card{
+  margin: 12px 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: #1f1b1b;           /* body oscuro para contraste */
+  color: #fff7ea;
+  transition: transform .08s ease, box-shadow .2s ease;
+}
+.chat-card:active{ transform: scale(.995); }
+
+/* header claro con texto oscuro */
+.chat-head{
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  background: #7b2f2f;
+  color: var(--ink);
+  padding: 10px 14px;
+}
+.chat-head .mesa{ font-weight: 800; }
+
+/* opcional: badge de no leídos */
+.unread{
+  background: #e53935;
+  color:#fff;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+/* chevron a la derecha */
+.chev{
+  font-size: 18px;
+  opacity: .65;
+}
+
+/* body del card */
+.chat-body{
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px 14px;
+}
+.chat-body .ultimo{
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.chat-body .updated{
+  font-size: .86rem;
+  opacity: .75;
+}
+
+/* ===== Pedido card (dejé tus estilos + pequeños ajustes) ===== */
+.pedido{
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  margin: 12px;
+}
+.pedido ion-card-header{
+  background: #6f2dd680;
+  color: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 10px 16px;
+}
+.pedido ion-card-title{ font-weight: 800; }
+
+/* píldoras de estado (como tenías) */
+.estado-pill{ display:inline-block; padding:8px 12px; border-radius:999px; font-weight:700; margin-bottom:10px; color:#1a1a1a; }
+.st-aceptado{ background:#a7f0ba; } .st-confirmar{ background:#ffd65a; }
+.st-pago{ background:#aaf; } .st-entregado{ background:#bde0fe; } .st-cancelado{ background:#ffb3b3; }
+
+.info{ display:grid; gap:6px; margin:6px 0 10px; }
+.pedido .cta{ --background:#7b2f2f; --color:#fff7ea; font-weight:800; }
+
+/* ===== Content y fondo ===== */
+.mz-content{ --background: transparent; }
+.wrap{
+  padding: 12px 12px calc(env(safe-area-inset-bottom) + 84px);
+  background: var(--cream-25);
+  color: var(--ink);
+}
+
+/* FAB salir */
+.fab-logout{ --background:#b71c1c; --color:#fff; box-shadow: var(--shadow); }
+
+/* mensaje vacío */
+.empty{ margin: 16px auto; text-align: center; opacity:.8; color:#000; }

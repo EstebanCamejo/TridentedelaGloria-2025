@@ -8,28 +8,47 @@
   <div class="wrap">
     <ion-card class="panel">
       <ion-card-content>
-        <div class="status">
-          <div>Movimientos: <b>{{ moves }}</b></div>
-          <div *ngIf="finished" class="disc">Descuento: <b>{{ discount }}%</b></div>
-        </div>
 
-        <div class="board">
-        <div class="card"
-            *ngFor="let c of cards"
-            [class.done]="c.done"
-            [class.face]="c.face || c.done"
-            (click)="flip(c)">
-          <div class="front">?</div>
-          <div class="back">{{ c.emoji }}</div>
-        </div>
+        <!-- === Vista de juego (solo si NO terminó) === -->
+        <ng-container *ngIf="!finished; else fin">
+          <div class="status">
+            <div>Movimientos: <b>{{ moves }}</b></div>
+          </div>
 
-        </div>
+          <div class="board">
+            <div class="card"
+                 *ngFor="let c of cards"
+                 [class.done]="c.done"
+                 [class.face]="c.face || c.done"
+                 (click)="flip(c)">
+              <div class="front">?</div>
+              <div class="back">{{ c.emoji }}</div>
+            </div>
+          </div>
+        </ng-container>
 
-        <div class="actions">
-          <ion-button class="primary" expand="block" (click)="claim()">Reclamar descuento</ion-button>
-          <ion-button expand="block" routerLink="/cliente/cliente-juegos">Volver</ion-button>
-          <ion-button expand="block" fill="outline" (click)="reset()">Jugar de nuevo</ion-button>
-        </div>
+        <!-- === Vista final (solo resultado + botones) === -->
+        <ng-template #fin>
+          <div class="result-card">
+            <div class="title">¡Juego completado!</div>
+            <div class="desc">
+              Descuento obtenido: <b>{{ discount }}%</b>
+            </div>
+
+            <div class="actions">
+              <ion-button class="primary" expand="block" (click)="claim()" [disabled]="!discount">
+                Reclamar descuento
+              </ion-button>
+              <ion-button expand="block" routerLink="/cliente/cliente-juegos">
+                Volver
+              </ion-button>
+              <ion-button expand="block" fill="outline" (click)="reset()">
+                Jugar de nuevo
+              </ion-button>
+            </div>
+          </div>
+        </ng-template>
+
       </ion-card-content>
     </ion-card>
   </div>

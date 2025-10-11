@@ -21,7 +21,16 @@
 
         <div class="actions">
           <ion-button class="primary" expand="block" (click)="start()">Comenzar</ion-button>
-          <ion-button expand="block" (click)="claim()">Reclamar descuento</ion-button>
+         <ion-button
+  expand="block"
+  class="claim-btn"
+  [disabled]="true"
+  tabindex="-1"
+  aria-disabled="true"
+>
+  Reclamar descuento
+</ion-button>
+
           <ion-button expand="block" routerLink="/cliente/cliente-juegos">Volver</ion-button>
         </div>
 

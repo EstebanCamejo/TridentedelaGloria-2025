@@ -10,8 +10,8 @@ import { HomeClienteComponent } from './components/home-cliente/home-cliente.com
 import { IngresoClienteComponent } from './components/ingreso-cliente/ingreso-cliente.component';
 import { ClientePedidoEnCursoComponent } from './components/cliente-pedido-en-curso/cliente-pedido-en-curso.component';
 import { ClienteJuegosComponent } from './components/cliente/cliente-juegos/cliente-juegos.component';
-
-
+import { PaginaResultadosEncuestasPage } from './components/pagina-resultados-encuestas/pagina-resultados-encuestas';
+import { ChatComponent } from './components/chat/chat.component';
 export const routes: Routes = [
   {
     path: '',
@@ -137,6 +137,13 @@ export const routes: Routes = [
   //       .then(m => m.AsignarMesaComponent),
   // },
     {
+    path: 'pagina-resultados-encuestas',
+    loadComponent: () =>
+      import(
+        './components/pagina-resultados-encuestas/pagina-resultados-encuestas'
+      ).then((m) => m.PaginaResultadosEncuestasPage),
+  },
+    {
     path: 'ingreso-cliente',
     loadComponent: () =>
     import('./components/ingreso-cliente/ingreso-cliente.component')
@@ -190,7 +197,14 @@ export const routes: Routes = [
         './components/bartender-cocinero/nueva-bebida/nueva-bebida.component'
       ).then((m) => m.NuevaBebidaComponent),
   },
-
+{
+  path: 'cliente/chat/:pedidoId',
+  loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent)
+},
+{
+  path: 'mozo/chat/:roomId',
+  loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent)
+},
 
   ////////////////////////////ESTEBAN//////////////////////////
   {

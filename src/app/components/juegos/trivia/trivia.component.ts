@@ -1,8 +1,72 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
-import { IonicModule, ToastController } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
+// import { CommonModule } from '@angular/common';
+// import { Component, OnDestroy } from '@angular/core';
+// import { IonicModule, ToastController } from '@ionic/angular';
+// import { RouterModule } from '@angular/router';
 
+// type Q = { q: string; options: string[]; correct: number };
+
+// @Component({
+//   standalone: true,
+//   selector: 'app-trivia',
+//   templateUrl: './trivia.component.html',
+//   styleUrls: ['./trivia.component.scss'],
+//   imports: [CommonModule, IonicModule, RouterModule]
+// })
+// export class TriviaComponent implements OnDestroy {
+//   idx = 0;
+//   score = 0;
+//   finished = false;
+//   answering = false;
+
+//   questions: Q[] = [
+//     { q: '¿Cuál es la capital de Francia?', options: ['Madrid', 'París', 'Roma', 'Berlín'], correct: 1 },
+//     { q: '2 + 2 = ?', options: ['3', '4', '5', '22'], correct: 1 },
+//     { q: '¿Cuál es un lenguaje de programación?', options: ['CSS', 'Linux', 'Angular', 'Figma'], correct: 2 },
+//     { q: '¿Qué planeta es el “rojo”?', options: ['Venus', 'Marte', 'Júpiter', 'Saturno'], correct: 1 },
+//     { q: '¿Cuántos minutos tiene una hora?', options: ['30', '45', '60', '90'], correct: 2 },
+//   ];
+
+//   constructor(private toast: ToastController) {}
+
+//   ngOnDestroy() {}
+
+//   select(i: number) {
+//     if (this.answering || this.finished) return;
+//     this.answering = true;
+//     if (i === this.questions[this.idx].correct) this.score++;
+//     setTimeout(() => {
+//       this.idx++;
+//       this.answering = false;
+//       if (this.idx >= this.questions.length) this.finished = true;
+//     }, 350);
+//   }
+
+//   get discount(): number {
+//     if (this.score >= 5) return 20;
+//     if (this.score === 4) return 15;
+//     if (this.score >= 3) return 10;
+//     return 0;
+//   }
+
+//   async claim() {
+//     const t = await this.toast.create({
+//       message: this.discount ? `¡Descuento del ${this.discount}% listo para aplicar!` : 'No alcanzaste descuento… ¡probá de nuevo!',
+//       duration: 1800, color: this.discount ? 'success' : 'medium', position: 'top'
+//     });
+//     t.present();
+//   }
+
+//   restart() {
+//     this.idx = 0; this.score = 0; this.finished = false; this.answering = false;
+//   }
+// }
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { RouterModule, Router } from '@angular/router';
+import { SupabaseService } from 'src/app/services/supabase.service';
+import { NgZone } from '@angular/core';
+import { Keyboard } from '@capacitor/keyboard';
 type Q = { q: string; options: string[]; correct: number };
 
 @Component({
@@ -12,21 +76,68 @@ type Q = { q: string; options: string[]; correct: number };
   styleUrls: ['./trivia.component.scss'],
   imports: [CommonModule, IonicModule, RouterModule]
 })
-export class TriviaComponent implements OnDestroy {
+export class TriviaComponent implements OnInit, OnDestroy {
+  // Juego
   idx = 0;
   score = 0;
   finished = false;
   answering = false;
 
+  // Premio/estado
+  pedidoId!: number;
+  prizeClaimed = false;
+  claiming = false;
+
+  // Supabase
+  private supabase = this.supabaseSvc.client;
+
   questions: Q[] = [
     { q: '¿Cuál es la capital de Francia?', options: ['Madrid', 'París', 'Roma', 'Berlín'], correct: 1 },
     { q: '2 + 2 = ?', options: ['3', '4', '5', '22'], correct: 1 },
-    { q: '¿Cuál es un lenguaje de programación?', options: ['HTML', 'CSS', 'TypeScript', 'Figma'], correct: 2 },
+    { q: '¿Cuál es un lenguaje de programación?', options: ['CSS', 'Linux', 'Angular', 'Figma'], correct: 2 },
     { q: '¿Qué planeta es el “rojo”?', options: ['Venus', 'Marte', 'Júpiter', 'Saturno'], correct: 1 },
     { q: '¿Cuántos minutos tiene una hora?', options: ['30', '45', '60', '90'], correct: 2 },
   ];
 
-  constructor(private toast: ToastController) {}
+  constructor(
+    private toast: ToastController,
+    private router: Router,
+    private supabaseSvc: SupabaseService,
+  private zone: NgZone,
+
+  ) {}
+
+
+async ngOnInit() {
+  // 0) asegurar sesión y loguear
+  try {
+    await this.supabaseSvc.ensureSessionOrThrow();
+  } catch {
+    const t = await this.toast.create({
+      message: 'Necesitás iniciar sesión para jugar.',
+      duration: 2000, color: 'warning', position: 'top'
+    });
+    t.present();
+    return;
+  }
+
+  const { data: { user } } = await this.supabase.auth.getUser();
+  console.log('[Trivia] auth user id:', user?.id);
+
+  // 1) pedidoId (como ya lo tenías)
+  const nav = this.router.getCurrentNavigation();
+  this.pedidoId = nav?.extras?.state?.['pedidoId'] ?? (history.state?.pedidoId as number);
+
+  // 2) leer prizeClaimed
+  if (this.pedidoId) {
+    const { data } = await this.supabase
+      .from('pedidos')
+      .select('juego_premio_reclamado')
+      .eq('id', this.pedidoId)
+      .maybeSingle();
+    this.prizeClaimed = !!data?.juego_premio_reclamado;
+  }
+}
 
   ngOnDestroy() {}
 
@@ -48,15 +159,290 @@ export class TriviaComponent implements OnDestroy {
     return 0;
   }
 
-  async claim() {
-    const t = await this.toast.create({
-      message: this.discount ? `¡Descuento del ${this.discount}% listo para aplicar!` : 'No alcanzaste descuento… ¡probá de nuevo!',
-      duration: 1800, color: this.discount ? 'success' : 'medium', position: 'top'
+//   async claim() {
+//   if (!this.finished) return;
+//   if (!this.pedidoId) {
+//     (await this.toast.create({
+//       message: 'No encuentro el pedido activo para aplicar el beneficio.',
+//       duration: 2000, color: 'warning', position: 'top'
+//     })).present();
+//     return;
+//   }
+//   if (this.prizeClaimed) {
+//     (await this.toast.create({
+//       message: 'Ya reclamaste el beneficio para este pedido.',
+//       duration: 1800, color: 'medium', position: 'top'
+//     })).present();
+//     return;
+//   }
+
+//   this.claiming = true;
+//   try {
+//     const { data, error } = await this.supabase.rpc('claim_game_reward', {
+//       p_pedido_id: Number(this.pedidoId),
+//       p_juego: 'trivia',
+//       p_score: this.score
+//     });
+//     if (error) throw error;
+
+//     const row = Array.isArray(data) ? data[0] : data;
+//     const pct  = Number(row?.descuento_pct ?? 0);
+//     const tot  = Number(row?.total_con_descuento ?? 0);
+
+//     this.prizeClaimed = true;
+
+//     // si llevás un store/servicio de pedido, propagá el nuevo total aquí
+//     // this.pedidosSvc.patchPedido(this.pedidoId, { total: tot });
+
+//     (await this.toast.create({
+//       message: pct > 0
+//         ? `¡Descuento del ${pct}% aplicado! Total ahora: $${tot}`
+//         : `Gracias por jugar. Total: $${tot}`,
+//       duration: 2200, color: pct > 0 ? 'success' : 'medium', position: 'top'
+//     })).present();
+//   } catch (e:any) {
+//     (await this.toast.create({
+//       message: e?.message ?? 'No se pudo reclamar el beneficio.',
+//       duration: 2200, color: 'warning', position: 'top'
+//     })).present();
+//   } finally {
+//     this.claiming = false;
+//   }
+// }
+
+// private async showToast(msg: string, color: 'success'|'warning'|'medium' = 'success') {
+//   const t = await this.toast.create({ message: msg, duration: 2200, position: 'top', color });
+//   await t.present();
+// }
+
+// async claim() {
+//   if (!this.finished || !this.pedidoId || this.claiming) return;
+
+//   this.claiming = true;
+//   try {
+//     // RPC con timeout por si algo queda colgado en el móvil
+//     const rpc = this.supabase.rpc('claim_game_reward', {
+//       p_pedido_id: Number(this.pedidoId),
+//       p_juego: 'trivia',
+//       p_score: this.score
+//     });
+
+//     const timeout = new Promise<never>((_, rej) =>
+//       setTimeout(() => rej(new Error('timeout')), 12000)
+//     );
+
+//     const { data, error } = await Promise.race([rpc, timeout]) as any;
+//     if (error) throw error;
+
+//     const row = Array.isArray(data) ? data[0] : data;
+//     const pct = Number(row?.descuento_pct ?? 0);
+
+//     if (pct > 0) {
+//       // SOLO este toast, como pediste
+//       await this.showToast(`¡Descuento del ${pct}% aplicado!`, 'success');
+//       this.prizeClaimed = true;
+//     } else {
+//       // Si no hubo descuento, no mostramos nada (o cambiá el mensaje si querés)
+//       await this.showToast('Sin descuento aplicado.', 'medium');
+//     }
+//   } catch (e) {
+//     await this.showToast('No se pudo aplicar el descuento.', 'warning');
+//   } finally {
+//     // Asegura que el spinner se apague en móvil
+//     this.zone.run(() => { this.claiming = false; });
+//   }
+// }
+
+private async showToast(msg: string, color: 'success'|'warning'|'medium' = 'success') {
+  try {
+    // 1) cerrar teclado si estuviera abierto (evita que tape el toast)
+    try {
+      await Keyboard.hide();
+      // quitar foco por las dudas
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    } catch {}
+
+    // 2) si había un toast previo, descartarlo
+    try { await this.toast.dismiss(); } catch {}
+
+    // 3) crear y presentar SIEMPRE dentro de la zona
+    return await this.zone.run(async () => {
+      const t = await this.toast.create({
+        message: msg,
+        duration: 2200,
+        position: 'top',
+        color,
+        cssClass: 'toast-safe-top'
+      });
+      await t.present();
+      // esperar a que se cierre para evitar navegar/cambiar vista antes de que se vea
+      await t.onDidDismiss();
     });
-    t.present();
+  } catch (e) {
+    console.warn('[showToast]', e);
   }
+}
+
+// Tip extra: separá el apagado del spinner en un helper seguro
+private endClaiming() {
+  this.zone.run(() => { this.claiming = false; });
+}
+
+// async claim() {
+//   if (!this.finished || this.claiming) return;
+
+//   // rescatar pedidoId también desde history.state si viene de navigate()
+//   if (!this.pedidoId) {
+//     const fromState = (history.state?.pedidoId as number) || 0;
+//     if (fromState) this.pedidoId = fromState;
+//   }
+//   if (!this.pedidoId) {
+//     await this.showToast('No encuentro el pedido activo para aplicar el beneficio.', 'warning');
+//     return;
+//   }
+
+//   this.claiming = true;
+//   try {
+//     // RPC con timeout defensivo
+//     const rpc = this.supabase.rpc('claim_game_reward', {
+//       p_pedido_id: Number(this.pedidoId),
+//       p_juego: 'trivia',
+//       p_score: this.score
+//     });
+//     const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000));
+//     const { data, error } = await Promise.race([rpc, timeout]) as any;
+//     if (error) throw error;
+
+//     const row = Array.isArray(data) ? data[0] : data;
+//     const pct = Number(row?.descuento_pct ?? 0);
+
+//     if (pct > 0) {
+//       this.prizeClaimed = true;
+//       await this.showToast(`¡Descuento del ${pct}% aplicado!`, 'success');
+//       // Navegar **después** de que el toast se cerró
+//       this.zone.run(() => {
+//         this.router.navigate(['/cliente-pedido-en-curso'], { state: { pedidoId: this.pedidoId } });
+//       });
+//     } else {
+//       await this.showToast('Sin descuento aplicado.', 'medium');
+//     }
+//   } catch (e:any) {
+//     await this.showToast(e?.message === 'timeout' ? 'Tiempo de espera agotado.' : 'No se pudo aplicar el descuento.', 'warning');
+//   } finally {
+//     this.endClaiming();
+//   }
+// }
+async claim() {
+  if (!this.finished || this.claiming) return;
+
+  // rescatar pedidoId por si vino en history.state
+  if (!this.pedidoId) {
+    const fromState = (history.state?.pedidoId as number) || 0;
+    if (fromState) this.pedidoId = fromState;
+  }
+  if (!this.pedidoId) return; // sin alertas
+
+  this.claiming = true;
+  try {
+    const { data, error } = await this.supabase.rpc('claim_game_reward', {
+      p_pedido_id: Number(this.pedidoId),
+      p_juego: 'trivia',
+      p_score: this.score
+    });
+    if (error) throw error;
+
+    const row = Array.isArray(data) ? data[0] : data;
+    const pct = Number(row?.descuento_pct ?? 0);
+    const tot = Number(row?.total_con_descuento ?? 0);
+
+    // Actualizar estado local
+    this.prizeClaimed = pct > 0;
+
+    // (opcional) si llevás store de pedido, actualizá total:
+    // this.pedidosSvc.patchPedido(this.pedidoId, { total: tot });
+
+  } catch {
+    // sin alertas; podés loguear si querés
+    // console.warn('[claim] error', e);
+  } finally {
+    // Redirigir siempre a la pestaña
+    this.zone.run(() => {
+      this.router.navigate(['/cliente-pedido-en-curso'], { state: { pedidoId: this.pedidoId } });
+    });
+    this.endClaiming();
+  }
+}
+
 
   restart() {
     this.idx = 0; this.score = 0; this.finished = false; this.answering = false;
   }
+
+  // Dentro de TriviaComponent
+// async reclamarDescuento() {
+//   if (!this.pedidoId || this.claiming || this.prizeClaimed) return;
+//   this.claiming = true;
+//   try {
+//     const res = await this.supabaseSvc.claimGameDiscount(this.pedidoId, 'trivia', this.score);
+//     if (res.applied) {
+//       this.prizeClaimed = true;
+//       // Mostrar feedback con el nuevo total
+//       // this.toastr.success(`Descuento ${res.pct}% aplicado. Total ahora: $${res.total_final}`);
+//       // si tenés un estado/servicio de pedido, refrescalo aquí:
+//       // this.pedidosSvc.setPedidoActual({ id: this.pedidoId, total: res.total_final! });
+//     } else {
+//       // this.toastr.info(res.reason || 'No aplicado');
+//     }
+//   } catch (e:any) {
+//     // this.toastr.error(e?.message || 'Error al reclamar');
+//   } finally {
+//     this.claiming = false;
+//   }
+// }
+// async reclamarDescuento() {
+//   if (!this.pedidoId || this.claiming || this.prizeClaimed) return;
+//   this.claiming = true;
+//   try {
+//     const res = await this.supabaseSvc.claimGameDiscountTotalOnly(this.pedidoId, this.score);
+//     if (res.applied) {
+//       this.prizeClaimed = true;
+//       (await this.toast.create({
+//         message: `Total actualizado: $${res.total_final}`,
+//         duration: 2000, color: 'success', position: 'top'
+//       })).present();
+//     } else {
+//       (await this.toast.create({
+//         message: 'Sin descuento aplicado.',
+//         duration: 1600, color: 'medium', position: 'top'
+//       })).present();
+//     }
+//   } finally {
+//     this.claiming = false;
+//   }
+// }
+async reclamarDescuento() {
+  if (!this.pedidoId || this.claiming || this.prizeClaimed) return;
+
+  this.claiming = true;
+  try {
+    const res = await this.supabaseSvc.claimGameDiscountTotalOnly(this.pedidoId, this.score);
+
+    // actualizar estado local
+    this.prizeClaimed = !!res.applied;
+
+    // (opcional) actualizar total en tu store/servicio
+    // this.pedidosSvc.setPedidoActual({ id: this.pedidoId, total: res.total_final });
+
+  } catch {
+    // sin alertas
+  } finally {
+    this.zone.run(() => {
+      this.router.navigate(['/cliente-pedido-en-curso'], { state: { pedidoId: this.pedidoId } });
+      this.claiming = false;
+    });
+  }
+}
+
+
+
 }

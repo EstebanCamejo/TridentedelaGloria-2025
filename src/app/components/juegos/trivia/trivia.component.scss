@@ -12,3 +12,207 @@
 .disc.ok{ color:#9cf59c; }
 .actions{ margin-top:12px; display:grid; gap:10px; }
 .primary{ --background:#5d2222; --color:#fff7ea; }
+
+
+/* Alturas seguras y header */
+:root{
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 56px; /* aprox ion-toolbar */
+}
+
+/* Fondo del content sin padding extra */
+.client-content{
+  --background: transparent;
+}
+
+/* Contenedor: centra vertical y horizontal, usa toda la altura disponible */
+.wrap{
+  min-height: calc(100dvh - var(--safe-top) - var(--header-h) - var(--safe-bottom));
+  display: grid;
+  place-items: center;
+  padding: clamp(10px, 2vh, 16px);
+}
+
+/* Card-panel grande, sin forzar scroll de la página.
+   Si el contenido crece, scrollea dentro del card. */
+.panel{
+  width: min(600px, 94vw);
+  border-radius: 18px;
+  background: rgba(0,0,0,.84);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 16px 36px rgba(0,0,0,.28);
+  max-height: calc(100dvh - var(--safe-top) - var(--header-h) - var(--safe-bottom) - 20px);
+  overflow: hidden; /* recorta bordes redondeados */
+}
+.panel ion-card-content{
+  padding: clamp(16px, 2.6vh, 22px);
+  display: grid;
+  gap: clamp(12px, 2vh, 18px);
+  overflow: auto;   /* scroll interno si hiciera falta */
+}
+
+/* Tipos más grandes */
+.meta{ opacity:.9; margin-bottom: 2px; font-size: .95rem; }
+.q{
+  font-size: clamp(1.12rem, 2.8vw, 1.35rem);
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0 0 clamp(8px, 1.4vh, 12px);
+}
+
+/* Grid de opciones con más aire */
+.opts{ display: grid; gap: clamp(10px, 1.6vh, 14px); }
+
+/* Botones de opción más altos y legibles */
+.opt::part(native){
+  min-height: clamp(60px, 7.5vh, 72px);
+  padding: 0 clamp(16px, 4.4vw, 24px);
+  justify-content: flex-start;
+  border: 2px solid #000;
+  border-radius: 14px;
+  font-size: clamp(1rem, 2.5vw, 1.12rem);
+  font-weight: 800;
+  letter-spacing: .2px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.16);
+}
+
+/* Resultado y acciones con buen tamaño */
+.score{ font-size: clamp(1.05rem, 2.4vw, 1.2rem); }
+.disc{  font-size: clamp(1.1rem, 2.6vw, 1.28rem); }
+.actions{ display:grid; gap: clamp(8px, 1.4vh, 12px); }
+.primary{ --background:#5d2222; --color:#fff7ea; }
+/* Quita paddings del ion-content */
+.client-header { --min-height: 56px; }
+.client-content{
+  --background: transparent;
+  --padding-top: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-bottom: 0;
+}
+
+/* Centro absoluto del panel */
+:root{
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 56px; /* alto aprox del toolbar */
+}
+
+.wrap{
+  width: 100%;
+  min-height: calc(100dvh - var(--safe-top) - var(--header-h) - var(--safe-bottom));
+  display: flex;
+  align-items: center;        /* centra vertical */
+  justify-content: center;    /* centra horizontal */
+  padding: 12px;              /* aire para no pegar bordes */
+  box-sizing: border-box;
+}
+
+.panel{
+  width: min(600px, 94vw);
+  margin: 0 auto;             /* asegura centrado horizontal */
+  border-radius: 18px;
+  background: rgba(0,0,0,.84);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 16px 36px rgba(0,0,0,.28);
+  max-height: calc(100dvh - var(--safe-top) - var(--header-h) - var(--safe-bottom) - 24px);
+  overflow: hidden;
+}
+
+.panel ion-card-content{
+  padding: clamp(16px, 2.6vh, 22px);
+  overflow: auto; /* scroll interno si hiciera falta */
+}
+/* Asegura que el content no quede tapado por el footer */
+.client-content{
+  --background: transparent;
+  --padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); /* alto aprox del footer */
+}
+
+/* Footer fijo estilizado */
+.back-footer{
+  --background: transparent;
+}
+.back-footer ion-toolbar{
+  --background: rgba(0,0,0,.82);
+  --color: #fff7ea;
+  padding: 8px 12px env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -6px 14px rgba(0,0,0,.25);
+}
+.back-footer ion-button::part(native){
+  border-radius: 12px;
+  border: 2px solid #000;
+  min-height: 48px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.16);
+  --background: #5d2222;
+  --color: #fff7ea;
+}
+/* Que el contenido no quede tapado por la barra fija */
+.client-content{
+  --background: transparent;
+  --padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 68px);
+}
+
+/* Barra fija inferior */
+.back-fixed{
+  width: 100%;
+  padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 8px);
+  background: rgba(0,0,0,.82);
+  box-shadow: 0 -6px 14px rgba(0,0,0,.25);
+}
+
+.back-fixed ion-button::part(native){
+  --background:#5d2222; --color:#fff7ea;
+  border-radius: 12px; border: 2px solid #000;
+  min-height: 48px; font-weight: 800; letter-spacing: .2px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.16);
+}
+/* alturas seguras */
+:root{
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 56px;                 /* alto aprox del toolbar */
+  --panel-shift: clamp(28px, 10vh, 120px); /* cuánto lo bajamos */
+}
+
+/* sin paddings del ion-content que desalineen */
+.client-content{
+  --background: transparent;
+  --padding-top: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-bottom: 0;              /* si tenés barra fija, sumá aquí su alto */
+}
+
+/* contenedor que centra horizontal y vertical, y además lo baja un poco */
+.wrap{
+  min-height: calc(100dvh - var(--safe-top) - var(--header-h) - var(--safe-bottom));
+  display: grid;
+  place-items: center;              /* centro perfecto */
+  padding: 12px;                    /* aire de borde */
+}
+
+/* panel centrado y BAJADO */
+.panel{
+  width: min(620px, 94vw);
+  margin-top:120px;   /* ↓ baja el bloque */
+  border-radius: 18px;
+  background: rgba(0,0,0,.84);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 16px 36px rgba(0,0,0,.28);
+  max-height: calc(100dvh - var(--safe-top) - var(--header-h) - var(--safe-bottom) - var(--panel-shift) - 24px);
+  overflow: hidden;
+}
+
+.panel ion-card-content{
+  padding: clamp(16px, 2.6vh, 22px);
+  display: grid;
+  gap: clamp(12px, 2vh, 18px);
+  overflow: auto;                   /* si se pasa, scrollea adentro del card */
+}

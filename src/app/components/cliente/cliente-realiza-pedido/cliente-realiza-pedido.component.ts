@@ -15,6 +15,10 @@ import { C } from '@angular/common/common_module.d-Qx8B6pmN';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline } from 'ionicons/icons';
 import { Pedido, PedidoDetalle } from '../../../models/pedido.model'
+import { register } from 'swiper/element/bundle';
+import { PedidosService } from 'src/app/services/pedidos.service';
+
+let _swiperRegistered = false;
 
 @Component({
   selector: 'app-cliente-realiza-pedido',
@@ -26,9 +30,14 @@ import { Pedido, PedidoDetalle } from '../../../models/pedido.model'
 })
 export class ClienteRealizaPedidoComponent  implements OnInit {
 
-  idCliente = 1 //para probar
+   idCliente!: string; // ya no hardcodeado
   cantidadesProductos: { [idProducto: string]: number } = {};
-  cantidadesProductosEnCarrito: { id: number; cantidad: number; precio_unitario: number }[] = [];
+  cantidadesProductosEnCarrito: Array<{
+    id: number;
+    cantidad: number;
+    precio_unitario: number;
+    tiempo_preparacion: number;
+  }> = [];
   precioAcumulado: number = 0;
   tiempoDeEspera: number = 0;
 
@@ -36,86 +45,133 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
 
   cargando = false;
   pedidoRealizado = false;
-  idPedido: string = '';
+  //idPedido: string = '';
+  idPedido: number | null = null;
+
 
   pedido: Pedido | null = null; 
 
-  constructor(private router: Router, private menuService: MenuService, private toastr: ToastrService) {
+  constructor(private pedidosSvc: PedidosService, private router: Router, private menuService: MenuService, private toastr: ToastrService) {
     addIcons({
       'checkmark-outline': checkmarkOutline
     });
+      if (!_swiperRegistered) { register(); _swiperRegistered = true; }
   }
 
   async ngOnInit() {
-    if (!this.pedidoRealizado) {
-      try {
-        this.menu = await this.menuService.obtenerMenu();
-      } catch (err) {
-        console.error('No se pudo traer el menú:', err);
-      }
-    } else {
-      this.pedido = await this.menuService.cargarPedido(this.idPedido);
+ try {
+      this.idCliente = await this.menuService.getClienteIdActual(); // uuid string
+      this.menu = await this.menuService.obtenerMenu();
+    } catch (err) {
+      console.error(err);
+      this.toastr.error('No se pudo identificar al usuario.');
     }
-
   }
 
   private toastOk(msg: string) {
     this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
   }
 
-  async finalizarPedido () {
 
-    //guardar en la db el precio del pedido
-    try {
-      this.cargando = true;
+// async finalizarPedido() {
+//     if (this.cargando || this.pedidoRealizado) return;
+//     if (!this.cantidadesProductosEnCarrito.length) {
+//       this.toastr.info('Agregá al menos un producto.');
+//       return;
+//     }
+//     try {
+//       this.cargando = true;
+//       const res = await this.menuService.crearPedido({
+//         idCliente: this.idCliente, // <-- uuid
+//         productos: this.cantidadesProductosEnCarrito
+//       });
+//       this.pedidoRealizado = true;
+//       this.idPedido = String(res.id);
+//       this.router.navigate(['/cliente-pedido-en-curso'], {
+//         state: { pedidoId: res.id, total: res.total, tiempo: res.tiempoEstimado }
+//       });
+//       // limpiar carrito...
+//     } catch (e:any) {
+//       this.toastr.error(e?.message || 'Error creando el pedido.');
+//     } finally {
+//       this.cargando = false;
+//     }
+// }
 
-      console.log('Iniciando guardado de pedido en la base de datos');
-      const res = await this.menuService.crearPedido({idCliente : this.idCliente, productos: this.cantidadesProductosEnCarrito});
-      this.toastOk(`Pedido creado. Id de pedido: ${res}`);
-    
-    } catch (e: any) {
-      this.toastr.error(e?.message || 'Error creando el pedido.');
-    } finally {
-      this.cargando = false;
-    }
+async finalizarPedido() {
+  if (this.cargando || this.pedidoRealizado) return;
 
-    /* redirigir a la página anterior
-    this.router.navigateByUrl('/cliente-pedido-en-curso');
-    */
+  if (!this.cantidadesProductosEnCarrito.length) {
+    this.toastr.info('Agregá al menos un producto.');
+    return;
   }
 
-  agregarProducto (idProducto: number, precioProducto: number, nombreProducto: string, sector: string, tiempoPreparacion: number) {
+  try {
+    this.cargando = true;
 
+    const res = await this.menuService.crearPedido({
+      idCliente: this.idCliente,                 // uuid del usuario
+      productos: this.cantidadesProductosEnCarrito
+    });
+    // espero que res traiga: { id: number, total: number, tiempoEstimado: number }
+    if (!res?.id) throw new Error('La API no devolvió un id de pedido.');
+
+    // ✅ marcar pedido actual (queda disponible en todos los tabs, p.ej. Juegos)
+    this.pedidosSvc.setPedidoActual({ id: Number(res.id) });
+
+    this.pedidoRealizado = true;
+    this.idPedido = Number(res.id);
+
+    // Navegar a “pedido en curso” con state útil para pintar la UI al toque
+    this.router.navigate(['/cliente-pedido-en-curso'], {
+      state: {
+        pedidoId: this.idPedido,
+        total: res.total ?? 0,
+        tiempo: res.tiempoEstimado ?? null
+      }
+    });
+
+    // TODO: limpiar carrito…
+    // this.cantidadesProductosEnCarrito = [];
+    // this.menuService.vaciarCarrito();
+
+  } catch (e: any) {
+    this.toastr.error(e?.message || 'Error creando el pedido.');
+  } finally {
+    this.cargando = false;
+  }
+}
+
+
+  agregarProducto(
+    idProducto: number,
+    precioProducto: number,
+    _nombreProducto: string,
+    _sector: string,
+    tiempoPreparacion: number
+  ) {
     const cantidad = this.cantidadesProductos[idProducto] || 0;
-    if (cantidad) {
-      this.cantidadesProductos[idProducto] = 0;
-    }
+    if (!cantidad) return;
 
-    //Calculo precio acumulado
-    this.precioAcumulado += (precioProducto * cantidad);
+    this.precioAcumulado += precioProducto * cantidad;
+    this.tiempoDeEspera = Math.max(this.tiempoDeEspera || 0, tiempoPreparacion);
 
-    //Calculo tiempo de espera
-    if (this.tiempoDeEspera == 0 || this.tiempoDeEspera < tiempoPreparacion) {
-      this.tiempoDeEspera = tiempoPreparacion;
-    }
-
-    const productoExistente = this.cantidadesProductosEnCarrito.find(
-      item => item.id === idProducto
-    );
-
-    if (productoExistente) {
-      // Si existe, aumentamos la cantidad
-      productoExistente.cantidad += cantidad;
+    const p = this.cantidadesProductosEnCarrito.find(x => x.id === idProducto);
+    if (p) {
+      p.cantidad += cantidad;
+      p.tiempo_preparacion = Math.max(p.tiempo_preparacion, tiempoPreparacion);
     } else {
-      // Si no existe, lo agregamos
       this.cantidadesProductosEnCarrito.push({
         id: idProducto,
-        cantidad: cantidad,
-        precio_unitario: precioProducto
+        cantidad,
+        precio_unitario: precioProducto,
+        tiempo_preparacion: tiempoPreparacion
       });
     }
-    
+
+    this.cantidadesProductos[idProducto] = 0; // reset del contador visual
   }
+
 
   incrementarCantidad(productoId: string) {
     if (!this.cantidadesProductos[productoId]) {

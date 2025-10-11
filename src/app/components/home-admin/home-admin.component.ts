@@ -114,8 +114,7 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
 
   irAListaDeEspera() { this.router.navigate(['/admin/pendientes']); }
   irAAltaUsuarios()  { this.router.navigate(['/admin/alta-usuario']); }
-  //irAAltaMesa()      { this.router.navigate(['/admin/alta-mesa']); }
   irAResultados()    { this.router.navigate(['/admin/resultados-encuestas']); }
   irAMesas()         { this.router.navigate(['/admin/mesas']);}
-  
+
 }

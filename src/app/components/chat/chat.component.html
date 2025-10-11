@@ -1,0 +1,31 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Chat</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="chat-content">
+  <div class="list">
+    <ng-container *ngIf="mensajes?.length; else vacio">
+      <div *ngFor="let m of mensajes" class="bubble" [class.mine]="soyYo(m)">
+        <div class="meta">{{ m.from_email }}</div>
+        <div class="text">{{ m.text }}</div>
+        <div class="time">{{ m.created_at | date:'dd/MM HH:mm' }}</div>
+      </div>
+      <div #bottom></div>
+    </ng-container>
+    <ng-template #vacio>
+      <div class="empty">Todavía no hay mensajes.</div>
+    </ng-template>
+  </div>
+
+  <!-- footer visual fijo -->
+  <div class="composer-footer" slot="fixed">
+    <div class="composer">
+      <input [(ngModel)]="nuevo" (focus)="scrollDownSoon()" placeholder="Escribe tu mensaje…" />
+      <button class="send-btn" (click)="enviar()" [disabled]="!nuevo?.trim()">
+        <ion-icon name="send-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+</ion-content>

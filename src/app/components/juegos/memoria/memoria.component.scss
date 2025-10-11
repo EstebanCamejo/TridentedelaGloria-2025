@@ -1,6 +1,6 @@
 .client-header .nav-pill{ background:#5d2222; color:#fff7ea; text-align:center; padding:12px; font-weight:800; }
 .wrap{ max-width: 720px; margin: 0 auto; }
-.panel{ background: rgba(0,0,0,.82); color:#fff; border:1px solid rgba(255,255,255,.08); border-radius:16px; }
+.panel{ background: rgba(0,0,0,.82); color:#fff; border:1px solid rgba(255,255,255,.08); border-radius:16px; margin-top: 80px;}
 .panel ion-card-content{ padding:16px; }
 .status{ display:flex; justify-content:space-between; margin-bottom:12px; }
 .disc{ color:#9cf59c; }
@@ -34,3 +34,31 @@
 .card.done{ outline: 2px solid #9cf59c; }
 .actions{ margin-top:14px; display:grid; gap:10px; }
 .primary{ --background:#5d2222; --color:#fff7ea; }
+.result, .actions{
+  animation: fadeIn .25s ease-out both;
+}
+@keyframes fadeIn{
+  from{ opacity:0; transform: translateY(6px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+/* Cuadro final */
+.result-card{
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  padding: 8px 4px;
+  animation: fadeIn .25s ease-out both;
+}
+.result-card .title{
+  font-weight: 800;
+  font-size: clamp(1.1rem, 2.8vw, 1.3rem);
+}
+.result-card .desc{
+  font-size: clamp(1.05rem, 2.6vw, 1.2rem);
+  color: #9cf59c;
+}
+
+@keyframes fadeIn{
+  from{ opacity:0; transform: translateY(6px); }
+  to{ opacity:1; transform: translateY(0); }
+}
