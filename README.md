@@ -172,6 +172,8 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 | <img width="307" height="658" alt="image" src="https://github.com/user-attachments/assets/88d4864e-ba6b-4f13-8455-721c60c256ce" /> | Pantalla vista dueño/supervisor |
 | <img width="302" height="676" alt="image" src="https://github.com/user-attachments/assets/d532802c-1451-4c70-9b61-a48ba78e3700" />| Vista clientes en espera por perfil dueño/supervisor |
 | <img width="315" height="659" alt="image" src="https://github.com/user-attachments/assets/2ee2fc7a-080a-4e06-b73e-0e7f52ea145e" /> | Panel Cliente |
+|<img width="315" height="661" alt="image" src="https://github.com/user-attachments/assets/9e1cc081-6d37-4cb1-92fd-9de6c4194717" />| Splash |
+
 
 
 
