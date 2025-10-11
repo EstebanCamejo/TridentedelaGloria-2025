@@ -21,7 +21,7 @@ import { OnInit } from '@angular/core';
   templateUrl: './home-cliente.component.html',
   styleUrls: ['./home-cliente.component.scss'],
 })
-export class HomeClienteComponent implements OnInit {
+export class HomeClienteComponent {
   email$!: Observable<string | null>;
   loadingLogout = false;
 
@@ -35,8 +35,8 @@ export class HomeClienteComponent implements OnInit {
     this.email$ = this.supa.authEmail$;
   }
 
-  scanQr(){ /* ... */ }
-  verEncuestas(){ /* ... */ }
+  //scanQr(){ /* ... */ }
+  //verEncuestas(){ /* ... */ }
 
   // 👇 Escanea y navega DIRECTO a la ruta
   async scanQr() {

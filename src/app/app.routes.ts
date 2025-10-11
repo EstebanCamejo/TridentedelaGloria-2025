@@ -165,6 +165,21 @@ export const routes: Routes = [
     path: 'maitre/mesa/:id', 
     loadComponent: () => import('./components/maitre/mesa-info/mesa-info.component').then(m => m.MesaInfoComponent) 
   },
+  // Ivan puntos 16 y 17
+  {
+    path: 'bartender-cocinero/verificar-pendientes-cocinero',
+    loadComponent: () =>
+      import(
+        './components//bartender-cocinero/verificar-pendientes-cocinero/verificar-pendientes-cocinero.component'
+      ).then((m) => m.VerificarPendientesCocineroComponent),
+  },
+  {
+    path: 'bartender-cocinero/verificar-pendientes-bartender',
+    loadComponent: () =>
+      import(
+        './components/bartender-cocinero/verificar-pendientes-bartender/verificar-pendientes-bartender.component'
+      ).then((m) => m.VerificarPendientesBartenderComponent),
+  },
   
 
 

@@ -40,7 +40,7 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
 
   pedido: Pedido | null = null; 
 
-  constructor(private router: Router, private menuService: MenuService, private toastr: ToastrService) {
+  constructor(private router: Router, private menuService: MenuService, private toastr: ToastrService, private supabase: SupabaseService) {
     addIcons({
       'checkmark-outline': checkmarkOutline
     });
@@ -65,13 +65,16 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
 
   async finalizarPedido () {
 
+    const { data: userData } = await this.supabase.client.auth.getUser();
+    const userId = userData.user?.id;
+
     //guardar en la db el precio del pedido
     try {
       this.cargando = true;
 
-      console.log('Iniciando guardado de pedido en la base de datos');
-      const res = await this.menuService.crearPedido({idCliente : this.idCliente, productos: this.cantidadesProductosEnCarrito});
-      this.toastOk(`Pedido creado. Id de pedido: ${res}`);
+      console.log(`Iniciando guardado de pedido en la base de datos con id de cliente: ${userId}`);
+      const res = await this.menuService.crearPedido({idCliente : userId!, productos: this.cantidadesProductosEnCarrito, precioAcumulado: this.precioAcumulado, tiempoDeEspera: this.tiempoDeEspera});
+      this.toastOk(`Pedido creado correctamente.`);
     
     } catch (e: any) {
       this.toastr.error(e?.message || 'Error creando el pedido.');
@@ -79,9 +82,9 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
       this.cargando = false;
     }
 
-    /* redirigir a la página anterior
+    /* redirigir a la página anterior*/
     this.router.navigateByUrl('/cliente-pedido-en-curso');
-    */
+    
   }
 
   agregarProducto (idProducto: number, precioProducto: number, nombreProducto: string, sector: string, tiempoPreparacion: number) {
