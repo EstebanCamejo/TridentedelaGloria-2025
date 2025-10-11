@@ -68,11 +68,23 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/mesas',
+    loadComponent: () =>
+      import('./components/admin/mesas/mesas.component')
+        .then(m => m.MesasComponent),
+  },
+  {
     path: 'admin/alta-mesa',
     loadComponent: () =>
       import('./components/admin/alta-mesa/alta-mesa.component').then(
         (m) => m.AltaMesaComponent
       ),
+  },
+  {
+    path: 'admin/mesas/editar/:id',
+    loadComponent: () =>
+      import('./components/admin/alta-mesa/alta-mesa.component')
+        .then(m => m.AltaMesaComponent),
   },
   {
     path: 'admin/notas',
@@ -196,6 +208,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/pagina-formulario-encuesta/pagina-formulario-encuesta')
         .then(m => m.PaginaFormularioEncuestaPage)
+  },
+ ////////////////////////////ESTEBAN//////////////////////////
+  {
+    path: 'home-admin',
+    loadComponent: () =>
+      import('./components/home-admin/home-admin.component').then(m => m.HomeAdminComponent)
+    // o component: HomeAdminPage, si no es lazy
   }
-  
 ];
