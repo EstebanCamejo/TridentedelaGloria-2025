@@ -26,11 +26,20 @@
             <div class="score">Puntaje: <b>{{ score }}</b> / {{ questions.length }}</div>
             <div class="disc" [class.ok]="discount">Descuento: <b>{{ discount }}%</b></div>
           </div>
-          <div class="actions">
-            <ion-button class="primary" expand="block" (click)="claim()">Reclamar descuento</ion-button>
-            <ion-button expand="block" routerLink="/cliente/cliente-juegos">Volver</ion-button>
-            <ion-button expand="block" fill="outline" (click)="restart()">Jugar de nuevo</ion-button>
-          </div>
+<div class="actions">
+<ion-button
+  class="primary"
+  expand="block"
+  (click)="claim()"
+  [disabled]="!finished || claiming || prizeClaimed">
+  <ion-label>{{ prizeClaimed ? 'Premio ya reclamado' : 'Reclamar descuento' }}</ion-label>
+  <ion-spinner slot="end" *ngIf="claiming"></ion-spinner>
+</ion-button>
+
+
+  <ion-button expand="block" routerLink="/cliente-pedido-en-curso">Volver</ion-button>
+  <ion-button expand="block" fill="outline" (click)="restart()">Jugar de nuevo</ion-button>
+</div>
         </ng-template>
       </ion-card-content>
     </ion-card>

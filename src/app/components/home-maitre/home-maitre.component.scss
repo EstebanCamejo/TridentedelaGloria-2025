@@ -219,3 +219,155 @@ ion-button.ops-btn.ghost::part(native){
   margin: 0 auto;                    /* centrado */
   row-gap: clamp(12px, 2.6svh, 18px);
 }
+.maitre-card{
+  width: min(780px, 96vw);           /* ocupa casi todo el ancho */
+  margin: clamp(10px,2.5svh,18px) auto;
+  min-height: clamp(68vh, 78svh, 86vh); /* llena la pantalla */
+  display: flex;
+  flex-direction: column;
+}
+
+.maitre-card ion-card-content{
+  display: grid;
+  gap: clamp(12px, 2.4svh, 18px);
+  padding-block: clamp(8px, 1.6svh, 14px);
+}
+.maitre-card ion-button{
+  width: 100%;
+  --border-radius: 16px;
+  --box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+.maitre-card ion-button::part(native){
+  min-height: clamp(104px, 18svh, 140px);
+  padding: 0 clamp(18px, 4vw, 24px);
+  font-weight: 800;
+  font-size: clamp(1.02rem, 2.6svh, 1.22rem);
+  justify-content: center;
+  border: 2px solid #000;
+}
+.maitre-card ion-button [slot="start"]{
+  font-size: 1.3em; margin-inline-end: 10px;
+}
+
+/* Colores */
+.maitre-card ion-button:first-of-type::part(native){
+  background:#5d2222 !important; color:#fbf3e4 !important;
+}
+.maitre-card ion-button:nth-of-type(2)::part(native){
+  background:#efe3cf !important; color:#3b2a2a !important;
+}
+/* Fondo y paddings (deja ver tu patrón) */
+ion-content{
+  --background: transparent;
+  --padding-start: clamp(14px, 4vw, 18px);
+  --padding-end: clamp(14px, 4vw, 18px);
+  --padding-bottom: calc(env(safe-area-inset-bottom,0px) + 84px);
+}
+
+/* Contenedor centrado de acciones */
+.ops-wrap{
+  width: min(560px, 100%);
+  margin: clamp(12px, 2.6svh, 18px) auto 0;
+  display: grid;
+  row-gap: clamp(12px, 2.6svh, 18px);
+  font-family: "Inter", sans-serif;
+}
+
+/* Botones grandes estilo Admin */
+ion-button.ops-btn{
+  width: 100%;
+  text-transform: none;
+  font-weight: 800;
+  letter-spacing: .3px;
+  --border-radius: 14px;
+  --box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+ion-button.ops-btn::part(native){
+  width: 100%;
+  min-height: clamp(104px, 18svh, 140px);  /* tamaño grande */
+  padding: 0 clamp(16px, 3.8vw, 22px);
+  justify-content: center;
+  border: 2px solid #000;
+  border-radius: 14px;
+  font-size: clamp(1.02rem, 2.6svh, 1.22rem);
+}
+ion-button.ops-btn [slot="start"]{ font-size: 1.25em; margin-inline-end: 10px; }
+
+/* Colores coherentes con tu paleta */
+ion-button.ops-btn.primary::part(native){
+  background:#5d2222 !important; color:#fbf3e4 !important;
+}
+ion-button.ops-btn.ghost::part(native){
+  background:#efe3cf !important; color:#3b2a2a !important;
+}
+
+/* En pantallas muy bajas, conservá buen tamaño */
+@media (max-height: 640px){
+  ion-button.ops-btn::part(native){
+    min-height: clamp(92px, 20svh, 128px);
+  }
+}
+/* Centrar vertical y horizontal el contenedor dentro del scroll */
+:host ion-content::part(scroll){
+  display: grid;
+  place-items: center; /* centra en ambos ejes */
+  min-height: 100svh;
+  padding: clamp(14px,4vw,18px)
+           clamp(14px,4vw,18px)
+           calc(env(safe-area-inset-bottom,0px) + 84px);
+}
+
+/* Contenedor: ocupa GRAN parte de la pantalla */
+.ops-wrap{
+  width: min(560px, 100%);
+  height: clamp(72svh, 78svh, 86svh);   /* <— controla cuánto llenan */
+  display: grid;
+  grid-template-rows: 1fr 1fr;          /* dos filas iguales */
+  gap: clamp(12px, 2.6svh, 18px);
+  align-content: center;
+}
+
+/* Botones grandes que CRECEN para llenar cada fila */
+ion-button.ops-btn{
+  width: 100%;
+  --border-radius: 14px;
+  --box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+ion-button.ops-btn::part(native){
+  height: 100%;                         /* <— llena la fila */
+  padding: 0 clamp(16px, 3.8vw, 22px);
+  border: 2px solid #000;
+  border-radius: 14px;
+  display: flex; justify-content: center; align-items: center;
+  font-weight: 800;
+  font-size: clamp(1.02rem, 2.6svh, 1.22rem);
+}
+ion-button.ops-btn [slot="start"]{ font-size: 1.25em; margin-inline-end: 10px; }
+
+/* Colores */
+ion-button.ops-btn.primary::part(native){ background:#5d2222 !important; color:#fbf3e4 !important; }
+ion-button.ops-btn.ghost::part(native){   background:#efe3cf !important; color:#3b2a2a !important; }
+
+/* Pantallas muy bajitas: siguen grandes sin desbordar */
+@media (max-height: 640px){
+  .ops-wrap{ height: 70svh; }
+}
+/* 🔧 Tamaño general de la zona de botones */
+.ops-wrap{
+  margin-top: 120px;
+  height: 58svh;            /* antes ~78–86svh */
+  gap: clamp(10px, 2svh, 14px);
+}
+
+/* 🔧 Botones un poquito más compactos */
+ion-button.ops-btn::part(native){
+  padding: 0 clamp(14px, 3.2vw, 20px);
+  font-size: clamp(1rem, 2.2svh, 1.15rem);   /* antes 1.02rem–1.22rem */
+  border-radius: 12px;
+}
+
+/* 🔧 Icono apenas menor */
+ion-button.ops-btn [slot="start"]{
+  font-size: 1.15em;       /* antes 1.25em */
+  margin-inline-end: 10px;
+}

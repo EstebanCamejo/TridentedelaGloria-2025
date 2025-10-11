@@ -10,8 +10,8 @@ import { HomeClienteComponent } from './components/home-cliente/home-cliente.com
 import { IngresoClienteComponent } from './components/ingreso-cliente/ingreso-cliente.component';
 import { ClientePedidoEnCursoComponent } from './components/cliente-pedido-en-curso/cliente-pedido-en-curso.component';
 import { ClienteJuegosComponent } from './components/cliente/cliente-juegos/cliente-juegos.component';
-
-
+import { PaginaResultadosEncuestasPage } from './components/pagina-resultados-encuestas/pagina-resultados-encuestas';
+import { ChatComponent } from './components/chat/chat.component';
 export const routes: Routes = [
   {
     path: '',
@@ -68,11 +68,23 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/mesas',
+    loadComponent: () =>
+      import('./components/admin/mesas/mesas.component')
+        .then(m => m.MesasComponent),
+  },
+  {
     path: 'admin/alta-mesa',
     loadComponent: () =>
       import('./components/admin/alta-mesa/alta-mesa.component').then(
         (m) => m.AltaMesaComponent
       ),
+  },
+  {
+    path: 'admin/mesas/editar/:id',
+    loadComponent: () =>
+      import('./components/admin/alta-mesa/alta-mesa.component')
+        .then(m => m.AltaMesaComponent),
   },
   {
     path: 'admin/notas',
@@ -124,6 +136,13 @@ export const routes: Routes = [
   //     import('./components/maitre/asignar-mesa/asignar-mesa.component')
   //       .then(m => m.AsignarMesaComponent),
   // },
+    {
+    path: 'pagina-resultados-encuestas',
+    loadComponent: () =>
+      import(
+        './components/pagina-resultados-encuestas/pagina-resultados-encuestas'
+      ).then((m) => m.PaginaResultadosEncuestasPage),
+  },
     {
     path: 'ingreso-cliente',
     loadComponent: () =>
@@ -181,8 +200,26 @@ export const routes: Routes = [
       ).then((m) => m.VerificarPendientesBartenderComponent),
   },
   
-
-
+{
+    path: 'home-bartender-cocinero',
+    component: HomeBartenderCocineroComponent,
+    pathMatch: 'full',
+  },
+{
+    path: 'bartender-cocinero/nueva-bebida',
+    loadComponent: () =>
+      import(
+        './components/bartender-cocinero/nueva-bebida/nueva-bebida.component'
+      ).then((m) => m.NuevaBebidaComponent),
+  },
+{
+  path: 'cliente/chat/:pedidoId',
+  loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent)
+},
+{
+  path: 'mozo/chat/:roomId',
+  loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent)
+},
 
   ////////////////////////////ESTEBAN//////////////////////////
   {
@@ -200,6 +237,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/pagina-formulario-encuesta/pagina-formulario-encuesta')
         .then(m => m.PaginaFormularioEncuestaPage)
+  },
+ ////////////////////////////ESTEBAN//////////////////////////
+  {
+    path: 'home-admin',
+    loadComponent: () =>
+      import('./components/home-admin/home-admin.component').then(m => m.HomeAdminComponent)
+    // o component: HomeAdminPage, si no es lazy
   }
-  
 ];

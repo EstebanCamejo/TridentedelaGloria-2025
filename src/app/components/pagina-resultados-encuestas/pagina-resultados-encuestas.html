@@ -1,4 +1,4 @@
-<ion-header>
+<!-- <ion-header>
     <ion-toolbar>
       <ion-title>Resultados de encuestas</ion-title>
     </ion-toolbar>
@@ -6,13 +6,13 @@
   
   <ion-content class="ion-padding">
   
-    <!-- estado: cargando -->
+  
     <div *ngIf="cargando" class="center">
       <ion-spinner name="crescent"></ion-spinner>
       <div class="hint">Cargando resultados…</div>
     </div>
   
-    <!-- estado: error -->
+   
     <ion-card *ngIf="!cargando && errorMsg">
       <ion-card-header>
         <ion-card-title>Hubo un problema</ion-card-title>
@@ -21,11 +21,10 @@
         {{ errorMsg }}
       </ion-card-content>
     </ion-card>
-  
-    <!-- contenido -->
+ 
     <ng-container *ngIf="!cargando && !errorMsg">
   
-      <!-- Limpieza (barras verticales) -->
+ 
       <ion-card>
         <ion-card-header>
           <ion-card-subtitle>Calificación</ion-card-subtitle>
@@ -45,7 +44,7 @@
         </ion-card-content>
       </ion-card>
   
-      <!-- Aspecto más valorado (pie grid) -->
+  
       <ion-card>
         <ion-card-header>
           <ion-card-subtitle>Preferencias</ion-card-subtitle>
@@ -62,7 +61,7 @@
         </ion-card-content>
       </ion-card>
   
-      <!-- Servicios adicionales (barras horizontales) -->
+    
       <ion-card>
         <ion-card-header>
           <ion-card-subtitle>Sugerencias</ion-card-subtitle>
@@ -86,4 +85,86 @@
     </ng-container>
   
   </ion-content>
-  
+   -->
+
+   <ion-content class="resu-content ion-padding">
+
+  <div *ngIf="cargando" class="center">
+    <ion-spinner name="crescent"></ion-spinner>
+    <div class="hint">Cargando resultados…</div>
+  </div>
+
+  <ion-card *ngIf="!cargando && errorMsg" class="err-card">
+    <ion-card-header>
+      <ion-card-title>Hubo un problema</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>{{ errorMsg }}</ion-card-content>
+  </ion-card>
+
+  <ng-container *ngIf="!cargando && !errorMsg">
+    <!-- Limpieza -->
+    <ion-card class="viz-card">
+      <div class="card-cap">Calificación</div>
+      <ion-card-header class="card-head">
+        <ion-card-title>Limpieza del local</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="chart" *ngIf="limpiezaData?.length">
+          <ngx-charts-bar-vertical
+            [results]="limpiezaData"
+            [xAxis]="true" [yAxis]="true"
+            [legend]="false" [gradient]="false"
+            [xAxisLabel]="'Puntaje'" [yAxisLabel]="'Cantidad'"
+            [roundDomains]="true" [animations]="true"
+            [scheme]="colorScheme"
+            [showDataLabel]="true"
+            [dataLabelFormatting]="intFmt">
+          </ngx-charts-bar-vertical>
+        </div>
+        <div class="empty" *ngIf="!limpiezaData?.length">Sin datos aún.</div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Aspecto valorado -->
+    <ion-card class="viz-card">
+      <div class="card-cap">Preferencias</div>
+      <ion-card-header class="card-head">
+        <ion-card-title>Aspecto más valorado</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="chart" *ngIf="aspectoValoradoData?.length">
+          <ngx-charts-pie-grid
+            [results]="aspectoValoradoData"
+>
+          </ngx-charts-pie-grid>
+        </div>
+        <div class="empty" *ngIf="!aspectoValoradoData?.length">Sin datos aún.</div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Servicios extra -->
+    <ion-card class="viz-card">
+      <div class="card-cap">Sugerencias</div>
+      <ion-card-header class="card-head">
+        <ion-card-title>Servicios adicionales</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="chart" *ngIf="serviciosExtraData?.length">
+          <ngx-charts-bar-horizontal
+            [results]="serviciosExtraData"
+            [xAxis]="true" [yAxis]="true"
+            [legend]="false" [gradient]="false"
+            [xAxisLabel]="'Votos'"
+            [roundDomains]="true" [animations]="true"
+            [scheme]="colorScheme"
+            [showDataLabel]="true"
+            [dataLabelFormatting]="intFmt">
+          </ngx-charts-bar-horizontal>
+        </div>
+        <div class="empty" *ngIf="!serviciosExtraData?.length">Sin datos aún.</div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button class="btn-exit" expand="block" (click)="salir()">Salir</ion-button>
+  </ng-container>
+</ion-content>

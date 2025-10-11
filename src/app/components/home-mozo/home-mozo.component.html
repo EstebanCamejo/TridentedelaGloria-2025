@@ -1,1 +1,100 @@
-<ion-button (click)="ir('/cliente/cliente-juegos')">Probar ingreso-cliente</ion-button>
+<ion-header class="mz-header">
+  <ion-toolbar>
+    <div class="nav-pill"> Bienvenido | {{ (email | async) || '—' }}</div>
+  </ion-toolbar>
+
+  <!-- tira con fondo sólido/blur -->
+  <div class="seg-strip">
+    <ion-segment
+      [value]="tab" (ionChange)="onTabChange($event)" mode="ios" class="top-segment">
+      <ion-segment-button value="pedidos">
+        <ion-label>Pedidos</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="consultas">
+        <ion-label>Consultas</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+</ion-header>
+
+
+<ion-content class="mz-content">
+  <div class="wrap" [ngSwitch]="tab">
+
+    <!-- ====== TAB PEDIDOS ====== -->
+    <ng-container *ngSwitchCase="'pedidos'">
+      <ion-card class="pedido" *ngFor="let p of pedidos" (click)="abrirPedido(p.id)">
+        <ion-card-header>
+          <ion-card-title>Mesa: {{ p.mesa }}</ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="estado-pill" [ngClass]="estadoClass(p.estado)">
+            Estado Pedido: {{ estadoLabel(p.estado) }}
+          </div>
+
+          <div class="info">
+            <div>Cliente: <strong>{{ p.cliente }}</strong></div>
+            <div>Fecha de Pedido: <strong>{{ p.fecha | date:'dd/MM/yy HH:mm' }}</strong></div>
+            <div>Total: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
+          </div>
+
+          <ion-button class="cta" expand="block" fill="solid">
+            {{ estadoLabel(p.estado) | uppercase }}
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+
+    <!-- ====== TAB CONSULTAS ====== -->
+    <!-- <ng-container *ngIf="tab === 'consultas'">
+  <ng-container *ngIf="chats?.length; else sinConsultas">
+    <ion-card *ngFor="let c of chats" (click)="abrirChat(c.room_id, c.mesa)">
+      <ion-card-header>
+        <ion-card-title>Mesa: {{ c.mesa }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="ultimo">{{ c.ultimo }}</div>
+        <div class="updated">{{ c.updated | date:'dd/MM/yy HH:mm' }}</div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+  <ng-template #sinConsultas>
+    <div class="empty">No hay consultas todavía.</div>
+  </ng-template>
+</ng-container> -->
+<!-- ====== TAB CONSULTAS ====== -->
+<ng-container *ngIf="tab === 'consultas'">
+  <ng-container *ngIf="chats?.length; else sinConsultas">
+    <ion-card class="chat-card" *ngFor="let c of chats" (click)="abrirChat(c.room_id, c.mesa)">
+      <ion-card-header class="chat-head">
+        <div class="mesa">Mesa: <strong>{{ c.mesa }}</strong></div>
+
+        <!-- opcional: badge de no leídos si luego lo calculás -->
+        <!-- <ion-badge class="unread" *ngIf="c.unread && c.unread>0">{{ c.unread }}</ion-badge> -->
+
+        <ion-icon name="chevron-forward-outline" class="chev"></ion-icon>
+      </ion-card-header>
+
+      <ion-card-content class="chat-body">
+        <div class="ultimo" [title]="c.ultimo || ''">{{ c.ultimo || '—' }}</div>
+        <div class="updated">{{ c.updated | date:'dd/MM/yy HH:mm' }}</div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <ng-template #sinConsultas>
+    <div class="empty">No hay consultas todavía.</div>
+  </ng-template>
+</ng-container>
+
+
+  </div>
+
+  <!-- FAB salir -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button class="fab-logout" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

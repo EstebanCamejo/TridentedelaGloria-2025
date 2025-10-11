@@ -9,11 +9,13 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { MenuService, PlatoTipo } from 'src/app/services/menu.service';
 
+import { addIcons } from 'ionicons';           // 👈 IMPORTA ESTO
+import { trashOutline } from 'ionicons/icons'; // 👈 Y ESTO
 @Component({
   selector: 'app-nueva-bebida',
   standalone: true,
   imports: [IonCard, IonHeader, CommonModule, FormsModule, IonGrid, IonRow, IonCol, IonButton, 
-    IonToolbar, IonTitle],
+    IonToolbar, IonTitle,IonIcon ],
   //providers: [ActionSheetController],
   templateUrl: './nueva-bebida.component.html',
   styleUrls: ['./nueva-bebida.component.scss'],
@@ -37,7 +39,8 @@ export class NuevaBebidaComponent {
     private router: Router, 
     private toastr: ToastrService,
     private platos: MenuService,
-  ) {}
+    
+  ) { addIcons({ trashOutline }); }
 
   ionViewDidEnter() {
     console.log('[ionViewDidEnter] Vista de nueva bebida activa');

@@ -163,6 +163,7 @@
     </div>
   </ng-template>
 </ion-content> -->
+
 <ion-header>
   <ion-toolbar style="--background:#5d2222; --color:#fff">
     <ion-title>Clientes pendientes</ion-title>
@@ -195,38 +196,85 @@
         <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
       </ion-avatar>
 
-      <ion-label>
-        <h2 class="name">{{ it.nombres }} {{ it.apellidos }}</h2>
-        <p class="email">{{ it.email }}</p>
-        <div class="meta">
-          <ion-badge color="medium">pendiente</ion-badge>
-          <small>Creado: {{ it.created_at | date:'short' }}</small>
-        </div>
-      </ion-label>
+<ion-label>
+  <h2 class="name">{{ it.nombres }} {{ it.apellidos }}</h2>
+  <p class="email">{{ it.email }}</p>
+  <div class="meta">
+    <ion-badge color="medium">pendiente</ion-badge>
+    <br>
+    <small>{{ it.created_at | date:'short' }}</small>
+  </div>
+</ion-label>
 
-      <!-- Aprobar -->
-      <ion-button fill="clear" color="success"
-        [disabled]="loading || loadingId === it.id"
-        (click)="confirmarAprobacion(it)" aria-label="Aprobar">
-        <ng-container *ngIf="loadingId === it.id; else approveIcon">
-          <ion-spinner slot="icon-only"></ion-spinner>
-        </ng-container>
-        <ng-template #approveIcon>
-          <ion-icon name="checkmark-circle" slot="icon-only"></ion-icon>
-        </ng-template>
-      </ion-button>
 
-      <!-- Rechazar -->
-      <ion-button fill="clear" color="danger"
-        [disabled]="loading || loadingId === it.id"
-        (click)="confirmarRechazo(it)" aria-label="Rechazar">
-        <ng-container *ngIf="loadingId === it.id; else rejectIcon">
-          <ion-spinner slot="icon-only"></ion-spinner>
-        </ng-container>
-        <ng-template #rejectIcon>
-          <ion-icon name="close-circle" slot="icon-only"></ion-icon>
-        </ng-template>
-      </ion-button>
+<!-- <ion-button class="action-btn" fill="clear" color="success"
+  [disabled]="loading || loadingId === it.id"
+  (click)="confirmarAprobacion(it)" aria-label="Aprobar">
+  <ng-container *ngIf="loadingId === it.id; else approveIcon">
+    <ion-spinner slot="icon-only"></ion-spinner>
+  </ng-container>
+  <ng-template #approveIcon>
+    <ion-icon name="checkmark-circle" slot="icon-only"></ion-icon>
+  </ng-template>
+</ion-button>
+
+<ion-button class="action-btn" fill="clear" color="danger"
+  [disabled]="loading || loadingId === it.id"
+  (click)="confirmarRechazo(it)" aria-label="Rechazar">
+  <ng-container *ngIf="loadingId === it.id; else rejectIcon">
+    <ion-spinner slot="icon-only"></ion-spinner>
+  </ng-container>
+  <ng-template #rejectIcon>
+    <ion-icon name="close-circle" slot="icon-only"></ion-icon>
+  </ng-template>
+</ion-button> -->
+
+<!-- Aprobar (XL) -->
+<ion-button
+  slot="end"
+  fill="clear"
+  color="success"
+  [disabled]="loading || loadingId === it.id"
+  (click)="confirmarAprobacion(it)"
+  aria-label="Aprobar"
+  style="
+    --padding-start:18px; --padding-end:18px;
+    --padding-top:16px; --padding-bottom:16px;
+    --border-radius:16px;
+    margin-inline-start:8px;
+  ">
+  <ng-container *ngIf="loadingId === it.id; else approveIcon">
+    <ion-spinner slot="icon-only" style="width:34px; height:34px;"></ion-spinner>
+  </ng-container>
+  <ng-template #approveIcon>
+    <ion-icon name="checkmark-circle" slot="icon-only" style="font-size:36px;"></ion-icon>
+  </ng-template>
+</ion-button>
+
+<!-- Rechazar (XL) -->
+<ion-button
+  slot="end"
+  fill="clear"
+  color="danger"
+  [disabled]="loading || loadingId === it.id"
+  (click)="confirmarRechazo(it)"
+  aria-label="Rechazar"
+  style="
+    --padding-start:18px; --padding-end:18px;
+    --padding-top:16px; --padding-bottom:16px;
+    --border-radius:16px;
+    margin-inline-start:6px;
+  ">
+  <ng-container *ngIf="loadingId === it.id; else rejectIcon">
+    <ion-spinner slot="icon-only" style="width:34px; height:34px;"></ion-spinner>
+  </ng-container>
+  <ng-template #rejectIcon>
+    <ion-icon name="close-circle" slot="icon-only" style="font-size:36px;"></ion-icon>
+  </ng-template>
+</ion-button>
+
+
+
     </ion-item>
   </ion-list>
 

@@ -197,3 +197,40 @@ ion-fab.fab-salir{
   .client-wrap{ padding-bottom: calc(var(--safe-bottom) + 112px); }
   ion-fab.fab-salir{ bottom: calc(var(--safe-bottom) + 32px) !important; }
 }
+.qr-preview-modal::part(content) {
+  --background: #000;         /* fondo negro tipo cámara */
+}
+
+.qr-preview-wrap {
+  inline-size: 100%;
+  block-size: 100%;
+  display: grid;
+  place-items: center;
+  background: #000;
+}
+
+.qr-camera-fake {
+  position: relative;
+  inline-size: min(92vw, 520px);
+  block-size: min(92vh, 720px);
+  display: grid;
+  place-items: center;
+}
+
+.qr-frame {
+  inline-size: min(72vw, 360px);
+  block-size: min(72vw, 360px);
+  border: 3px solid rgba(255,255,255,.9);
+  border-radius: 12px;
+  box-shadow: 0 0 0 200vmax rgba(0,0,0,.35) inset;
+}
+
+.qr-hint {
+  position: absolute;
+  bottom: 24px;
+  left: 0; right: 0;
+  text-align: center;
+  color: #fff;
+  font-weight: 600;
+  opacity: .9;
+}

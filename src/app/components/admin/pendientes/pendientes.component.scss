@@ -1,25 +1,4 @@
-// .estado-ctr {
-//     text-align: center;
-//     padding: 2rem 1rem;
-//     opacity: 0.85;
-//   }
-  
-//   .email {
-//     opacity: 0.8;
-//     font-size: 0.9rem;
-//     word-break: break-all;
-//   }
-  
-//   .meta {
-//     display: flex;
-//     gap: 0.5rem;
-//     align-items: center;
-//     margin-top: 0.35rem;
-  
-//     small {
-//       opacity: 0.7;
-//     }
-//   }
+
   /* Safe-areas para que nada choque con barras del teléfono */
 :root{
   --safe-top: env(safe-area-inset-top, 0px);
@@ -99,17 +78,6 @@
   word-break: break-all;
 }
 
-/* Línea de metadata */
-.pend-item .meta{
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-  margin-top: .35rem;
-}
-.pend-item .meta small{
-  color: var(--ink-soft);
-}
-
 /* Botones de acción “ghost” (claros, no pegan con el fondo) */
 .pend-item ion-button{
   --padding-start: 6px;
@@ -129,4 +97,26 @@
   padding: 24px 12px;
   color: var(--ink);
   opacity: .95;
+}
+
+/* Fuerza salto de línea después del badge "pendiente" */
+ion-content.pend-content .pend-item .meta{
+  display: block;                 /* deja de ser fila */
+  margin-top: .35rem;
+}
+
+ion-content.pend-content .pend-item .meta ion-badge{
+  display: block;                 /* el badge ocupa toda la línea */
+  margin: 0 0 4px 0;              /* pequeño gap con la fecha */
+}
+
+ion-content.pend-content .pend-item .meta small{
+  display: block;                 /* fecha debajo, siempre */
+  color: var(--ink-soft);
+}
+
+/* (opcional) buen corte de email */
+ion-content.pend-content .pend-item .email{
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

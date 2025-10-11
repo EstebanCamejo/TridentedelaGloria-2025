@@ -300,7 +300,7 @@ console.log('token?', !!sess?.session?.access_token, 'uid?', sess?.session?.user
 
   cerrarModal(){ this.ui = 'none'; }
 
-  verEncuestas() { this.router.navigateByUrl('/encuestas'); }
+  verEncuestas() { this.router.navigateByUrl('/pagina-resultados-encuestas'); }
 
   private async msg(text: string, error=false) {
     const t = await this.toast.create({

@@ -14,14 +14,6 @@
 - Camejo Esteban
 - Dorbessan Sofia
 - Ivan Laurito  
-
----
-
-## ✨ Ramas / Branches ✨
-- `branch-esteban`  
-- `branch-sofia`  
-- `branch-ivan`  
-
 ---
 
 ## 📲 Arquitectura del Proyecto 📲
@@ -76,7 +68,7 @@
 ✅ **Entrega:**  Envio de captura de pantalla del diseño general de la app y los componentes
 
 ### 📆 Semana 3: *Sábado 20/09 al 27/09*
-//enviamos fotos del diseño de los diferentes componentes y nos marcan las siguientes correcciones:
+//Crrecciones:
 
 - A alta de mesa y clientes pendientes le falta estilos, los formularios deben ser siempre iguales, es decir usen como ejemplo el de registro.
 - Los botones de alta de usuarios y alta de mesa no contrastan bien con el fondo.
@@ -96,23 +88,101 @@ Los títulos blancos tampoco se distinguen.
 - Alta Empleados (Admin) → *Esteban Camejo*
 
   ✅ **Entrega:**
-
+  //correcciones realizadas de la visual + videos puntos 5,6,7,8 y 9
   ### 📆 Semana 4: *Sábado 27/09 al 04/10*
-**Diseño**
+  //correcion: 
+Github: correcto.
+Pantalla de clientes pendientes: por lo que entiendo ponen un check verde o un acruz roja imagino que es para hacer una acción o sea eso sería un botón? si es así procuren hacerlo más grande porque un dedo normal tiene que procurar de no tocar la equivocada, o sea puede tocar cualquiera por error.
+Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo a cualquier pantalla similar.
 
+**Diseño**
+  - Arreglo de las correcciones esteticas realizadas por el profesor → *Sofia Dorbessan*
+  - Home juegos → *Sofia Dorbessan*
+  - Juegos: Trivia , Memoria y Tap Rapido → *Sofia Dorbessan*
+  - Vista Cliente pedido en curso → *Sofia Dorbessan*
+  - Encuesta por parte de los clientes → *Esteban Camejo*
+  - Resultado encuestas (Graficos) → *Esteban Camejo*
+  - Alta Plato y bebida → *Ivan Laurito*
+  - Home Bartender → *Ivan Laurito*
+  - Home Cocinero → *Ivan Laurito*
 
 **Gestión**
+- Componente maitre cliente ingresa al local , gestion de asignar mesa al cliente (lado del maitre y lado del cliente)→ *Sofia Dorbessan*
+- Push notificacion maitre nueva incorporacion a la lista de espera → *Sofia Dorbessan*
+- Push notification cliente mesa asignada → *Sofia Dorbessan*
+- Escanneo QR para ingreso local: Lista de espera → *Sofia Dorbessan*
+- Componente Juegos → *Sofia Dorbessan*
+- Pagina Formulario Encuesta → *Esteban Camejo*
+- Pagina Resultados encuesta → *Esteban Camejo*
+- Componenete Menu → *Ivan Laurito*
+- Alta De Plato → *Ivan Laurito*
+- Alta De Bebida → *Ivan Laurito*
 
+  **Altas**
+- Alta Plato y bebida → *Ivan Laurito*
 
   ✅ **Entrega:**
-
+- Correccion realizada en la anterior entrega :vista admin y vista maitre
+- Puntos 1, 2 ,3 y 4.
+- Funcionalidad Juegos
+-   
   ## 📆 Semana 5: *Sábado 04/10 al 11/10* PARCIAL
+  //correccion:
+  - El readme esta OK
+- Icono OK
+- Splash estático OK
+- Splash dinámico OK
+- Login con accesos rápidos OK
+- Punto 1 En el alta de empleado el contraste de texto negro con el fondo rojo oscuro no se lee bien. Falta spinner en carga y debería navegar a la home del sueño o supervisor después del alta exitosa
+- La home del cocinero y bartender debería ser igual (una tiene barra de navegación texto blanco y la otra negro y el de negro no se lee nada)
+- La home de cocinero y bartender la veo OK, por ahi solo le agrandaría todavía un poco mas el texto de los botones y el icono
+- La home de administrador se ve cortado el texto del navbar por la cámara (Usar atributo safe area para prevenir eso), más allá de eso la home se ve OK
+- Punto 2 En el alta de comida los contrastes del texto con el fondo de los inputs no deja leer nada y el botón eliminar donde aparecen las fotos parece que estuviera cortado. Funcionalmente está OK y el menú se ve bien también
+- Punto 3 En el alta de bebida los contrastes del texto con el fondo de los inputs no deja leer nada y el botón eliminar donde aparecen las fotos parece que estuviera cortado. Funcionalmente está OK y el menú se ve bien también
+- Punto 4 En el alta de mesa el formulario es distinto a los anteriores se debería mantener consistencia, la foto debería ser bastante mas chica del estilo de las fotos en los productos, Estaria bueno que también mantengan consistencia en el uso de spinner con el icono de la app más allá de que el botón diga guardando. El QR no queda bien ahí, una vez crean mesa deben volver a la home y en la pantalla de listado de mesas ahí deben verificar que se vea la mesa creada con el QR asociado (Tiene que haber listado de mesas por si quieren modificar alguna ya creada)
+- La parte de los juegos agrandar mas el icono y textos de los botones y los botones en si para que no quede tanto espacio libre. En los propios juegos tratar de ocupar mas pantalla, no hace falta toda pero si casi toda sin scroll (En trivia queda mucho libre y en memotest queda muy grande generando scroll)
+- En panel de clientes pendientes el creado queda mal ahi como metido al costado del estado, podría ir debajo o encima pero no al costado porque además salta de línea, el resto esta OK
+- En panel de maitre no está bien ya que no debería poder escanear una mesa, las acciones son lista de espera, listado de mesas para ver estado, número, etc y crear cliente registrado
+- En el panel de pedido en curso, si ya está en curso no debería tener el botón de crear pedido de nuevo porque es uno por cliente, debería tener los datos del pedido que hizo del precio total y tiempo y no estar en cero (Esto debería desaparecer una vez el pedido es entregado). Podría tener ver pedido en tal caso para tener el detalle de lo que pidió, plato/bebida, cantidades, etc
+- Panel lista de espera de maitre mejorar un poco el contraste porque el placeholder de sin imagen se mezcla con el fondo de la pantalla y gris con negro no se lee del todo bien, el resto se ve OK
+
 **Diseño**
+- Arreglo de correciones de diseño realizadas ->*Sofia Dorbessan*
+- Componte Mozo ->*Sofia Dorbessan*
+- Chat ->*Sofia Dorbessan*
+- Componente cliente realiza pedido ->*Sofia Dorbessan*
+- Listado de productos a recibir del sector cocina → *Ivan Laurito*
+- Listado de productos a recibir del sector bar → *Ivan Laurito*
 
 
 **Gestión**
-
+- Arreglo funcioanlidades punto 1 y 4 (ABM MESAS)→ *Esteban Camejo*
+- Servicio Chat ->*Sofia Dorbessan*
+- Componente cliente realiza pedido ->*Sofia Dorbessan*
+- Cambio de estado de los pedidos recibidos por la cocina y/o bar → *Ivan Laurito*
 
   ✅ **Entrega:**
+
+- Correccion realizada en la anterior entrega.
+- Videos realizados hasta el momento: Punto 1, 2 , 3 , 4 , 5 , 6 , 7 , 8 y 15.
+
+  ## 📲 Imagenes de la aplicacion 📲
+
+| Imagen             | Explicacion                                   
+|--------------------|---------------------------------------|
+| <img width="312" height="649" alt="image" src="https://github.com/user-attachments/assets/d15bbfbf-186c-4296-bfff-b0655d00f713" /> | Inicio de sesion con boton de usuarios (acceso rapido) desplegado |
+| <img width="308" height="645" alt="image" src="https://github.com/user-attachments/assets/7c012853-7edc-4e55-b827-8e277b3a8c7f" /> | Pantalla registro nuevo cliente |
+| <img width="307" height="658" alt="image" src="https://github.com/user-attachments/assets/88d4864e-ba6b-4f13-8455-721c60c256ce" /> | Pantalla vista dueño/supervisor |
+| <img width="302" height="676" alt="image" src="https://github.com/user-attachments/assets/d532802c-1451-4c70-9b61-a48ba78e3700" />| Vista clientes en espera por perfil dueño/supervisor |
+| <img width="315" height="659" alt="image" src="https://github.com/user-attachments/assets/2ee2fc7a-080a-4e06-b73e-0e7f52ea145e" /> | Panel Cliente |
+|<img width="315" height="661" alt="image" src="https://github.com/user-attachments/assets/9e1cc081-6d37-4cb1-92fd-9de6c4194717" />| Splash |
+
+
+
+
+
+
+
+
 
 ---
