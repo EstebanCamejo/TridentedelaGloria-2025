@@ -1,28 +1,105 @@
 /* src/app/components/admin/alta-mesa/alta-mesa.component.scss */
-.alta-mesa {
-    --padding-start: 12px;
-    --padding-end: 12px;
-  }
-  
-  .preview {
-    margin: 12px 0;
-    display: grid;
-    place-items: center;
-    img {
-      width: 60%;    /* compacto */
-      max-width: 280px;
-      border-radius: 8px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.18);
-    }
-  }
-  
-  .qr-wrap {
-    display: grid;
-    place-items: center;
-    margin: 8px 0 12px;
-    img {
-      width: 220px;
-      height: auto;
-    }
-  }
-  
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+:host { display:block; }
+
+/* Paleta usada en el registro */
+:root{
+  --cream-25:#fbf3e4;
+  --cream-50:#f6ecdc;
+  --cream-200:#e7dac4;
+  --maroon-700:#5d2222;
+}
+
+/* ===== PANEL OSCURO (como el registro) para cada fila ===== */
+ion-item{
+  --background: transparent;           /* limpiamos fondo ionic */
+  --padding-start: 0;
+  --inner-padding-start: 0;
+  --inner-padding-end: 0;
+  margin: 10px 0;
+}
+ion-item::part(native){
+  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 10px 28px rgba(61,43,43,.22), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(6px) saturate(1.03);
+}
+
+/* Mantener el panel oscuro al focus */
+ion-item.item-has-focus::part(native){
+  border-color: rgba(255,221,190,.38);
+  box-shadow: 0 0 0 3px rgba(255,221,190,.28), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* ===== Etiquetas (labels) claras como el registro ===== */
+ion-label{
+  color:#f3e7da;
+  font-family:"Inter",sans-serif;
+  font-weight:600;
+  margin: 4px 2px 8px;
+}
+
+/* ===== Inputs/select con caja crema y texto legible ===== */
+ion-input,
+ion-select{
+  --color:#f3e7da;              /* texto claro SIEMPRE */
+  --placeholder-color:#d9c8bf;  /* placeholder del registro */
+  font-size: 16px;
+}
+
+/* Caja del input/select (idéntica a la del registro) */
+ion-input::part(native),
+ion-select::part(container){
+  height: 46px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255,221,190,.55);
+  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
+  color:#f3e7da;
+}
+
+/* Focus: NO blanquear el panel, sólo resaltar el borde de la caja */
+ion-input.has-focus::part(native),
+ion-select:focus-within::part(container){
+  border-color: var(--cream-200);
+  box-shadow: 0 0 0 3px rgba(255,221,190,.35);
+  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
+}
+
+/* Icono y texto del select en claro */
+ion-select::part(text){ color:#f3e7da; }
+ion-select::part(icon){ color:#f3e7da; opacity:.95; }
+
+/* ===== Botones con el look del registro ===== */
+ion-button{
+  --background: var(--maroon-700);     /* bordo */
+  --background-activated:#4b1d1d;
+  --color:#ffe9d3;                     /* crema */
+  --border-radius: 12px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  font-weight: 800;
+}
+ion-button[color="primary"]{
+  --background:#ffe9d3;                /* botón Guardar estilo registro */
+  --background-activated:#f6dfc7;
+  --color:#201212;
+  --border-radius:14px;
+  border:2px solid rgba(255,221,190,.75);
+}
+ion-button.button-disabled{ --opacity:.55; }
+
+/* ===== Previsualización de foto: tamaño moderado ===== */
+:root{ --preview-w: 160px; }         /* ajusta si querés más/menos */
+ion-img{
+  width: var(--preview-w);
+  max-width: var(--preview-w);
+  height: auto;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 12px rgba(0,0,0,.18);
+}

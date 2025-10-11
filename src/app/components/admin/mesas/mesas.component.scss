@@ -1,0 +1,32 @@
+// :host { display:block; }
+// .empty{
+//   margin: 24px auto;
+//   text-align: center;
+//   opacity: .8;
+// }
+// ion-avatar img{
+//   object-fit: cover;
+// }
+:host { display: block; }
+
+ion-item {
+  --inner-padding-top: 10px;
+  --inner-padding-bottom: 10px;
+}
+
+.row1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.row1 .nro {
+  font-weight: 700;
+}
+
+.row2 {
+  display: flex;
+  gap: 12px;
+  opacity: .9;
+  font-size: .95rem;
+}

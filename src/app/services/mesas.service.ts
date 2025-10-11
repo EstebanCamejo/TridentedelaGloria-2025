@@ -257,7 +257,90 @@ export class MesasService {
   }
 
 
+  /** Listar todas las mesas (para /admin/mesas) */
+  // async listarMesas(): Promise<MesaRow[]> {
+  //   const { data, error } = await this.supa.client
+  //     .from('mesas')
+  //     .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')
+  //     .order('numero', { ascending: true });
+  //   if (error) throw error;
+  //   return (data ?? []).slice();  
+  //   //return (data || []) as MesaRow[];
+  // }
 
+  async listarMesas(): Promise<MesaRow[]> {
+    // 1) Asegurá que hay sesión; si no, intentá refrescar
+    const sessRes = await this.supa.client.auth.getSession();
+    let session = sessRes.data.session;
+    if (!session) {
+      const ref = await this.supa.client.auth.refreshSession();
+      session = ref.data.session ?? null;
+    }
+    console.log('[mesas.service] session?', !!session, 'user:', session?.user?.id || null);
+  
+    // 2) Query simple, sin count/range (evita preflight y edge cases)
+    const { data, error } = await this.supa.client
+      .from('mesas')
+      .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')
+      .order('numero', { ascending: true });
+  
+    if (error) {
+      console.error('[mesas.service] listarMesas error:', error);
+      return [];
+    }
+    console.log('[mesas.service] listarMesas ->', data?.length ?? 0);
+    return (data ?? []) as MesaRow[];
+  }
+  
+
+  /** Actualizar mesa (número/capacidad/tipo y, si querés, estado) */
+  async actualizarMesa(p: { id: string; numero: number; capacidad: number; tipo: MesaTipo; fotoBlob?: Blob }) {
+    const { id, numero, capacidad, tipo, fotoBlob } = p;
+  
+    // si hay nueva foto, subimos y obtenemos URL
+    let foto_url: string | undefined;
+    if (fotoBlob) {
+      foto_url = await this.subirFotoPorId(id, fotoBlob);
+    }
+  
+    const upd: any = { numero, capacidad, tipo };
+    if (foto_url) upd.foto_url = foto_url;
+  
+    const { error } = await this.supa.client.from('mesas')
+      .update(upd)
+      .eq('id', id);
+    if (error) throw error;
+  }
+
+  /** Eliminar mesa por id (opcional, útil desde la lista) */
+  //  async eliminarMesa(id: string): Promise<void> {
+  //    const { error } = await this.supa.client
+  //      .from('mesas')
+  //      .delete()
+  //      .eq('id', id);
+  //    if (error) throw error;
+  //  }
+
+
+  /**
+ * Elimina una mesa por id.
+ * Intenta además remover su foto y QR del bucket (si existen).
+//  */
+  async eliminarMesa(id: string): Promise<void> {
+    // 1) borro fila (si hay FKs que bloqueen, esto devolverá error)
+    const del = await this.supa.client
+      .from('mesas')
+      .delete()
+      .eq('id', id);
+
+    if (del.error) {
+      console.error('[mesas.service] eliminarMesa error', del.error);
+      throw new Error('No se pudo eliminar. Verificá permisos/RLS.');
+    }
+
+    // (Opcional) limpiar Storage:
+    // try { await this.supa.client.storage.from('mesas').remove([`fotos/${id}.jpg`, `qr/${id}.png`]); } catch {}
+  }
 
 
 
@@ -408,5 +491,42 @@ export class MesasService {
   }
 
   
+
+  /**
+ * Actualiza SOLO los campos permitidos al editar desde el listado:
+ * - capacidad
+ * - tipo
+ * - (opcional) estado
+ * Devuelve la fila actualizada.
+ */
+  async actualizarMesaCampos(params: {
+    id: string;
+    capacidad?: number;
+    tipo?: MesaTipo;
+    estado?: MesaRow['estado'];
+  }): Promise<MesaRow> {
+    const { id, capacidad, tipo, estado } = params;
+
+    // armamos el patch con lo que realmente vino definido
+    const patch: any = {};
+    if (typeof capacidad === 'number') patch.capacidad = capacidad;
+    if (typeof tipo !== 'undefined' && tipo !== null) patch.tipo = tipo;
+    if (typeof estado !== 'undefined' && estado !== null) patch.estado = estado;
+
+    if (!patch || Object.keys(patch).length === 0) {
+      throw new Error('No hay cambios para guardar.');
+    }
+
+    const { data, error } = await this.supa.client
+      .from('mesas')
+      .update(patch)
+      .eq('id', id)
+      .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')
+      .single();
+
+    if (error) throw this.traducirErrorMesa(error);
+    return data as MesaRow;
+  }
+
 
 }

@@ -1,7 +1,15 @@
-<ion-header>
+<!-- <ion-header>
   <ion-toolbar>
     <ion-title>Alta de mesa</ion-title>
   </ion-toolbar>
+
+  <ion-toolbar>
+    <ion-title>{{ mesaId ? 'Editar mesa' : 'Alta de mesa' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancelar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
 </ion-header>
 
 <ion-content class="pa-4">
@@ -26,13 +34,13 @@
   </ion-item>
 
   <div style="padding:16px;">
-    <ion-button expand="block" (click)="tomarFoto()">
+    <ion-button expand="block" color="primary" (click)="tomarFoto()">
       <ion-icon name="camera" slot="start"></ion-icon>
       Tomar foto de la mesa
     </ion-button>
 
     <div *ngIf="fotoPreview" style="margin-top:12px; text-align:center;">
-      <ion-img [src]="fotoPreview" alt="Foto de la mesa" style="max-width:260px; margin:0 auto; border-radius:12px;"></ion-img>
+      <ion-img [src]="fotoPreview" alt="Foto de la mesa" style="max-width:160px; margin:0 auto; border-radius:12px;"></ion-img>
       <div style="opacity:.75; margin-top:6px;">Previsualización</div>
     </div>
   </div>
@@ -44,12 +52,12 @@
       [disabled]="btnDisabled" 
       (click)="guardar()">
       <ion-icon name="save" slot="start"></ion-icon>
-      <!-- Guardar mesa -->
+
       {{ guardando ? 'Guardando...' : 'Guardar mesa' }}
     </ion-button>
   </div>
 
-  <!-- BLOQUE QR (reemplaza tu bloque actual de QR) -->
+
   <div *ngIf="qrPublicUrl || qrDataUrl" style="padding:16px; text-align:center;">
     <img
       [src]="qrDataUrl || qrPublicUrl"
@@ -58,17 +66,94 @@
     />
     <div style="margin-top:8px; opacity:.7;">Código QR generado</div>
 
-    <!-- <ion-button style="margin-top:12px;" (click)="descargarQR()">
+     <ion-button style="margin-top:12px;" (click)="descargarQR()">
       <ion-icon name="download" slot="start"></ion-icon>
       Descargar QR
     </ion-button> -->
-    <ion-button style="margin-top:14px;" (click)="nuevaMesa()">
+    <!-- <ion-button style="margin-top:14px;" (click)="nuevaMesa()">
       Crear otra mesa
-    </ion-button>
+    </ion-button> -->
 
     <!-- <div *ngIf="qrPublicUrl" style="margin-top:8px;">
       <a [href]="qrPublicUrl" target="_blank" rel="noopener">Ver QR en la nube</a>
     </div> -->
+  <!-- </div>
+  
+</ion-content> --> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ mesaId ? 'Editar mesa' : 'Alta de mesa' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancelar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pa-4">
+  <ion-item>
+    <ion-label position="stacked">Número de mesa</ion-label>
+    <ion-input type="number"
+               [readonly]="!!mesaId" 
+               [(ngModel)]="numero"
+               (ionInput)="updateBtnDisabled()"
+               placeholder="Ej: 12"
+               [readonly]="!!mesaId"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Capacidad (1 a 12)</ion-label>
+    <ion-input type="number"
+               [(ngModel)]="capacidad"
+               (ionInput)="updateBtnDisabled()"
+               placeholder="Ej: 4"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Tipo</ion-label>
+    <ion-select [(ngModel)]="tipo" (ionChange)="updateBtnDisabled()">
+      <ion-select-option value="estandar">Estándar</ion-select-option>
+      <ion-select-option value="vip">VIP</ion-select-option>
+      <ion-select-option value="mov_reducida">Movilidad reducida</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <div style="padding:16px;">
+    <ion-button *ngIf="!mesaId" expand="block" color="primary" (click)="tomarFoto()">
+      <ion-icon name="camera" slot="start"></ion-icon>
+      Tomar foto de la mesa
+    </ion-button>
+
+    <div style="padding:16px;">
+      <ion-button
+        expand="block"
+        color="primary"
+        [disabled]="btnDisabled"
+        (click)="guardar()">
+        <ion-icon name="save" slot="start"></ion-icon>
+        {{ guardando ? 'Guardando...' : 'Guardar mesa' }}
+      </ion-button>
+    </div>
+    
+    <div *ngIf= "!mesaId && fotoPreview" style="margin-top:12px; text-align:center;">
+      <ion-img [src]="fotoPreview" alt="Foto de la mesa"
+               style="max-width:160px; margin:0 auto; border-radius:12px;"></ion-img>
+      <div style="opacity:.75; margin-top:6px;">Previsualización</div>
+    </div>
   </div>
 
 </ion-content>
