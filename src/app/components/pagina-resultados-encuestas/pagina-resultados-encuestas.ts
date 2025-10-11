@@ -11,6 +11,9 @@ import {
 
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { EncuestasService, ChartItem } from 'src/app/services/encuestas.service';
+import { Color, ScaleType } from '@swimlane/ngx-charts';
+
+
 
 @Component({
   selector: 'app-pagina-resultados-encuestas',
@@ -35,6 +38,18 @@ export class PaginaResultadosEncuestasPage implements OnInit {
 
   cargando = true;
   errorMsg: string | null = null;
+
+colorScheme: Color = {
+  name: 'tridente',
+  selectable: true,
+  group: ScaleType.Ordinal,
+  domain: ['#5d2222', '#7b2f2f', '#9b4b4b', '#c27a7a', '#eadccd']
+};
+
+intFmt = (v: number | string) => `${Math.round(Number(v) || 0)}`;
+
+
+
 
   constructor(private encuestas: EncuestasService) {}
 

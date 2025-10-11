@@ -185,3 +185,76 @@ input:focus{
   letter-spacing: .2px;
   font-size: 1.25rem;
 }
+
+/* === Nuevo plato: igualar legibilidad al form de registro === */
+
+/* Títulos/labels dentro del card oscuro */
+.nuevo-plato-form .subTittle {
+  color: #f3e7da;
+}
+
+/* Si usás inputs nativos */
+.nuevo-plato-form input[type="text"],
+.nuevo-plato-form input[type="number"],
+.nuevo-plato-form input[type="email"],
+.nuevo-plato-form input[type="password"],
+.nuevo-plato-form textarea {
+  width: 100%;
+  height: 46px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255,221,190,.55);
+  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
+  color: #f3e7da;               /* texto claro como en “registro cliente” */
+  font-size: 1rem;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s, background .2s, transform .04s;
+}
+
+.nuevo-plato-form input::placeholder,
+.nuevo-plato-form textarea::placeholder {
+  color: #a88978;               /* placeholder crema suave */
+}
+
+.nuevo-plato-form input:focus,
+.nuevo-plato-form textarea:focus {
+  border-color: var(--cream-200);
+  box-shadow: 0 0 0 3px rgba(255,221,190,.35);
+  background: #fffaf2;          /* mismo foco que en registro */
+  color: #3b2a2a;               /* texto oscuro sobre fondo claro durante focus */
+}
+
+/* Si usás Ionic: ion-input / ion-textarea */
+.nuevo-plato-form ion-input,
+.nuevo-plato-form ion-textarea {
+  --background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
+  --color: #f3e7da;             /* color de texto por defecto */
+  --placeholder-color: #a88978; /* placeholder */
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --border-radius: 12px;
+}
+
+/* Ajuste fino del texto/caret dentro del “native” (Ionic 7+) */
+.nuevo-plato-form ion-input::part(native),
+.nuevo-plato-form ion-textarea::part(native) {
+  color: #f3e7da;
+  caret-color: #ffe9d3;
+}
+
+/* Simulación de “focus” en Ionic: realzar borde y halo */
+.nuevo-plato-form ion-input.input-has-focus,
+.nuevo-plato-form ion-textarea.textarea-has-focus {
+  box-shadow: 0 0 0 3px rgba(255,221,190,.35);
+  border-color: var(--cream-200);
+}
+
+/* Si hay IonItem envolviendo al input, quitamos fondos raros */
+.nuevo-plato-form ion-item {
+  --background: transparent;
+  --color: #f3e7da;
+  --highlight-color-focused: var(--cream-200);
+  --border-color: rgba(255,221,190,.55);
+  border-radius: 12px;
+}

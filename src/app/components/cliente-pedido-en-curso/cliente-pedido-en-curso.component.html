@@ -1,7 +1,7 @@
 <ion-header class="client-header">
   <ion-toolbar>
     <div class="nav-pill">
-      Inicio | Bienvenido
+      El tridente de la gloria
     </div>
   </ion-toolbar>
 </ion-header>
@@ -12,15 +12,15 @@
     <!-- Resumen del pedido (solo visual) -->
     <ion-card class="pedido-card">
       <ion-card-content>
-        <div class="estado-pill">
-          <span>Estado del pedido:</span>
-          <strong>Pedido a confirmar</strong>
-        </div>
+<div class="estado-pill">
+  <span>Estado del pedido:</span>
+  <strong>{{ estado }}</strong>
+</div>
 
-        <div class="totales">
-          <div class="total"><strong>Total: $</strong>0</div>
-          <div class="demora"><strong>Demora estimada:</strong> 0min.</div>
-        </div>
+<div class="totales">
+  <div class="total"><strong>Total: $</strong>{{ total }}</div>
+  <div class="demora"><strong>Demora estimada:</strong> {{ tiempo }}min.</div>
+</div>
 
         <!-- Botón de ejemplo (no hace nada) -->
         <ion-button expand="block" class="cta">
@@ -33,12 +33,17 @@
     <ion-grid fixed>
       <ion-row>
       <div class="action-stack">
-  <ion-button class="option-card var1" expand="block">
-    <img src="../../../assets/plato.png" class="icono" alt="">
-    <span class="btn-text">Realizar el pedido</span>
-  </ion-button>
+<ion-button
+  *ngIf="!hasPedido"
+  class="option-card var1"
+  expand="block"
+  (click)="irARealizarPedido()">
+  <img src="../../../assets/plato.png" class="icono" alt="">
+  <span class="btn-text">Realizar el pedido</span>
+</ion-button>
 
-  <ion-button class="option-card var2" expand="block">
+  <ion-button class="option-card var2" expand="block"
+      (click)="irAChat()">
     <img src="../../../assets/chat.png" class="icono" alt="">
     <span class="btn-text">Consultas a los mozos</span>
   </ion-button>

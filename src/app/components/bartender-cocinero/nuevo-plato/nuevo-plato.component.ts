@@ -8,12 +8,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { MenuService, PlatoTipo } from 'src/app/services/menu.service';
-
+import { addIcons } from 'ionicons';           // 👈 IMPORTA ESTO
+import { trashOutline } from 'ionicons/icons'; // 👈 Y ESTO
 @Component({
   selector: 'app-nuevo-plato',
   standalone: true,
   imports: [IonCard, IonHeader, CommonModule, FormsModule, IonGrid, IonRow, IonCol, IonButton, 
-    IonToolbar, IonTitle],
+    IonToolbar, IonTitle ,IonIcon],
   //providers: [ActionSheetController],
   templateUrl: './nuevo-plato.component.html',
   styleUrls: ['./nuevo-plato.component.scss'],
@@ -36,7 +37,7 @@ export class NuevoPlatoComponent {
     private router: Router, 
     private toastr: ToastrService,
     private platos: MenuService,
-  ) {}
+  ) {addIcons({ trashOutline });}
 
   ionViewDidEnter() {
     console.log('[ionViewDidEnter] Vista de nuevo plato activa');

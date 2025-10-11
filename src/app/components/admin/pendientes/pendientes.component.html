@@ -196,14 +196,16 @@
         <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
       </ion-avatar>
 
-      <ion-label>
-        <h2 class="name">{{ it.nombres }} {{ it.apellidos }}</h2>
-        <p class="email">{{ it.email }}</p>
-        <div class="meta">
-          <ion-badge color="medium">pendiente</ion-badge>
-          <small>Creado: {{ it.created_at | date:'short' }}</small>
-        </div>
-      </ion-label>
+<ion-label>
+  <h2 class="name">{{ it.nombres }} {{ it.apellidos }}</h2>
+  <p class="email">{{ it.email }}</p>
+  <div class="meta">
+    <ion-badge color="medium">pendiente</ion-badge>
+    <br>
+    <small>{{ it.created_at | date:'short' }}</small>
+  </div>
+</ion-label>
+
 
 <!-- <ion-button class="action-btn" fill="clear" color="success"
   [disabled]="loading || loadingId === it.id"
