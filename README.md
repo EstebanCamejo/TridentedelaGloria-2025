@@ -151,17 +151,20 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 - Componte Mozo ->*Sofia Dorbessan*
 - Chat ->*Sofia Dorbessan*
 - Componente cliente realiza pedido ->*Sofia Dorbessan*
+- Listado de productos a recibir del sector cocina → *Ivan Laurito*
+- Listado de productos a recibir del sector bar → *Ivan Laurito*
+
 
 **Gestión**
 - Arreglo funcioanlidades punto 1 y 4 → *Esteban Camejo*
 - Servicio Chat ->*Sofia Dorbessan*
 - Componente cliente realiza pedido ->*Sofia Dorbessan*
-- 
+- Cambio de estado de los pedidos recibidos por la cocina y/o bar → *Ivan Laurito*
 
   ✅ **Entrega:**
 
-
-
+- Correccion realizada en la anterior entrega.
+- Videos realizados hasta el momento: Punto 1, 2 , 3 , 4 , 5 , 6 , 7 , 8 y 15.
 
   ## 📲 Imagenes de la aplicacion 📲
 
