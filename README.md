@@ -156,7 +156,7 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 
 
 **Gestión**
-- Arreglo funcioanlidades punto 1 y 4 → *Esteban Camejo*
+- Arreglo funcioanlidades punto 1 y 4 (ABM MESAS)→ *Esteban Camejo*
 - Servicio Chat ->*Sofia Dorbessan*
 - Componente cliente realiza pedido ->*Sofia Dorbessan*
 - Cambio de estado de los pedidos recibidos por la cocina y/o bar → *Ivan Laurito*
