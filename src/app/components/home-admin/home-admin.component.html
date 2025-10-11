@@ -1,12 +1,17 @@
-<ion-content class="pa-4">
+<!-- CAMBIO: agregar [fullscreen]="true" -->
+<ion-content [fullscreen]="true" class="pa-4">
   <div class="admin-wrap">
-      <div class="client-header">
-    <div class="nav-pill">
-      PANEL ADMINISTRADOR
-    </div>
-  </div>
+    <!-- <div class="client-header">
+      <div class="nav-pill">PANEL ADMINISTRADOR</div>
+    </div> -->
+     
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>PANEL ADMINISTRADOR</ion-title>
+      </ion-toolbar>
+    </ion-header>
 
-    <ion-grid fixed>
+    <ion-grid fixed class="admin-actions">
       <ion-row class="gap-y">
         <ion-col size="12" sizeMd="6">
           <ion-button expand="block" size="large" (click)="irAListaDeEspera()">
@@ -22,12 +27,19 @@
           </ion-button>
         </ion-col>
 
-        <ion-col size="12" sizeMd="6">
+        <!-- <ion-col size="12" sizeMd="6">
           <ion-button expand="block" size="large" color="tertiary" (click)="irAAltaMesa()">
             <ion-icon slot="start" name="restaurant"></ion-icon>
             Alta de mesa
           </ion-button>
+        </ion-col> -->
+        <ion-col size="12" sizeMd="6">
+          <ion-button expand="block" size="large" color="tertiary" (click)="irAMesas()">
+            <ion-icon slot="start" name="grid-outline"></ion-icon>
+            Mesas
+          </ion-button>
         </ion-col>
+        
 
         <ion-col size="12" sizeMd="6">
           <ion-button expand="block" size="large" color="medium" (click)="irAResultados()">

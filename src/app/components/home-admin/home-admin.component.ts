@@ -1,20 +1,19 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent, IonGrid, IonRow, IonCol,
-  IonButton, IonIcon
-} from '@ionic/angular/standalone';
+  IonButton, IonIcon, IonTitle, IonToolbar, IonHeader } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
 import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart} from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { SupabaseService } from 'src/app/services/supabase.service';
-
+import { ToastrService } from 'ngx-toastr'; 
 
 @Component({
   selector: 'app-home-admin',
   standalone: true,
-  imports: [CommonModule, IonContent, IonGrid, IonRow, IonCol, IonButton, IonIcon],
+  imports: [IonHeader, IonToolbar, IonTitle, CommonModule, IonContent, IonGrid, IonRow, IonCol, IonButton, IonIcon],
   templateUrl: './home-admin.component.html',
   styleUrls: ['./home-admin.component.scss']
 })
@@ -23,11 +22,28 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
   private rtChannel?: ReturnType<typeof this.supa.client.channel>;
   private notifiedIds = new Map<string, number>(); // id -> timestamp
 
-  constructor(private router: Router, private supa: SupabaseService) {
+  constructor(private router: Router, private supa: SupabaseService, private toast: ToastrService, private route: ActivatedRoute) {
     addIcons({ checkmarkDoneCircle, personAdd, restaurant, statsChart, create });    
   }
 
   async ngOnInit() {
+
+    const from = this.route.snapshot.queryParamMap.get('from');
+    if (from === 'alta-usuario') {
+      this.toast.success('Empleado creado correctamente', '', {
+        positionClass: 'toast-center',
+        timeOut: 2200
+      });
+
+      // (opcional) limpiar el query param para no repetir el toast en refresh
+      this.router.navigate([], {
+        replaceUrl: true,
+        queryParams: { from: null },           // elimina 'from'
+        queryParamsHandling: 'merge'
+      });
+    }
+
+
     // 1) Notificaciones locales (permiso + canal Android)
     await LocalNotifications.requestPermissions();
     await LocalNotifications.createChannel({
@@ -98,6 +114,7 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
 
   irAListaDeEspera() { this.router.navigate(['/admin/pendientes']); }
   irAAltaUsuarios()  { this.router.navigate(['/admin/alta-usuario']); }
-  irAAltaMesa()      { this.router.navigate(['/admin/alta-mesa']); }
-  irAResultados()    { this.router.navigate(['/cliente-pedido-en-curso']); }
+  irAResultados()    { this.router.navigate(['/admin/resultados-encuestas']); }
+  irAMesas()         { this.router.navigate(['/admin/mesas']);}
+
 }

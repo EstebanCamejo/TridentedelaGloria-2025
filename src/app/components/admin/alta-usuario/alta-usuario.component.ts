@@ -8,13 +8,15 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { addIcons } from 'ionicons';
 import { camera, barcodeOutline } from 'ionicons/icons';
-
+import { Router } from '@angular/router';
 // QR DNI
 import {
   BarcodeScanner,
   BarcodeFormat,
   PermissionStatus,
 } from '@capacitor-mlkit/barcode-scanning';
+import { query } from '@angular/animations';
+import { from } from 'rxjs';
 
 @Component({
   selector: 'app-alta-usuario',
@@ -43,7 +45,7 @@ export class AltaUsuarioComponent {
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  constructor(private toastr: ToastrService, private supa: SupabaseService) {
+  constructor(private toastr: ToastrService, private supa: SupabaseService, private router: Router) {
     addIcons({ camera, barcodeOutline });
   }
 
@@ -197,13 +199,18 @@ export class AltaUsuarioComponent {
       const out = await this.supa.altaEmpleadoViaFunctionDirect(payload);
       console.log('[UI] function OK', out);
 
-      this.toastOk('Empleado creado correctamente.');
+     // this.toastOk('Empleado creado correctamente.');
       // limpiar form
       this.apellido = this.nombre = this.dni = this.cuil =
       this.email = this.password = this.confirm = '';
       this.perfil = null;
       this.photoBase64 = this.photoPreview = null;
       f.resetForm();
+      // [NAV] redirigir a Home Admin y limpiar historial
+      this.router.navigate(['/home-admin'], {
+        replaceUrl: true,
+        queryParams: { from: 'alta-usuario' }
+      });
 
     } catch (e: any) {
       console.error('[UI] error en onSubmit', e);

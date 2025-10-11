@@ -1,0 +1,111 @@
+<!-- <ion-header>
+  <ion-toolbar>
+    <ion-title>Mesas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarMesas()">
+        <ion-icon name="refresh"></ion-icon>
+      </ion-button>
+      <ion-button (click)="crearMesa()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pa-4">
+  <ion-refresher slot="fixed" (ionRefresh)="cargarMesas($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list lines="full">
+    <ion-item *ngFor="let m of mesas" (click)="editarMesa(m)">
+      <ion-avatar slot="start">
+        <img *ngIf="m.foto_url"
+        [src]="m.foto_url"
+        width="48" height="48"
+        style="border-radius:8px; margin-right:12px"
+        alt="foto mesa">
+        <div *ngIf="!m.foto_url"
+              style="width:48px;height:48px;border-radius:8px;margin-right:12px;
+                    background:#f6ecdc;display:flex;align-items:center;justify-content:center;
+                    color:#5d2222;font-weight:700;font-size:12px;">
+          S/F
+        </div>
+   
+      </ion-avatar>
+
+      <ion-label>
+        <h2>Mesa #{{ m.numero }}</h2>
+        <p>Capacidad: {{ m.capacidad }} • Tipo: {{ m.tipo }}</p>
+        <p *ngIf="m.qr_text" style="opacity:.8;">QR: {{ m.qr_text | slice:0:24 }}…</p>
+      </ion-label>
+
+      <ion-badge [color]="estadoColor(m.estado)" slot="end" style="text-transform:capitalize;">
+        {{ m.estado }}
+      </ion-badge>
+
+      <ion-button fill="clear" slot="end" (click)="editarMesa(m); $event.stopPropagation()">
+        <ion-icon name="pencil"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <div *ngIf="!cargando && mesas.length === 0" class="empty">
+    No hay mesas aún.
+    <ion-button size="small" (click)="crearMesa()">Crear mesa</ion-button>
+  </div>
+</ion-content> -->
+
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Mesas</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarMesas()">
+        <ion-icon name="refresh"></ion-icon>
+      </ion-button>
+      <ion-button (click)="crearMesa()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="cargarMesas($event)">
+    <ion-refresher-content refreshingSpinner="circles"></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list inset="true">
+    <ion-item
+      button
+      detail
+      *ngFor="let m of mesas; trackBy: trackById"
+      (click)="editarMesa(m)"
+    >
+      <ion-avatar slot="start">
+        <img [src]="m.foto_url || phSvg" alt="mesa" />
+      </ion-avatar>
+
+      <ion-label>
+        <div class="row1">
+          <span class="nro">Mesa #{{ m.numero }}</span>
+          <ion-badge [color]="estadoColor(m.estado)">{{ m.estado }}</ion-badge>
+        </div>
+        <div class="row2">
+          <span>Tipo: {{ m.tipo }}</span>
+          <span>Cap: {{ m.capacidad }}</span>
+        </div>
+      </ion-label>
+
+      <ion-buttons slot="end">
+        <ion-button fill="clear" (click)="$event.stopPropagation(); editarMesa(m)">
+          <ion-icon name="pencil"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="danger" (click)="$event.stopPropagation(); eliminarMesa(m)">
+          <ion-icon name="trash"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+</ion-content>
