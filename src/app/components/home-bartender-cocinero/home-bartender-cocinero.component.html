@@ -9,43 +9,60 @@
       </ion-toolbar>
     </ion-header>
 
-    <!--
-    <ion-grid fixed>
-
-      <ion-row class="gap-y">
-
-        <ion-col size="12" sizeMd="6">
-          <ion-button expand="block" size="large" (click)="irAAgregarNuevoPlato()">
-            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-            Agregar nuevo plato
-          </ion-button>
-        </ion-col>
-        
-        <ion-col size="12" sizeMd="6">
-        <ion-button expand="block" size="large" color="secondary" (click)="irAAgregarNuevaBebida()">
-          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-          Agregar nueva bebida
-        </ion-button>
-      </ion-col>
-
-      </ion-row>
-
-    </ion-grid>
-    -->
-
     <ion-content class="client-content" fullscreen>
       <div class="client-wrap">
         <div class="client-stack">
-        <ion-button class="cta btn-scan" fill="solid" expand="block" size="large"
-                    (click)="irAAgregarNuevoPlato()">
-          Verificar pedidos pendientes
-        </ion-button>
+          <ion-button
+            *ngIf="perfil === 'cocinero'"
+            class="cta btn-scan"
+            fill="solid"
+            expand="block"
+            size="large"
+            (click)="irAAgregarNuevoPlato()"
+          >
+            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+            Agregar nuevo plato
+          </ion-button>
 
-
-          <ion-button class="cta btn-history" fill="solid" expand="block" size="large" color="secondary" (click)="irAAgregarNuevaBebida()">
+          <ion-button
+            *ngIf="perfil === 'bartender'"
+            class="cta btn-history"
+            fill="solid"
+            expand="block"
+            size="large"
+            color="secondary"
+            (click)="irAAgregarNuevaBebida()"
+          >
             <ion-icon slot="start" name="add-circle-outline"></ion-icon>
             Agregar nueva bebida
           </ion-button>
+
+          <ion-button
+          *ngIf="perfil === 'cocinero'"
+            class="cta btn-pendientes"
+            fill="solid"
+            expand="block"
+            size="large"
+            color="secondary"
+            (click)="irAVerificarPendientesCocinero()"
+          >
+            <ion-icon slot="start" name="list-circle-outline"></ion-icon>
+            Verificar pedidos pendientes
+          </ion-button>
+
+          <ion-button
+            *ngIf="perfil === 'bartender'"
+            class="cta btn-pendientes"
+            fill="solid"
+            expand="block"
+            size="large"
+            color="secondary"
+            (click)="irAVerificarPendientesBartender()"
+          >
+            <ion-icon slot="start" name="list-circle-outline"></ion-icon>
+            Verificar pedidos pendientes
+          </ion-button>
+
         </div>
       </div>
     </ion-content>

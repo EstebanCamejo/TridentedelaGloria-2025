@@ -45,10 +45,7 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
 
   cargando = false;
   pedidoRealizado = false;
-  //idPedido: string = '';
   idPedido: number | null = null;
-
-
   pedido: Pedido | null = null; 
 
   constructor(private pedidosSvc: PedidosService, private router: Router, private menuService: MenuService, private toastr: ToastrService) {
@@ -71,32 +68,6 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
   private toastOk(msg: string) {
     this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
   }
-
-
-// async finalizarPedido() {
-//     if (this.cargando || this.pedidoRealizado) return;
-//     if (!this.cantidadesProductosEnCarrito.length) {
-//       this.toastr.info('Agregá al menos un producto.');
-//       return;
-//     }
-//     try {
-//       this.cargando = true;
-//       const res = await this.menuService.crearPedido({
-//         idCliente: this.idCliente, // <-- uuid
-//         productos: this.cantidadesProductosEnCarrito
-//       });
-//       this.pedidoRealizado = true;
-//       this.idPedido = String(res.id);
-//       this.router.navigate(['/cliente-pedido-en-curso'], {
-//         state: { pedidoId: res.id, total: res.total, tiempo: res.tiempoEstimado }
-//       });
-//       // limpiar carrito...
-//     } catch (e:any) {
-//       this.toastr.error(e?.message || 'Error creando el pedido.');
-//     } finally {
-//       this.cargando = false;
-//     }
-// }
 
 async finalizarPedido() {
   if (this.cargando || this.pedidoRealizado) return;
@@ -131,18 +102,12 @@ async finalizarPedido() {
       }
     });
 
-    // TODO: limpiar carrito…
-    // this.cantidadesProductosEnCarrito = [];
-    // this.menuService.vaciarCarrito();
-
   } catch (e: any) {
     this.toastr.error(e?.message || 'Error creando el pedido.');
   } finally {
     this.cargando = false;
   }
 }
-
-
   agregarProducto(
     idProducto: number,
     precioProducto: number,

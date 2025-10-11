@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { ClienteRealizarPedidoComponent } from './cliente-realizar-pedido.component';
+import { VerificarPendientesCocineroComponent } from './verificar-pendientes-cocinero.component';
 
-describe('ClienteRealizarPedidoComponent', () => {
-  let component: ClienteRealizarPedidoComponent;
-  let fixture: ComponentFixture<ClienteRealizarPedidoComponent>;
+describe('VerificarPendientesCocineroComponent', () => {
+  let component: VerificarPendientesCocineroComponent;
+  let fixture: ComponentFixture<VerificarPendientesCocineroComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ClienteRealizarPedidoComponent ],
+      declarations: [ VerificarPendientesCocineroComponent ],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ClienteRealizarPedidoComponent);
+    fixture = TestBed.createComponent(VerificarPendientesCocineroComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

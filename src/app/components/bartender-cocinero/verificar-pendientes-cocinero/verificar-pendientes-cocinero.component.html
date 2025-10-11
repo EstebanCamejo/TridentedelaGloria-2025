@@ -1,0 +1,71 @@
+<ion-header class="client-header">
+  <ion-toolbar>
+    <div class="nav-pill">
+      Productos del sector Cocina
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cocina-content">
+
+  <div *ngIf="cargando" class="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando pedidos...</p>
+  </div>
+  
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!cargando && pedidosCocina.length === 0" class="sin-pedidos">
+    No hay pedidos pendientes de cocina.
+  </div>
+
+  <div class="pedidos-container">
+    <ion-card *ngFor="let pedido of pedidosCocina" class="pedido-card">
+      <ion-card-header class="card-header">
+        <ion-card-title class="mesa-title">Mesa {{ pedido.numero_mesa }}</ion-card-title>
+        <ion-card-subtitle class="fecha-subtitle">
+          {{ pedido.fecha | date:'medium' }}
+        </ion-card-subtitle>
+        <ion-badge 
+          [class]="getBadgeClass(pedido.estado)" 
+          class="estado-badge">
+          {{ pedido.estado }}
+        </ion-badge>
+      </ion-card-header>
+
+      <ion-card-content class="card-content">
+        <div class="productos-section">
+          <h3 class="productos-title">Productos del sector:</h3>
+          <div class="productos-list">
+            <div *ngFor="let prod of pedido.productos" class="producto-item">
+              <span class="producto-nombre">{{ prod.nombre }}</span>
+              <span class="producto-cantidad">x{{ prod.cantidad }}</span>
+            </div>
+          </div>
+        </div>
+      </ion-card-content>
+
+      <ion-button 
+        expand="full" 
+        class="aceptar-btn"
+        (click)="aceptarPedido(pedido)"
+        [disabled]="pedido.estado === 'en preparación' || estaProcesando(pedido.id)">
+        <ion-spinner *ngIf="estaProcesando(pedido.id)" name="crescent"></ion-spinner>
+        <span *ngIf="!estaProcesando(pedido.id)">
+          {{ pedido.estado === 'en preparación' ? 'En preparación' : 'Aceptar productos' }}
+        </span>
+      </ion-button>
+
+    </ion-card>
+  </div>
+
+  <!-- Botón flotante de volver -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button (click)="volver()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>
