@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -25,7 +26,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
     IonLoading, IonCard, IonCardContent
   ]
 })
-export class PaginaFormularioEncuestaPage {
+export class PaginaFormularioEncuestaPage implements OnInit {
 
   // ID de la encuesta (ajustá si usás otra)
   encuestaId = '00000000-0000-0000-0000-000000000001';
@@ -53,8 +54,14 @@ export class PaginaFormularioEncuestaPage {
 
   constructor(
     private encuestas: EncuestasService,
-    private toast: ToastrService
+    private toast: ToastrService,
+    private router: Router
   ) {}
+
+  async ngOnInit() {
+    // Verificar si puede completar la encuesta
+    await this.verificarPermisosEncuesta();
+  }
 
   // Botón enviar deshabilitado si falta algo o está guardando
   get formularioInvalido(): boolean {
@@ -113,6 +120,9 @@ export class PaginaFormularioEncuestaPage {
       this.toast.success('¡Gracias! Tu opinión fue enviada.', 'Encuesta');
 
       this.resetForm();
+      
+      // Redirigir de vuelta al home del cliente
+      this.router.navigate(['/cliente-pedido-en-curso']);
 
     } catch (e: any) {
       console.error('[encuesta] enviar ERROR', e);
@@ -136,5 +146,33 @@ export class PaginaFormularioEncuestaPage {
       shows_en_vivo: false,
     };
     this.errores = [];
+  }
+
+  /**
+   * Verifica si el cliente puede completar la encuesta
+   */
+  private async verificarPermisosEncuesta() {
+    try {
+      // Verificar si ya completó una encuesta
+      const yaCompleto = await this.encuestas.yaCompletoEncuesta();
+      if (yaCompleto) {
+        this.toast.warning('Ya completaste la encuesta para esta estadía');
+        this.router.navigate(['/home-cliente']);
+        return;
+      }
+
+      // Verificar si puede completar encuesta (debe tener mesa asignada)
+      const puedeCompletar = await this.encuestas.puedeCompletarEncuesta();
+      if (!puedeCompletar) {
+        this.toast.warning('Solo puedes completar la encuesta mientras tienes mesa asignada');
+        this.router.navigate(['/home-cliente']);
+        return;
+      }
+
+    } catch (error: any) {
+      console.error('Error al verificar permisos de encuesta:', error);
+      this.toast.error('Error al verificar permisos de encuesta');
+      this.router.navigate(['/home-cliente']);
+    }
   }
 }

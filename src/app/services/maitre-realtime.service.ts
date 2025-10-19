@@ -50,11 +50,23 @@ export class MaitreRealtimeService implements OnDestroy {
   constructor(private supa: SupabaseService) {}
 
   async init() {
-    if (this.inited) return;
+    console.log('[MaitreRealtimeService] 🚀 Inicializando servicio...');
+    if (this.inited) {
+      console.log('[MaitreRealtimeService] ⚠️ Servicio ya inicializado');
+      return;
+    }
     this.inited = true;
 
+    console.log('[MaitreRealtimeService] 🔐 Verificando permisos de notificaciones...');
     const perm = await LocalNotifications.checkPermissions();
-    if (perm.display !== 'granted') await LocalNotifications.requestPermissions();
+    console.log('[MaitreRealtimeService] 📱 Permisos actuales:', perm);
+    
+    if (perm.display !== 'granted') {
+      console.log('[MaitreRealtimeService] 🔐 Solicitando permisos...');
+      await LocalNotifications.requestPermissions();
+    }
+    
+    console.log('[MaitreRealtimeService] 📺 Creando canal de notificaciones...');
     await LocalNotifications.createChannel?.({
       id: 'maitre',
       name: 'Maître',
@@ -62,23 +74,24 @@ export class MaitreRealtimeService implements OnDestroy {
       importance: 5, visibility: 1,
     });
 
-    // 👉 Nos suscribimos a UPDATE y filtramos directamente por NEW.estado=esperando
+    // 👉 Nos suscribimos a INSERT y UPDATE para detectar nuevos clientes en espera
+    console.log('[MaitreRealtimeService] 🔗 Configurando canal realtime...');
+    console.log('[MaitreRealtimeService] 👤 idUsuario:', this.supa.idUsuario);
+    
     this.ch = this.supa.client
       .channel(`le_estado_esperando_${this.supa.idUsuario || 'maitre'}`)
       .on('postgres_changes', {
-        event: 'UPDATE',
+        event: 'INSERT',
         schema: 'public',
         table: 'lista_espera',
-        filter: 'estado=eq.esperando',    // <- clave: solo updates que dejan estado en 'esperando'
+        filter: 'estado=eq.esperando',    // <- INSERTs que van directo a 'esperando'
       }, async (payload) => {
+        console.log('[MaitreRealtimeService] 🔔 INSERT detectado:', payload);
         const it: any = payload.new || {};
         const nombre = it.nombre || it.alias || 'Cliente';
         const cant = it.cantidad_comensales ?? '-';
 
-        // (Opcional) Evitar duplicado si ya estaba en 'esperando'
-        // Si tenés replica identity y payload.old disponible:
-        // if (payload.old?.estado === 'esperando') return;
-
+        console.log('[MaitreRealtimeService] 📱 Enviando notificación INSERT...');
         await LocalNotifications.schedule({
           notifications: [{
             id: Date.now() % 2147483647,
@@ -88,8 +101,46 @@ export class MaitreRealtimeService implements OnDestroy {
             smallIcon: 'ic_stat_notify',
           }]
         });
+        console.log('[MaitreRealtimeService] ✅ Notificación INSERT enviada');
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'lista_espera',
+        filter: 'estado=eq.esperando',    // <- UPDATEs que dejan estado en 'esperando'
+      }, async (payload) => {
+        console.log('[MaitreRealtimeService] 🔄 UPDATE detectado:', payload);
+        const it: any = payload.new || {};
+        const oldIt: any = payload.old || {};
+        
+        console.log('[MaitreRealtimeService] 📊 Estados:', { 
+          old: oldIt.estado, 
+          new: it.estado 
+        });
+        
+        // Solo notificar si cambió DE otro estado A 'esperando'
+        if (oldIt.estado !== 'esperando' && it.estado === 'esperando') {
+          const nombre = it.nombre || it.alias || 'Cliente';
+          const cant = it.cantidad_comensales ?? '-';
+
+          console.log('[MaitreRealtimeService] 📱 Enviando notificación UPDATE...');
+          await LocalNotifications.schedule({
+            notifications: [{
+              id: Date.now() % 2147483647,
+              title: 'Nuevo Cliente en lista de espera!!',
+              body: `(${cant} comensales) esperando ingresar`,
+              channelId: 'maitre',
+              smallIcon: 'ic_stat_notify',
+            }]
+          });
+          console.log('[MaitreRealtimeService] ✅ Notificación UPDATE enviada');
+        } else {
+          console.log('[MaitreRealtimeService] ⏭️ No se notifica (no cambió a esperando)');
+        }
       })
       .subscribe();
+    
+    console.log('[MaitreRealtimeService] ✅ Servicio inicializado correctamente');
   }
 
   dispose() { this.ch?.unsubscribe(); this.ch = undefined; this.inited = false; }

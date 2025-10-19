@@ -1,0 +1,156 @@
+.pagos-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.pago-card {
+  margin-bottom: 20px;
+  border-left: 4px solid #ff9800;
+  
+  .pago-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    ion-card-title {
+      color: #1976d2;
+      font-weight: bold;
+    }
+    
+    .pago-badge {
+      --background: #ff9800;
+      --color: white;
+    }
+  }
+}
+
+.cliente-info {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  
+  p {
+    margin: 4px 0;
+    color: #333;
+  }
+}
+
+.pedidos-section {
+  margin-bottom: 16px;
+  
+  h4 {
+    color: #1976d2;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+  
+  .subtotal {
+    font-weight: bold;
+    color: #2e7d32;
+  }
+}
+
+.propina-section {
+  background: #e8f5e8;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+  margin-bottom: 16px;
+  
+  h4 {
+    color: #4caf50;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+  
+  .propina-monto {
+    font-weight: bold;
+    color: #2e7d32;
+    font-size: 1.1em;
+  }
+}
+
+.totales-section {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  
+  .total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid #e0e0e0;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &.propina {
+      color: #4caf50;
+    }
+    
+    &.total-final {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #1976d2;
+      border-top: 2px solid #1976d2;
+      margin-top: 8px;
+      padding-top: 12px;
+    }
+  }
+}
+
+.btn-confirmar {
+  --background: #4caf50;
+  --background-hover: #45a049;
+  margin-top: 16px;
+}
+
+.no-pagos {
+  text-align: center;
+  padding: 40px 20px;
+  
+  .no-pagos-icon {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+  
+  h3 {
+    color: #666;
+    margin-bottom: 8px;
+  }
+  
+  p {
+    color: #999;
+  }
+}
+
+.btn-volver {
+  margin-top: 20px;
+  --color: #666;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .pagos-container {
+    padding: 0 8px;
+  }
+  
+  .pago-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .total-line {
+    font-size: 0.9em;
+    
+    &.total-final {
+      font-size: 1.1em;
+    }
+  }
+}

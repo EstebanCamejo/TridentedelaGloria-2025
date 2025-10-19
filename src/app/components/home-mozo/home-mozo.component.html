@@ -8,7 +8,10 @@
     <ion-segment
       [value]="tab" (ionChange)="onTabChange($event)" mode="ios" class="top-segment">
       <ion-segment-button value="pedidos">
-        <ion-label>Pedidos</ion-label>
+        <ion-label>Pendientes</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="en-curso">
+        <ion-label>En Curso</ion-label>
       </ion-segment-button>
       <ion-segment-button value="consultas">
         <ion-label>Consultas</ion-label>
@@ -19,29 +22,142 @@
 
 
 <ion-content class="mz-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  
   <div class="wrap" [ngSwitch]="tab">
 
     <!-- ====== TAB PEDIDOS ====== -->
     <ng-container *ngSwitchCase="'pedidos'">
-      <ion-card class="pedido" *ngFor="let p of pedidos" (click)="abrirPedido(p.id)">
+      <!-- Cargando -->
+      <div *ngIf="cargandoPedidos" class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando pedidos...</p>
+      </div>
+
+      <!-- Sin pedidos pendientes -->
+      <div *ngIf="!cargandoPedidos && pedidos.length === 0" class="empty-state">
+        <p>✅ No hay pedidos pendientes de confirmación</p>
+      </div>
+
+      <!-- Lista de pedidos pendientes -->
+      <ion-card class="pedido pendiente" *ngFor="let p of pedidos">
         <ion-card-header>
-          <ion-card-title>Mesa: {{ p.mesa }}</ion-card-title>
+          <ion-card-title>Mesa: {{ p.mesa_numero || 'Sin mesa' }}</ion-card-title>
+          <ion-card-subtitle>{{ p.cantidad_items }} productos</ion-card-subtitle>
         </ion-card-header>
 
         <ion-card-content>
-          <div class="estado-pill" [ngClass]="estadoClass(p.estado)">
-            Estado Pedido: {{ estadoLabel(p.estado) }}
-          </div>
-
           <div class="info">
-            <div>Cliente: <strong>{{ p.cliente }}</strong></div>
-            <div>Fecha de Pedido: <strong>{{ p.fecha | date:'dd/MM/yy HH:mm' }}</strong></div>
+            <div>Cliente: <strong>{{ p.cliente_email }}</strong></div>
+            <div>Fecha: <strong>{{ p.created_at | date:'dd/MM/yy HH:mm' }}</strong></div>
             <div>Total: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
+            <div>Tiempo estimado: <strong>{{ p.tiempo_estimado }} min</strong></div>
           </div>
 
-          <ion-button class="cta" expand="block" fill="solid">
-            {{ estadoLabel(p.estado) | uppercase }}
+          <!-- Botones para pedido pendiente -->
+          <div class="button-group">
+            <ion-button 
+              class="btn-confirmar" 
+              expand="block" 
+              fill="solid"
+              color="success"
+              [disabled]="confirmandoId === p.id"
+              (click)="confirmarPedido(p)">
+              <ion-spinner *ngIf="confirmandoId === p.id" slot="start"></ion-spinner>
+              <ion-icon *ngIf="confirmandoId !== p.id" name="checkmark-circle-outline" slot="start"></ion-icon>
+              {{ confirmandoId === p.id ? 'CONFIRMANDO...' : 'CONFIRMAR PEDIDO' }}
+            </ion-button>
+
+            <ion-button 
+              class="btn-rechazar" 
+              expand="block" 
+              fill="outline"
+              color="danger"
+              [disabled]="rechazandoId === p.id"
+              (click)="rechazarPedidoPendiente(p)">
+              <ion-spinner *ngIf="rechazandoId === p.id" slot="start"></ion-spinner>
+              <ion-icon *ngIf="rechazandoId !== p.id" name="close-circle-outline" slot="start"></ion-icon>
+              {{ rechazandoId === p.id ? 'RECHAZANDO...' : 'RECHAZAR PEDIDO' }}
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+
+    <!-- ====== TAB EN CURSO ====== -->
+    <ng-container *ngSwitchCase="'en-curso'">
+      <!-- Cargando -->
+      <div *ngIf="cargandoPedidosEnCurso" class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando pedidos en curso...</p>
+      </div>
+
+      <!-- Sin pedidos en curso -->
+      <div *ngIf="!cargandoPedidosEnCurso && pedidosEnCurso.length === 0" class="empty-state">
+        <p>✅ No hay pedidos en curso</p>
+      </div>
+
+      <!-- Lista de pedidos en curso -->
+      <ion-card class="pedido en-curso" *ngFor="let p of pedidosEnCurso">
+        <ion-card-header>
+          <ion-card-title>Mesa: {{ p.mesa_numero || 'Sin mesa' }}</ion-card-title>
+          <ion-card-subtitle>{{ p.cantidad_items }} productos</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="info">
+            <div>Cliente: <strong>{{ p.cliente_email }}</strong></div>
+            <div>Fecha: <strong>{{ p.created_at | date:'dd/MM/yy HH:mm' }}</strong></div>
+            <div>Total: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
+            <div>Tiempo estimado: <strong>{{ p.tiempo_estimado }} min</strong></div>
+            <div>Estado: <strong>{{ p.estado }}</strong></div>
+          </div>
+
+          <ion-button 
+            *ngIf="p.estado === 'listo para entregar'"
+            class="cta btn-entregar" 
+            expand="block" 
+            fill="solid"
+            color="success"
+            [disabled]="entregandoId === p.id"
+            (click)="entregarPedido(p)">
+            <ion-spinner *ngIf="entregandoId === p.id" slot="start"></ion-spinner>
+            <ion-icon *ngIf="entregandoId !== p.id" name="checkmark-circle-outline" slot="start"></ion-icon>
+            {{ entregandoId === p.id ? 'ENTREGANDO...' : 'ENTREGAR PEDIDO' }}
           </ion-button>
+
+          <ion-button 
+            *ngIf="p.estado === 'pendiente confirmacion pago'"
+            class="cta btn-confirmar-pago" 
+            expand="block" 
+            fill="solid"
+            color="warning"
+            (click)="irAConfirmarPago()">
+            <ion-icon name="card-outline" slot="start"></ion-icon>
+            CONFIRMAR PAGO
+          </ion-button>
+
+          <div *ngIf="p.estado === 'pedido en curso'" class="estado-info">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>Preparando pedido...</span>
+          </div>
+
+          <!-- Botones para pedido en curso -->
+          <div *ngIf="p.estado === 'pedido en curso'" class="button-group">
+            <ion-button 
+              class="btn-rechazar" 
+              expand="block" 
+              fill="outline"
+              color="danger"
+              [disabled]="rechazandoId === p.id"
+              (click)="rechazarPedido(p)">
+              <ion-spinner *ngIf="rechazandoId === p.id" slot="start"></ion-spinner>
+              <ion-icon *ngIf="rechazandoId !== p.id" name="close-circle-outline" slot="start"></ion-icon>
+              {{ rechazandoId === p.id ? 'RECHAZANDO...' : 'RECHAZAR PEDIDO' }}
+            </ion-button>
+          </div>
         </ion-card-content>
       </ion-card>
     </ng-container>
@@ -91,10 +207,5 @@
 
   </div>
 
-  <!-- FAB salir -->
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-    <ion-fab-button class="fab-logout" (click)="logout()">
-      <ion-icon name="log-out-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+
 </ion-content>

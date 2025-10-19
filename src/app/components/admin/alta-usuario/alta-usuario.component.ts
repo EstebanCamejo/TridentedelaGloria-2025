@@ -124,6 +124,11 @@ export class AltaUsuarioComponent {
 
   async escanearDNI() {
     try {
+      console.log('[alta-usuario] 📸 Iniciando escaneo DNI...');
+      
+      // 🎬 NUEVO: Preparar sesión ANTES de abrir la cámara
+      await this.supa.prepareForCameraUse();
+      
       let perm: PermissionStatus = await BarcodeScanner.checkPermissions();
       if (!perm.camera || perm.camera === 'denied') {
         perm = await BarcodeScanner.requestPermissions();
@@ -137,6 +142,15 @@ export class AltaUsuarioComponent {
         // ⬅️ Enum correcto
         formats: [BarcodeFormat.Pdf417],
       });
+  
+      console.log('[alta-usuario] 🔄 Cámara cerrada, restaurando sesión...');
+      
+      // ⚠️ CRÍTICO: Restaurar sesión de Supabase después de usar la cámara
+      const sessionRestored = await this.supa.restoreSessionAfterCamera();
+      
+      if (!sessionRestored) {
+        console.warn('[alta-usuario] ⚠️ No se pudo restaurar la sesión completamente');
+      }
   
       // Algunos wrappers devuelven número/enum; por las dudas, validamos ambos
       const isPdf417 = (f: any) =>

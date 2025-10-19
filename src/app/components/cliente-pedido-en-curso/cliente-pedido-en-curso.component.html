@@ -22,8 +22,21 @@
   <div class="demora"><strong>Demora estimada:</strong> {{ tiempo }}min.</div>
 </div>
 
-        <!-- Botón de ejemplo (no hace nada) -->
-        <ion-button expand="block" class="cta">
+        <!-- Botones según estado del pedido -->
+        <div *ngIf="estado === 'pendiente aceptación'" class="aceptacion-buttons">
+          <h3>¿El pedido está correcto?</h3>
+          <div class="button-group">
+            <ion-button expand="block" class="btn-aceptar" (click)="aceptarPedido()">
+              ✅ Aceptar Pedido
+            </ion-button>
+            <!-- <ion-button expand="block" class="btn-rechazar" (click)="rechazarPedido()">
+              ❌ Rechazar Pedido
+            </ion-button> -->
+          </div>
+        </div>
+
+        <!-- Botón para pedir cuenta (solo cuando está entregado) -->
+        <ion-button *ngIf="estado === 'entregado'" expand="block" class="cta" (click)="pedirCuenta()">
           Pedir la cuenta
         </ion-button>
       </ion-card-content>
@@ -33,13 +46,24 @@
     <ion-grid fixed>
       <ion-row>
       <div class="action-stack">
-<ion-button
-  *ngIf="!hasPedido"
+<!-- Botón "Ver Menú y Pedir" solo si NO ha realizado un pedido -->
+<ion-button 
+  *ngIf="!yaRealizoPedido"
   class="option-card var1"
   expand="block"
   (click)="irARealizarPedido()">
   <img src="../../../assets/plato.png" class="icono" alt="">
-  <span class="btn-text">Realizar el pedido</span>
+  <span class="btn-text">Ver Menú y Pedir</span>
+</ion-button>
+
+<!-- Botón para editar pedido rechazado por mozo -->
+<ion-button 
+  *ngIf="estado === 'rechazado por mozo'"
+  class="option-card var-edit"
+  expand="block"
+  (click)="editarPedidoRechazado()">
+  <img src="../../../assets/plato.png" class="icono" alt="">
+  <span class="btn-text">Editar Pedido</span>
 </ion-button>
 
   <ion-button class="option-card var2" expand="block"
@@ -55,6 +79,27 @@
   <img src="../../../assets/dado.png" class="icono" alt="">
   <span class="btn-text">Juegos</span>
 </ion-button>
+
+<!-- Opciones disponibles solo cuando el pedido está entregado -->
+<div *ngIf="estado === 'entregado'" class="post-entrega-options">
+  <!-- Botón de encuesta solo si no la completó -->
+  <ion-button 
+    *ngIf="!yaCompletoEncuesta"
+    class="option-card var4" 
+    expand="block" 
+    (click)="irAEncuestas()">
+    <img src="../../../assets/encuesta.png" class="icono" alt="">
+    <span class="btn-text">Completar Encuesta</span>
+  </ion-button>
+
+  <!-- <ion-button 
+    class="option-card var5" 
+    expand="block" 
+    (click)="irAPago()">
+    <img src="../../../assets/pagar.png" class="icono" alt="">
+    <span class="btn-text">Pagar Pedido</span>
+  </ion-button> -->
+</div>
 </div>
 
 

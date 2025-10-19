@@ -111,8 +111,7 @@
   color: var(--ink);
 }
 
-/* FAB salir */
-.fab-logout{ --background:#b71c1c; --color:#fff; box-shadow: var(--shadow); }
+/* FAB salir - REMOVIDO: no se usa en este componente */
 
 /* mensaje vacío */
 .empty{ margin: 16px auto; text-align: center; opacity:.8; color:#000; }

@@ -7,6 +7,9 @@
 </ion-header>
 
 <ion-content class="cocina-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <div *ngIf="cargando" class="cargando">
     <ion-spinner name="crescent"></ion-spinner>
@@ -51,10 +54,13 @@
         expand="full" 
         class="aceptar-btn"
         (click)="aceptarPedido(pedido)"
-        [disabled]="pedido.estado === 'en preparación' || estaProcesando(pedido.id)">
+        [disabled]="pedido.estado === 'listo para entregar' || estaSectorListo(pedido) || estaProcesando(pedido.id)">
         <ion-spinner *ngIf="estaProcesando(pedido.id)" name="crescent"></ion-spinner>
         <span *ngIf="!estaProcesando(pedido.id)">
-          {{ pedido.estado === 'en preparación' ? 'En preparación' : 'Aceptar productos' }}
+          {{ pedido.estado === 'pedido en curso' ? 'Aceptar productos' : 
+             pedido.estado === 'en preparación' ? 'Listo para entregar' : 
+             pedido.estado === 'en preparación parcial' ? 'Listo para entregar' : 
+             pedido.estado === 'listo para entregar' ? 'Listo para entregar' : 'Aceptar productos' }}
         </span>
       </ion-button>
 

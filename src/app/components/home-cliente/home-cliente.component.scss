@@ -184,18 +184,12 @@
   .cta{ height: clamp(96px, 22svh, 150px); }
 }
 
-/* ===== FAB Logout: súbelo por encima de la barra gestual ===== */
-/* SUBIR un poco el FAB de logout */
-ion-fab.fab-salir{
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 55px) !important; /* antes +28px */
-  right:  calc(env(safe-area-inset-right, 0px) + 12px) !important;
-}
+/* ===== FAB Logout - REMOVIDO: no se usa en este componente ===== */
 
 
 /* (Extra) deja más aire si el dispositivo es súper bajo en alto */
 @media (max-height: 640px){
   .client-wrap{ padding-bottom: calc(var(--safe-bottom) + 112px); }
-  ion-fab.fab-salir{ bottom: calc(var(--safe-bottom) + 32px) !important; }
 }
 .qr-preview-modal::part(content) {
   --background: #000;         /* fondo negro tipo cámara */

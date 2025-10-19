@@ -72,12 +72,29 @@ export class EncuestasService {
   }
 
   private async getResultadosDesdeSupabase(encuestaId: string): Promise<ResultadosEncuesta> {
-    const { data, error } = await this.supa.client
+    console.log('[EncuestasService] 🔄 Obteniendo resultados...');
+    console.log('[EncuestasService] encuesta_id:', encuestaId);
+    
+    // Agregar timeout de 5 segundos para evitar espera infinita
+    const consultaPromise = this.supa.client
       .from('v_encuesta_agg')
       .select('clave, etiqueta, cantidad')
       .eq('encuesta_id', encuestaId);
+    
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('La consulta a la base de datos está tardando demasiado. Verifica tu conexión a internet o intenta nuevamente.')), 5000)
+    );
+    
+    const { data, error } = await Promise.race([consultaPromise, timeoutPromise]) as any;
 
-    if (error) throw error;
+    console.log('[EncuestasService] 📊 Consulta completada');
+    console.log('[EncuestasService] Data:', data);
+    console.log('[EncuestasService] Error:', error);
+
+    if (error) {
+      console.error('[EncuestasService] ❌ Error en consulta:', error);
+      throw error;
+    }
 
     const byClave: Record<ClaveAgg, ChartItem[]> = {
       limpieza: [],
@@ -112,6 +129,18 @@ export class EncuestasService {
     if (!p.encuesta_id) throw new Error('Encuesta inválida.');
     if (!p.calificacion_limpieza) throw new Error('Ingresá tu calificación de limpieza.');
     if (!p.aspecto_valorado) throw new Error('Indicá qué aspecto valoraste.');
+
+    // VALIDACIÓN: Verificar que puede completar encuesta (mesa asignada)
+    const puedeCompletar = await this.supa.puedeCompletarEncuesta();
+    if (!puedeCompletar) {
+      throw new Error('Solo puedes completar la encuesta mientras tienes mesa asignada.');
+    }
+
+    // NUEVA VALIDACIÓN: Verificar que no haya completado ya una encuesta
+    const yaCompleto = await this.supa.yaCompletoEncuesta();
+    if (yaCompleto) {
+      throw new Error('Ya completaste la encuesta para esta estadía.');
+    }
 
     // 1) Subir fotos si vinieron
     let foto_urls: string[] | undefined;
@@ -168,6 +197,20 @@ export class EncuestasService {
   private detectExt(mime?: string): '.jpg' | '.png' {
     if (!mime) return '.jpg';
     return mime.includes('png') ? '.png' : '.jpg';
+  }
+
+  /**
+   * Verifica si el cliente puede completar una encuesta (mesa asignada Y pagado)
+   */
+  async puedeCompletarEncuesta(): Promise<boolean> {
+    return await this.supa.puedeCompletarEncuestaConPago();
+  }
+
+  /**
+   * Verifica si el cliente ya completó una encuesta para su estadía actual
+   */
+  async yaCompletoEncuesta(): Promise<boolean> {
+    return await this.supa.yaCompletoEncuesta();
   }
 
   

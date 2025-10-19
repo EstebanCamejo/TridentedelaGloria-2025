@@ -1,0 +1,90 @@
+warning: in the working copy of 'supabase/functions/notificar-cliente/index.ts', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/supabase/functions/notificar-cliente/index.ts b/supabase/functions/notificar-cliente/index.ts[m
+[1mindex 21f0751..9684874 100644[m
+[1m--- a/supabase/functions/notificar-cliente/index.ts[m
+[1m+++ b/supabase/functions/notificar-cliente/index.ts[m
+[36m@@ -14,7 +14,8 @@[m [mtype Body = {[m
+   email: string;[m
+   nombres: string;[m
+   apellidos: string;[m
+[31m-  estado: "aprobado" | "rechazado" | "pendiente";[m
+[32m+[m[32m  estado: "aprobado" | "rechazado" | "pendiente" | "mesa_asignada";[m
+[32m+[m[32m  numeroMesa?: number;  // Solo para estado "mesa_asignada"[m
+ };[m
+ [m
+ // Paleta + Logo (podés moverlos a secrets si querés)[m
+[36m@@ -114,12 +115,14 @@[m [mfunction u8ToBase64(u8: Uint8Array) {[m
+ // </body></html>`;[m
+ // }[m
+ [m
+[31m-function makeHtml(nombres: string, apellidos: string, estado: Body["estado"]) {[m
+[32m+[m[32mfunction makeHtml(nombres: string, apellidos: string, estado: Body["estado"], numeroMesa?: number) {[m
+   const titulo =[m
+     estado === "aprobado"[m
+       ? "Registro aprobado – El Tridente de la Gloria"[m
+       : estado === "rechazado"[m
+       ? "Registro rechazado – El Tridente de la Gloria"[m
+[32m+[m[32m      : estado === "mesa_asignada"[m
+[32m+[m[32m      ? "¡Tu mesa está lista! – El Tridente de la Gloria"[m
+       : "Registro en revisión – El Tridente de la Gloria";[m
+ [m
+   const lead =[m
+[36m@@ -127,6 +130,8 @@[m [mfunction makeHtml(nombres: string, apellidos: string, estado: Body["estado"]) {[m
+       ? "Tu cuenta fue aprobada. Ya podés ingresar a la app con tu correo y contraseña."[m
+       : estado === "rechazado"[m
+       ? "Tu registro fue rechazado. Si creés que es un error, respondé este email."[m
+[32m+[m[32m      : estado === "mesa_asignada"[m
+[32m+[m[32m      ? `¡Buenas noticias! Tu mesa${numeroMesa ? ` N° ${numeroMesa}` : ''} está lista. Por favor, acercate al restaurant para ser atendido.`[m
+       : "Tu registro está siendo revisado. Te avisaremos cuando haya novedades.";[m
+ [m
+   const nombreCompleto = `${nombres} ${apellidos}`.trim();[m
+[36m@@ -136,6 +141,8 @@[m [mfunction makeHtml(nombres: string, apellidos: string, estado: Body["estado"]) {[m
+     ? "Ya podés ingresar a la app con tu correo y contraseña."[m
+     : estado === "rechazado"[m
+     ? "Si creés que es un error, respondé este email."[m
+[32m+[m[32m    : estado === "mesa_asignada"[m
+[32m+[m[32m    ? `Tu mesa${numeroMesa ? ` N° ${numeroMesa}` : ''} está lista. Por favor, acercate al restaurant.`[m
+     : "Estamos revisando tu registro.";[m
+ [m
+   return `<!doctype html>[m
+[36m@@ -193,6 +200,8 @@[m [mfunction makeHtml(nombres: string, apellidos: string, estado: Body["estado"]) {[m
+               ${[m
+                 estado === "aprobado"[m
+                   ? `<p style="margin:0; color:#333;">Si tenés algún problema para entrar, respondé este mensaje.</p>`[m
+[32m+[m[32m                  : estado === "mesa_asignada"[m
+[32m+[m[32m                  ? `<p style="margin:0; color:#333; font-weight:600;">Te esperamos en el restaurant. ¡Que disfrutes tu comida! 🍴</p>`[m
+                   : ``[m
+               }[m
+             </td>[m
+[36m@@ -267,7 +276,7 @@[m [mDeno.serve(async (req: Request) => {[m
+     );[m
+   }[m
+ [m
+[31m-  const { email, nombres, apellidos, estado } = body;[m
+[32m+[m[32m  const { email, nombres, apellidos, estado, numeroMesa } = body;[m
+ [m
+   // Secrets[m
+   const SENDGRID_API_KEY = Deno.env.get("SENDGRID_API_KEY");[m
+[36m@@ -284,16 +293,19 @@[m [mDeno.serve(async (req: Request) => {[m
+       ? "Registro aprobado – El Tridente de la Gloria"[m
+       : estado === "rechazado"[m
+       ? "Registro rechazado – El Tridente de la Gloria"[m
+[32m+[m[32m      : estado === "mesa_asignada"[m
+[32m+[m[32m      ? `¡Tu mesa${numeroMesa ? ` N° ${numeroMesa}` : ''} está lista! – El Tridente de la Gloria`[m
+       : "Registro en revisión – El Tridente de la Gloria";[m
+ [m
+[31m-  let html = makeHtml(nombres, apellidos, estado);[m
+[32m+[m[32m  let html = makeHtml(nombres, apellidos, estado, numeroMesa);[m
+   const text = `Hola ${nombres} ${apellidos},[m
+[31m-Tu estado actual es: ${estado}.[m
+ ${[m
+   estado === "aprobado"[m
+[31m-    ? "Ya podés ingresar a la app con tu correo y contraseña."[m
+[32m+[m[32m    ? "Tu cuenta fue aprobada. Ya podés ingresar a la app con tu correo y contraseña."[m
+     : estado === "rechazado"[m
+     ? "Tu registro fue rechazado. Si creés que es un error, respondé este email."[m
+[32m+[m[32m    : estado === "mesa_asignada"[m
+[32m+[m[32m    ? `¡Buenas noticias! Tu mesa${numeroMesa ? ` N° ${numeroMesa}` : ''} está lista. Por favor, acercate al restaurant para ser atendido. ¡Que disfrutes tu comida!`[m
+     : "Tu registro está siendo revisado. Te avisaremos cuando haya novedades."[m
+ }[m
+ — El Tridente de la Gloria`;[m

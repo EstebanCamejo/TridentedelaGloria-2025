@@ -8,7 +8,8 @@ import { addIcons } from 'ionicons';
 import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart} from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { SupabaseService } from 'src/app/services/supabase.service';
-import { ToastrService } from 'ngx-toastr'; 
+import { ToastrService } from 'ngx-toastr';
+import { AdminRealtimeService } from 'src/app/services/admin-realtime.service'; 
 
 @Component({
   selector: 'app-home-admin',
@@ -22,7 +23,13 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
   private rtChannel?: ReturnType<typeof this.supa.client.channel>;
   private notifiedIds = new Map<string, number>(); // id -> timestamp
 
-  constructor(private router: Router, private supa: SupabaseService, private toast: ToastrService, private route: ActivatedRoute) {
+  constructor(
+    private router: Router, 
+    private supa: SupabaseService, 
+    private toast: ToastrService, 
+    private route: ActivatedRoute,
+    private adminRt: AdminRealtimeService
+  ) {
     addIcons({ checkmarkDoneCircle, personAdd, restaurant, statsChart, create });    
   }
 
@@ -105,16 +112,20 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
         });
       })
       .subscribe();
+
+    // Inicializar servicio de notificaciones para administradores
+    await this.adminRt.init();
   }
   
 
   ngOnDestroy() {
-  if (this.rtChannel) this.supa.client.removeChannel(this.rtChannel as any);
+    if (this.rtChannel) this.supa.client.removeChannel(this.rtChannel as any);
+    this.adminRt.dispose();
   }
 
   irAListaDeEspera() { this.router.navigate(['/admin/pendientes']); }
   irAAltaUsuarios()  { this.router.navigate(['/admin/alta-usuario']); }
-  irAResultados()    { this.router.navigate(['/admin/resultados-encuestas']); }
+  irAResultados()    { this.router.navigate(['/pagina-resultados-encuestas']); }
   irAMesas()         { this.router.navigate(['/admin/mesas']);}
 
 }

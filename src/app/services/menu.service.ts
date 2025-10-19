@@ -177,6 +177,30 @@ async crearPedido(pedido: {
       .eq('id', idPedido);
   } catch {} // ignorar si no existen las columnas
 
+  // 🔔 Enviar broadcast para notificar a mozos
+  try {
+    await this.supabase.client
+      .channel('mozo_pedidos_broadcast')
+      .send({
+        type: 'broadcast',
+        event: 'nuevo_pedido',
+        payload: {
+          pedido: {
+            id: idPedido,
+            idCliente: pedido.idCliente,
+            estado: 'pendiente',
+            total,
+            tiempo_estimado: tiempoEstimado
+          }
+        }
+      });
+    console.log(`[MenuService] 📡 Broadcast enviado para pedido ${idPedido}`);
+  } catch (error) {
+    console.error('[MenuService] Error enviando broadcast:', error);
+  }
+
+  console.log(`[MenuService] ✅ Pedido ${idPedido} creado`);
+
   return { id: idPedido, total, tiempoEstimado };
 }
   // ⬇️ Resumen de un pedido (estado + total + tiempo) recálculo por seguridad
@@ -190,7 +214,6 @@ async crearPedido(pedido: {
     if (e1) throw e1;
     if (!ped) throw new Error('Pedido no encontrado');
 
-    // si ya hay total/tiempo en encabezado, usalos; si no, recalcular
     let total = Number(ped.total) || 0;
     let tiempoEstimado = Number(ped.tiempo_estimado) || 0;
 
@@ -222,7 +245,13 @@ async crearPedido(pedido: {
       tiempoEstimado = maxT;
     }
 
-    return { id: ped.id, estado: ped.estado, total, tiempoEstimado, created_at: ped.created_at };
+    return { 
+      id: ped.id, 
+      estado: ped.estado, 
+      total, 
+      tiempoEstimado, 
+      created_at: ped.created_at
+    };
   }
 
   async getUltimoPedidoDeCliente(clienteAuthId: string) {
@@ -301,7 +330,7 @@ async crearPedido(pedido: {
     console.log('🔍 Iniciando obtención de pedidos de cocina...');
 
     try {
-      // Consulta principal - EXCLUIR "en preparación" y otros estados finalizados
+      // Consulta principal - SOLO pedidos confirmados por el mozo
       const { data, error } = await this.supabase.client
         .from('pedidos')
         .select(`
@@ -319,10 +348,7 @@ async crearPedido(pedido: {
           )
         `)
         .eq('pedidos_detalles.menu.tipo', 'plato')
-        .in('estado', ['pendiente', 'confirmado'])
-        .neq('estado', 'en preparación')
-        .neq('estado', 'completado')
-        .neq('estado', 'cancelado')
+        .in('estado', ['pedido en curso', 'en preparación', 'en preparación parcial'])  // ✅ Pedidos en curso, en preparación y en preparación parcial
         .order('created_at', { ascending: true }); // Ordenar por fecha más antigua primero
 
       console.log('🔎 Resultado de consulta filtrada:', data);
@@ -334,7 +360,7 @@ async crearPedido(pedido: {
       }
 
       if (!data || data.length === 0) {
-        console.log('⚠️ No se encontraron pedidos con productos de tipo "plato" en estados pendiente/confirmado');
+        console.log('⚠️ No se encontraron pedidos confirmados con productos de tipo "plato"');
         return [];
       }
 
@@ -425,7 +451,7 @@ async crearPedido(pedido: {
     console.log('🔍 Iniciando obtención de pedidos de bar...');
 
     try {
-      // Consulta principal - EXCLUIR "en preparación" y otros estados finalizados
+      // Consulta principal - SOLO pedidos confirmados por el mozo
       const { data, error } = await this.supabase.client
         .from('pedidos')
         .select(`
@@ -443,10 +469,7 @@ async crearPedido(pedido: {
           )
         `)
         .eq('pedidos_detalles.menu.tipo', 'bebida')
-        .in('estado', ['pendiente', 'confirmado'])
-        .neq('estado', 'en preparación')
-        .neq('estado', 'completado')
-        .neq('estado', 'cancelado')
+        .in('estado', ['pedido en curso', 'en preparación', 'en preparación parcial'])  // ✅ Pedidos en curso, en preparación y en preparación parcial
         .order('created_at', { ascending: true }); // Ordenar por fecha más antigua primero
 
       console.log('🔎 Resultado de consulta filtrada:', data);
@@ -458,7 +481,7 @@ async crearPedido(pedido: {
       }
 
       if (!data || data.length === 0) {
-        console.log('⚠️ No se encontraron pedidos con productos de tipo "bebida" en estados pendiente/confirmado');
+        console.log('⚠️ No se encontraron pedidos confirmados con productos de tipo "bebida"');
         return [];
       }
 
@@ -541,18 +564,19 @@ async crearPedido(pedido: {
     }
   }
 
-  async actualizarEstadoPedido(idPedido: number, nuevoEstado: string, estadoSectorCocina: string): Promise<void> {
+  async actualizarEstadoPedido(idPedido: number, nuevoEstado: string, estadoSector: string, sector?: 'cocina' | 'bar'): Promise<void> {
     try {
       console.log(`🔄 Intentando actualizar pedido ${idPedido} con:`, {
         nuevoEstado,
-        estadoSectorCocina,
+        estadoSector,
+        sector,
         timestamp: new Date().toISOString()
       });
 
       // Verificar primero si el pedido existe
       const { data: pedidoExistente, error: errorVerificar } = await this.supabase.client
         .from('pedidos')
-        .select('id, estado, estado_sector_cocina')
+        .select('id, estado, estado_sector_cocina, estado_sector_bar')
         .eq('id', idPedido)
         .single();
 
@@ -567,14 +591,24 @@ async crearPedido(pedido: {
         throw new Error(`El pedido ${idPedido} no existe`);
       }
 
+      // Preparar el objeto de actualización
+      const updateData: any = {
+        estado: nuevoEstado,
+        updated_at: new Date().toISOString()
+      };
+
+      // Actualizar el campo del sector correspondiente
+      if (sector === 'bar') {
+        updateData.estado_sector_bar = estadoSector;
+      } else {
+        // Por defecto o si es 'cocina'
+        updateData.estado_sector_cocina = estadoSector;
+      }
+
       // Ahora hacer la actualización
       const { data, error } = await this.supabase.client
         .from('pedidos')
-        .update({
-          estado: nuevoEstado,
-          estado_sector_cocina: estadoSectorCocina,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', idPedido)
         .select();
 
@@ -590,7 +624,9 @@ async crearPedido(pedido: {
           estado_anterior: pedidoExistente.estado,
           estado_nuevo: data[0].estado,
           sector_cocina_anterior: pedidoExistente.estado_sector_cocina,
-          sector_cocina_nuevo: data[0].estado_sector_cocina
+          sector_cocina_nuevo: data[0].estado_sector_cocina,
+          sector_bar_anterior: pedidoExistente.estado_sector_bar,
+          sector_bar_nuevo: data[0].estado_sector_bar
         });
       } else {
         console.warn(`⚠️ No se encontró pedido con id ${idPedido} para actualizar (pero existe)`);

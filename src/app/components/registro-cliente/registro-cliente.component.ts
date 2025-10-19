@@ -344,10 +344,15 @@ onFileSelected(ev: Event) {
 // === ESCANEAR DNI ===
   async escanearDNI() {
   try {
+    console.log('[registro-cliente] 📸 Iniciando escaneo DNI...');
+    
     if (!this.isNative()) {
       this.toastError('El escaneo requiere un dispositivo móvil.');
       return;
     }
+
+    // 🎬 NUEVO: Preparar sesión ANTES de abrir la cámara
+    await this.auth.prepareForCameraUse();
 
     // 👉 pide permiso si hace falta
     const ok = await this.ensureScanPermission();
@@ -357,6 +362,15 @@ onFileSelected(ev: Event) {
     const { barcodes } = await BarcodeScanner.scan({
       formats: [BarcodeFormat.Pdf417], // DNI argentino (reverso)
     });
+
+    console.log('[registro-cliente] 🔄 Cámara cerrada, restaurando sesión...');
+    
+    // ⚠️ CRÍTICO: Restaurar sesión de Supabase después de usar la cámara
+    const sessionRestored = await this.auth.restoreSessionAfterCamera();
+    
+    if (!sessionRestored) {
+      console.warn('[registro-cliente] ⚠️ No se pudo restaurar la sesión completamente');
+    }
 
     if (!barcodes?.length) {
       this.toastError('No se detectó ningún código.');

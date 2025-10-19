@@ -59,10 +59,13 @@ export class TapComponent implements OnDestroy {
     return 0;
   }
 
+
   async claim() {
     const t = await this.toast.create({
-      message: this.discount ? `¡Descuento del ${this.discount}% listo!` : 'Sin descuento esta vez, ¡intentalo de nuevo!',
-      duration: 1800, color: this.discount ? 'success' : 'medium', position: 'top'
+      message: '¡Descuento del 10% aplicado!',
+      duration: 2000, 
+      color: 'success', 
+      position: 'top'
     });
     t.present();
   }

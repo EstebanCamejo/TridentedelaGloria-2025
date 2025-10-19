@@ -124,21 +124,21 @@ export class ListaEsperaComponent implements OnDestroy {
     private alert: AlertController,
     private toast: ToastController,
     private sheet: ActionSheetController,
-    private realtime: MaitreRealtimeService
+    private maitreRt: MaitreRealtimeService
   ) {
     addIcons({ refresh, reorderThreeOutline })
   }
     async ionViewWillEnter() {
-    await this.realtime.init();   // 🔔 empieza a escuchar INSERTs
+    await this.maitreRt.init();   // 🔔 empieza a escuchar INSERTs
     await this.load();            // tu carga actual
   }
 
   ionViewWillLeave() {
-    this.realtime.dispose();      // evita duplicados si salís de la vista
+    this.maitreRt.dispose();      // evita duplicados si salís de la vista
   }
 
   ngOnDestroy(): void {
-    throw new Error('Method not implemented.');
+    this.maitreRt.dispose();
   }
 
 

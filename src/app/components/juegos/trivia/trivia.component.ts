@@ -87,6 +87,7 @@ export class TriviaComponent implements OnInit, OnDestroy {
   pedidoId!: number;
   prizeClaimed = false;
   claiming = false;
+  yaSeAplicoDescuento = false; // Nueva propiedad para rastrear si ya se aplicó descuento
 
   // Supabase
   private supabase = this.supabaseSvc.client;
@@ -128,14 +129,21 @@ async ngOnInit() {
   const nav = this.router.getCurrentNavigation();
   this.pedidoId = nav?.extras?.state?.['pedidoId'] ?? (history.state?.pedidoId as number);
 
-  // 2) leer prizeClaimed
+  // 2) verificar si ya se aplicó descuento
   if (this.pedidoId) {
-    const { data } = await this.supabase
-      .from('pedidos')
-      .select('juego_premio_reclamado')
-      .eq('id', this.pedidoId)
-      .maybeSingle();
-    this.prizeClaimed = !!data?.juego_premio_reclamado;
+    try {
+      this.yaSeAplicoDescuento = await this.supabaseSvc.yaSeAplicoDescuento(this.pedidoId);
+      // También verificar el campo legacy por compatibilidad
+      const { data } = await this.supabase
+        .from('pedidos')
+        .select('juego_premio_reclamado')
+        .eq('id', this.pedidoId)
+        .maybeSingle();
+      this.prizeClaimed = !!data?.juego_premio_reclamado || this.yaSeAplicoDescuento;
+    } catch (error) {
+      console.error('Error al verificar descuento aplicado:', error);
+      this.yaSeAplicoDescuento = false;
+    }
   }
 }
 
@@ -333,7 +341,7 @@ private endClaiming() {
 //   }
 // }
 async claim() {
-  if (!this.finished || this.claiming) return;
+  if (!this.finished || this.claiming || this.yaSeAplicoDescuento) return;
 
   // rescatar pedidoId por si vino en history.state
   if (!this.pedidoId) {
@@ -357,6 +365,9 @@ async claim() {
 
     // Actualizar estado local
     this.prizeClaimed = pct > 0;
+    if (pct > 0) {
+      this.yaSeAplicoDescuento = true; // Marcar que ya se aplicó descuento
+    }
 
     // (opcional) si llevás store de pedido, actualizá total:
     // this.pedidosSvc.patchPedido(this.pedidoId, { total: tot });

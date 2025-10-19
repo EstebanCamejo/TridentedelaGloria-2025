@@ -241,6 +241,7 @@ import { BarcodeScanner, BarcodeFormat, PermissionStatus } from '@capacitor-mlki
 
 import { QrService } from 'src/app/services/qr.service';
 import { MesasService } from 'src/app/services/mesas.service';
+import { SupabaseService } from 'src/app/services/supabase.service';
 
 @Component({
   selector: 'app-scanner-mesa',
@@ -261,6 +262,7 @@ export class ScannerMesaComponent implements OnDestroy {
     private mesas: MesasService,
     private toast: ToastrService,
     private router: Router,
+    private supa: SupabaseService,
   ) { addIcons({ 'qr-code': qrCode }); }
 
   async ngOnDestroy() { await this.cleanupScan(); }
@@ -309,6 +311,11 @@ export class ScannerMesaComponent implements OnDestroy {
         return;
       }
 
+      console.log('[scanner-mesa] 📸 Iniciando escaneo...');
+      
+      // 🎬 NUEVO: Preparar sesión ANTES de abrir la cámara
+      await this.supa.prepareForCameraUse();
+      
       // limpiar residuos previos
       await this.cleanupScan();
 
@@ -330,6 +337,15 @@ export class ScannerMesaComponent implements OnDestroy {
       const { barcodes } = await BarcodeScanner.scan({
         formats: [BarcodeFormat.QrCode],
       });
+
+      console.log('[scanner-mesa] 🔄 Cámara cerrada, restaurando sesión...');
+      
+      // ⚠️ CRÍTICO: Restaurar sesión de Supabase después de usar la cámara
+      const sessionRestored = await this.supa.restoreSessionAfterCamera();
+      
+      if (!sessionRestored) {
+        console.warn('[scanner-mesa] ⚠️ No se pudo restaurar la sesión completamente');
+      }
 
       const raw = barcodes?.[0]?.rawValue || '';
       if (!raw) { this.toast.error('No se detectó ningún QR.'); return; }

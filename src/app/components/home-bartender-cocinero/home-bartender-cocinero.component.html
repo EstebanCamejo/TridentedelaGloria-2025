@@ -24,7 +24,7 @@
             Agregar nuevo plato
           </ion-button>
 
-          <ion-button
+          <!-- <ion-button
             *ngIf="perfil === 'bartender'"
             class="cta btn-history"
             fill="solid"
@@ -35,9 +35,33 @@
           >
             <ion-icon slot="start" name="add-circle-outline"></ion-icon>
             Agregar nueva bebida
-          </ion-button>
+          </ion-button> -->
+          <ion-button
+          *ngIf="perfil === 'bartender'"
+          class="cta btn-history"
+          fill="solid"
+          expand="block"
+          size="large"
+          (click)="irAAgregarNuevaBebida()"
+        >
+          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+          Agregar nueva bebida
+        </ion-button>
+
 
           <ion-button
+          *ngIf="perfil === 'cocinero'"
+          class="cta btn-pendientes"
+          fill="solid"
+          expand="block"
+          size="large"
+          (click)="irAVerificarPendientesCocinero()"
+        >
+          <ion-icon slot="start" name="list-circle-outline"></ion-icon>
+          Verificar pedidos pendientes
+        </ion-button>
+
+          <!-- <ion-button
           *ngIf="perfil === 'cocinero'"
             class="cta btn-pendientes"
             fill="solid"
@@ -48,15 +72,26 @@
           >
             <ion-icon slot="start" name="list-circle-outline"></ion-icon>
             Verificar pedidos pendientes
-          </ion-button>
+          </ion-button> -->
 
-          <ion-button
+          <!-- <ion-button
             *ngIf="perfil === 'bartender'"
             class="cta btn-pendientes"
             fill="solid"
             expand="block"
             size="large"
             color="secondary"
+            (click)="irAVerificarPendientesBartender()"
+          >
+            <ion-icon slot="start" name="list-circle-outline"></ion-icon>
+            Verificar pedidos pendientes
+          </ion-button> -->
+          <ion-button
+            *ngIf="perfil === 'bartender'"
+            class="cta btn-pendientes"
+            fill="solid"
+            expand="block"
+            size="large"
             (click)="irAVerificarPendientesBartender()"
           >
             <ion-icon slot="start" name="list-circle-outline"></ion-icon>

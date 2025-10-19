@@ -130,6 +130,20 @@ export const routes: Routes = [
         './components/cliente/cliente-realiza-pedido/cliente-realiza-pedido.component'
       ).then((m) => m.ClienteRealizaPedidoComponent),
   },
+  {
+    path: 'cliente-detalle-cuenta',
+    loadComponent: () =>
+      import(
+        './components/cliente/cliente-detalle-cuenta/cliente-detalle-cuenta.component'
+      ).then((m) => m.ClienteDetalleCuentaComponent),
+  },
+  {
+    path: 'mozo/confirmar-pago',
+    loadComponent: () =>
+      import(
+        './components/mozo/confirmar-pago/confirmar-pago.component'
+      ).then((m) => m.ConfirmarPagoComponent),
+  },
   // {
   //   path: 'maitre/asignar-mesa',
   //   loadComponent: () =>

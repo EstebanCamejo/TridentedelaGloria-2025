@@ -7,7 +7,7 @@ export type TipoRegistro = 'cliente' | 'anonimo';
 type RolUsuario = 'clienteReg' | 'clienteAnon' | 'mozo' | 'maitre' | 'dueno' | 'supervisor' | 'bartender' | 'cocinero';
 import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
-type EstadoLE = 'noAtendido' | 'esperando' | 'asignado';
+type EstadoLE = 'noAtendido' | 'esperando' | 'asignado' | 'finalizado';
 
 const capacitorAuthStorage = {
   getItem: (key: string) => Preferences.get({ key }).then(r => r.value ?? null),
@@ -33,6 +33,16 @@ export interface ClienteRegistroData {
   foto_url?: string | null;
 }
 
+// Interfaz para datos de usuario en localStorage
+export interface UsuarioLocalData {
+  id: string;
+  email: string;
+  nombre: string;
+  apellido?: string | null;
+  perfil: string; // rol del usuario
+  auth_id: string;
+}
+
 // Tipo que usamos para el payload hacia la Edge Function
 export type AltaEmpleadoPayload = {
   apellido: string;
@@ -56,6 +66,7 @@ export class SupabaseService {
   public authEmail$ = new BehaviorSubject<string | null>(null);
   
   public idUsuario: string = '';
+  private readonly USER_DATA_KEY = 'usuario_data';
 //   constructor() {
 // this._supabase = createClient(
 //   environment.supabaseUrl,
@@ -114,18 +125,18 @@ export class SupabaseService {
 //     });
 
   constructor() {
-    const options = {
+    this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, {
       auth: {
         storage: Capacitor.isNativePlatform() ? capacitorAuthStorage : window.localStorage,
         persistSession: true,
-        autoRefreshToken: true,
+        autoRefreshToken: true, // ✅ REACTIVADO - necesario para mantener sesión después de cámara
         detectSessionInUrl: false,
-        multiTab: false,
+        flowType: 'pkce' as const,
       },
-      global: { headers: { apikey: environment.supabaseAnonKey } },
-    } as const;
-
-    this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, options);
+      global: { 
+        headers: { apikey: environment.supabaseAnonKey },
+      },
+    });
 
     // Cargar email inicial
     this._supabase.auth.getUser().then(res => this.authEmail$.next(res.data?.user?.email ?? null));
@@ -143,12 +154,101 @@ export class SupabaseService {
       this.authEmail$.next(u?.email ?? null);
       this.idUsuario = u?.id ?? '';
     });
+
+    // Intentar cargar datos del localStorage al inicializar
+    this.loadUserDataFromLocal();
+    
   }
 
 
   // Acceso al cliente, por si lo necesitás en otros servicios
   get client(): SupabaseClient {
     return this._supabase;
+  }
+
+  // ===========================
+  // =   LOCAL STORAGE METHODS =
+  // ===========================
+  
+  /**
+   * Guarda los datos del usuario en localStorage (ahora async para dispositivos nativos)
+   */
+  private async saveUserDataToLocal(userData: UsuarioLocalData): Promise<void> {
+    try {
+      const dataToSave = JSON.stringify(userData);
+      if (isNative) {
+        // En dispositivos nativos, usar Preferences (async)
+        await Preferences.set({ key: this.USER_DATA_KEY, value: dataToSave });
+      } else {
+        // En web, usar localStorage (sync)
+        localStorage.setItem(this.USER_DATA_KEY, dataToSave);
+      }
+      console.log('✅ Datos de usuario guardados en localStorage:', userData.email);
+    } catch (error) {
+      console.error('❌ Error al guardar datos de usuario en localStorage:', error);
+    }
+  }
+
+  /**
+   * Obtiene los datos del usuario desde localStorage
+   */
+  async getUserDataFromLocal(): Promise<UsuarioLocalData | null> {
+    try {
+      let data: string | null = null;
+      
+      if (isNative) {
+        // En dispositivos nativos, usar Preferences
+        const result = await Preferences.get({ key: this.USER_DATA_KEY });
+        data = result.value;
+      } else {
+        // En web, usar localStorage
+        data = localStorage.getItem(this.USER_DATA_KEY);
+      }
+      
+      if (data) {
+        const userData = JSON.parse(data) as UsuarioLocalData;
+        console.log('Datos de usuario recuperados del localStorage:', userData);
+        return userData;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error al obtener datos de usuario del localStorage:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Limpia los datos del usuario del localStorage
+   */
+  private clearUserDataFromLocal(): void {
+    try {
+      if (isNative) {
+        // En dispositivos nativos, usar Preferences
+        Preferences.remove({ key: this.USER_DATA_KEY });
+      } else {
+        // En web, usar localStorage
+        localStorage.removeItem(this.USER_DATA_KEY);
+      }
+      console.log('Datos de usuario eliminados del localStorage');
+    } catch (error) {
+      console.error('Error al limpiar datos de usuario del localStorage:', error);
+    }
+  }
+
+  /**
+   * Carga los datos del usuario desde localStorage al inicializar el servicio
+   */
+  private async loadUserDataFromLocal(): Promise<void> {
+    try {
+      const userData = await this.getUserDataFromLocal();
+      if (userData && userData.auth_id) {
+        this.idUsuario = userData.auth_id;
+        this.authEmail$.next(userData.email);
+        console.log('Datos de usuario cargados desde localStorage al inicializar:', userData);
+      }
+    } catch (error) {
+      console.error('Error al cargar datos de usuario del localStorage al inicializar:', error);
+    }
   }
 
   /** Espera hasta que haya session.user (o vence por timeout). */
@@ -190,10 +290,10 @@ export class SupabaseService {
 
     const auth_id = session.user.id;
 
-    // Buscar el usuario app en tu tabla
+    // Buscar el usuario app en tu tabla con más datos
     const { data: rows, error: qErr } = await this._supabase
       .from('usuarios')
-      .select('id, perfil, estado')
+      .select('id, perfil, estado, nombres, apellidos, email, auth_id')
       .eq('auth_id', auth_id)
       .limit(1);
 
@@ -211,7 +311,21 @@ export class SupabaseService {
         : 'Tu registro está pendiente de aprobación.';
       throw new Error(msg);
     }
+    
     this.idUsuario = auth_id;
+
+    // Guardar datos del usuario en localStorage
+    if (u) {
+      const userData: UsuarioLocalData = {
+        id: u.id,
+        email: u.email || session.user.email || '',
+        nombre: u.nombres || '',
+        apellido: u.apellidos || null,
+        perfil: u.perfil || '',
+        auth_id: u.auth_id || auth_id
+      };
+      await this.saveUserDataToLocal(userData);
+    }
 
     return data; // mantiene tu contrato actual
   }
@@ -228,6 +342,11 @@ export class SupabaseService {
   async logout() {
     const { error } = await this._supabase.auth.signOut();
     if (error) throw error;
+    
+    // Limpiar datos del localStorage y variables locales
+    this.clearUserDataFromLocal();
+    this.idUsuario = '';
+    this.authEmail$.next(null);
   }
 
   async register(email: string, password: string) {
@@ -319,9 +438,21 @@ export class SupabaseService {
       
       if (signInErr) throw signInErr;
 
-      // Esperá a que quede “firme”
+      // Esperá a que quede "firme"
       const session = await this.waitForSession(4000);
       if (!session?.user?.id) throw new Error('No se pudo establecer la sesión local');
+
+      // Guardar datos del usuario en localStorage
+      const userData: UsuarioLocalData = {
+        id: '', // Se llenará cuando se apruebe el usuario
+        email: form.email,
+        nombre: form.nombre,
+        apellido: form.apellido || null,
+        perfil: form.tipo_registro === 'anonimo' ? 'clienteAnon' : 'clienteReg',
+        auth_id: session.user.id
+      };
+      await this.saveUserDataToLocal(userData);
+      this.idUsuario = session.user.id;
 
       return true;
     }  
@@ -348,7 +479,20 @@ export class SupabaseService {
       password: form.password,
     });
     if (signInErr) throw signInErr;
-    await this.waitForSession(4000);
+    const session = await this.waitForSession(4000);
+    if (!session?.user?.id) throw new Error('No se pudo establecer la sesión local');
+
+    // Guardar datos del usuario en localStorage
+    const userData: UsuarioLocalData = {
+      id: '', // Se llenará cuando se apruebe el usuario
+      email: email,
+      nombre: form.nombre,
+      apellido: null,
+      perfil: 'clienteAnon',
+      auth_id: session.user.id
+    };
+    await this.saveUserDataToLocal(userData);
+    this.idUsuario = session.user.id;
 
     // 2) (Opcional) subir foto y actualizar su URL
     if (photoFile) {
@@ -434,13 +578,29 @@ export class SupabaseService {
   }
     
   async ensureSessionOrThrow() {
-    const s0 = await this._supabase.auth.getSession();
-    if (s0.data?.session?.user) return s0.data.session;
-    const s1 = await this.waitForSession(4000);
-    if (!s1?.user) throw new Error('No auth user');
-    console.log(s1 + "ensureSessionOrThrow");
-    return s1;
-    
+    try {
+      const s0 = await this._supabase.auth.getSession();
+      if (s0.data?.session?.user) {
+        // Actualizar idUsuario si no está sincronizado
+        if (!this.idUsuario || this.idUsuario !== s0.data.session.user.id) {
+          this.idUsuario = s0.data.session.user.id;
+        }
+        return s0.data.session;
+      }
+      
+      const s1 = await this.waitForSession(4000);
+      if (!s1?.user) throw new Error('No auth user');
+      
+      // Actualizar idUsuario
+      this.idUsuario = s1.user.id;
+      console.log('Sesión restaurada correctamente:', s1.user.id);
+      return s1;
+    } catch (error) {
+      console.error('Error en ensureSessionOrThrow:', error);
+      // Limpiar idUsuario si hay error
+      this.idUsuario = '';
+      throw error;
+    }
   }
     
     //maitre
@@ -460,10 +620,15 @@ export class SupabaseService {
   
   // Cliente/Maître: pasar noAtendido -> esperando (o crear esperando si no hay activa)
   async joinWaitlist(cantidad: number, nota?: string) {
-    const uid = this.idUsuario; // o: (await this._supabase.auth.getUser()).data.user?.id
-    if (!uid) throw new Error('Sin sesión');
+    console.log('=== joinWaitlist ===');
+    console.log('Cantidad:', cantidad, 'Nota:', nota);
+    
+    // Asegurar que tenemos idUsuario de forma robusta
+    const uid = await this.ensureUserId();
+    console.log('✅ uid efectivo para inscripción:', uid);
   
-    // ¿Tiene alguna activa? (incluyo noAtendido porque es tu “borrador”)
+    // ¿Tiene alguna activa? (incluyo noAtendido porque es tu "borrador")
+    console.log('🔍 Buscando entrada activa...');
     const { data: activa, error: qErr } = await this._supabase
       .from('lista_espera')
       .select('id, estado')
@@ -472,15 +637,30 @@ export class SupabaseService {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (qErr) throw qErr;
+    
+    if (qErr) {
+      console.error('❌ Error al buscar entrada activa:', qErr);
+      throw qErr;
+    }
+    
+    console.log('📊 Entrada activa encontrada:', activa);
   
     // ya está esperando/asignado -> no duplicar
     if (activa?.estado === 'esperando' || activa?.estado === 'asignado') {
+      console.log('⚠️ Usuario ya está en lista de espera');
       throw new Error('Ya estás en la lista de espera.');
     }
   
     // si existe "noAtendido", actualizarla a "esperando"
     if (activa?.estado === 'noAtendido') {
+      console.log('🔄 Actualizando entrada noAtendido a esperando...');
+      console.log('📋 Datos de actualización:', {
+        id: activa.id,
+        cantidad,
+        nota,
+        estado: 'esperando'
+      });
+      
       const { data, error } = await this._supabase
         .from('lista_espera')
         .update({
@@ -491,11 +671,24 @@ export class SupabaseService {
         .eq('id', activa.id)
         .select()
         .single();
-      if (error) throw error;
+      
+      if (error) {
+        console.error('❌ Error al actualizar:', error);
+        console.error('❌ Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+      
+      console.log('✅ Entrada actualizada exitosamente:', data);
       return data;
     }
   
     // no había activa -> crear nueva en "esperando"
+    console.log('➕ Creando nueva entrada en lista de espera...');
     const { data, error } = await this._supabase
       .from('lista_espera')
       .insert([{
@@ -508,7 +701,13 @@ export class SupabaseService {
       }])
       .select()
       .single();
-    if (error) throw error;
+    
+    if (error) {
+      console.error('❌ Error al crear entrada:', error);
+      throw error;
+    }
+    
+    console.log('✅ Nueva entrada creada:', data);
     return data;
   }
 
@@ -627,23 +826,349 @@ export class SupabaseService {
   }
   
   async getWaitStatusDetail(): Promise<{ id: number; estado: EstadoLE; numero_mesa: number|null } | null> {
-    console.log('hola entre a obtener estado');
-  
-    const { data: s } = await this.client.auth.getSession(); // 👈 token real del cliente
-    const uid = s.session?.user?.id || this.idUsuario;
-    console.log('uid efectivo:', uid);
-    if (!uid) throw new Error('Sin sesión');
-  
-    const { data, error } = await this.client
+    console.log('=== getWaitStatusDetail ===');
+    
+    // Asegurar que tenemos idUsuario de forma robusta
+    const uid = await this.ensureUserId();
+    console.log('✅ uid efectivo para consulta:', uid);
+
+    console.log('🔄 Ejecutando consulta a lista_espera...');
+    const { data, error } = await this._supabase
       .from('lista_espera')
       .select('id, estado, numero_mesa')
       .eq('usuario_id', uid)
-      .in('estado', ['noAtendido','esperando','asignado']) // incluye solo los que usás
+      .in('estado', ['noAtendido','esperando','asignado','finalizado'])
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-  
-    if (error) throw error;
+    
+    console.log('✅ Consulta completada');
+
+    if (error) {
+      console.error('❌ Error en consulta:', error);
+      throw error;
+    }
+    
+    console.log('📊 Resultado de consulta:', data);
     return data ? { id: data.id, estado: data.estado as EstadoLE, numero_mesa: data.numero_mesa ?? null } : null;
   }
+
+  // Game discount methods
+  async authReady(): Promise<void> {
+    const s0 = await this._supabase.auth.getSession();
+    if (s0.data?.session?.user) return;
+    const s1 = await this.waitForSession(4000);
+    if (!s1?.user) throw new Error('No auth user');
+  }
+
+  private async getUidFresh(): Promise<string> {
+    const { data } = await this._supabase.auth.getSession();
+    const uid = data?.session?.user?.id || this.idUsuario;
+    if (!uid) throw new Error('No auth user');
+    return uid;
+  }
+
+  async claimGameDiscount(pedidoId: number, juego: string, score: number)
+  : Promise<{ applied: boolean; pct: number; total_final: number|null; reason: string }> {
+    const { data, error } = await this.client.rpc('claim_game_discount', {
+      p_pedido_id: pedidoId,
+      p_juego: juego,
+      p_score: score,
+    });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    return {
+      applied: !!row?.applied,
+      pct: row?.pct ?? 0,
+      total_final: row?.total_final ?? null,
+      reason: row?.reason ?? '',
+    };
+  }
+
+  async claimGameDiscountTotalOnly(pedidoId: number, score: number)
+  : Promise<{ applied: boolean; total_final: number|null }> {
+    const { data, error } = await this.client.rpc('claim_game_discount', {
+      p_pedido_id: pedidoId,
+      p_score: score,
+    });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    return { applied: !!row?.applied, total_final: row?.total_final ?? null };
+  }
+
+  /**
+   * Verifica si ya se aplicó un descuento de juegos a un pedido
+   */
+  async yaSeAplicoDescuento(pedidoId: number): Promise<boolean> {
+    const { data, error } = await this.client
+      .from('pedidos')
+      .select('descuento_aplicado')
+      .eq('id', pedidoId)
+      .single();
+    
+    if (error) {
+      console.error('Error al verificar descuento aplicado:', error);
+      return false;
+    }
+    
+    return !!data?.descuento_aplicado;
+  }
+
+  /**
+   * NUEVA ESTRATEGIA: Prepara la sesión ANTES de usar la cámara
+   * Guarda el estado actual para poder restaurarlo después
+   * RÁPIDO y NO BLOQUEANTE
+   */
+  async prepareForCameraUse(): Promise<void> {
+    console.log('🎬 Preparando para cámara...');
+    
+    try {
+      // Verificar que hay datos en localStorage
+      const existing = await this.getUserDataFromLocal();
+      if (existing?.auth_id) {
+        console.log('✅ Datos en localStorage OK');
+      } else {
+        console.warn('⚠️ No hay datos en localStorage - asegúrate de estar logueado');
+      }
+    } catch (error) {
+      console.error('❌ Error:', error);
+    }
+  }
+
+  /**
+   * Restaura la sesión de Supabase después de usar la cámara o cualquier interrupción nativa.
+   * NUEVA ESTRATEGIA: Prioriza localStorage y maneja la pérdida de sesión de Supabase
+   */
+  async restoreSessionAfterCamera(): Promise<boolean> {
+    console.log('🔄 Restaurando desde localStorage...');
+    
+    try {
+      const userData = await this.getUserDataFromLocal();
+      
+      if (userData?.auth_id) {
+        this.idUsuario = userData.auth_id;
+        this.authEmail$.next(userData.email);
+        console.log('✅ Estado restaurado:', userData.email);
+        console.log('ℹ️ autoRefreshToken se encargará de mantener la sesión Supabase');
+        return true;
+      } else {
+        console.warn('⚠️ No hay datos en localStorage');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * YA NO SE USA - mantenemos por compatibilidad pero no hace nada
+   * Con autoRefreshToken=false y localStorage, no necesitamos restaurar sesión Supabase
+   */
+  private async attemptSilentSessionRestore(): Promise<void> {
+    console.log('⏭️ attemptSilentSessionRestore: No necesario con configuración actual');
+  }
+
+  /**
+   * Helper: Obtiene el idUsuario de forma robusta
+   * Prioriza: this.idUsuario > localStorage > sesión Supabase
+   */
+  private async ensureUserId(): Promise<string> {
+    // 1. Si ya tenemos idUsuario, usarlo
+    if (this.idUsuario) {
+      return this.idUsuario;
+    }
+
+    // 2. Intentar desde localStorage
+    const userData = await this.getUserDataFromLocal();
+    if (userData?.auth_id) {
+      this.idUsuario = userData.auth_id;
+      console.log('✅ idUsuario recuperado de localStorage:', this.idUsuario);
+      return this.idUsuario;
+    }
+
+    // 3. Último recurso: sesión de Supabase
+    try {
+      const { data: s } = await this.client.auth.getSession();
+      if (s.session?.user?.id) {
+        this.idUsuario = s.session.user.id;
+        console.log('✅ idUsuario recuperado de sesión:', this.idUsuario);
+        return this.idUsuario;
+      }
+    } catch (error) {
+      console.warn('❌ No se pudo obtener sesión de Supabase:', error);
+    }
+
+    throw new Error('No se pudo obtener idUsuario (sin sesión ni datos locales)');
+  }
+
+  /**
+   * Verifica y repara el estado de la sesión de Supabase
+   * Útil después de eventos que puedan romper la sesión (uso de cámara, etc)
+   */
+  async verifyAndRepairSession(): Promise<boolean> {
+    console.log('[verifyAndRepairSession] ⏭️ Método simplificado - no hacemos consultas de prueba');
+    return true;
+  }
+
+  /**
+   * NO USADO - mantenido por compatibilidad
+   */
+  async quickSessionRefresh(): Promise<void> {
+    console.log('[quickSessionRefresh] ⏭️ Método no usado');
+  }
+
+  /**
+   * Libera la mesa del cliente actual y marca la estadía como finalizada
+   */
+  async liberarMesa(): Promise<void> {
+    console.log('=== liberarMesa ===');
+    
+    const uid = await this.ensureUserId();
+    console.log('✅ uid para liberar mesa:', uid);
+
+    // 1. Obtener el estado actual de la lista de espera
+    const waitStatus = await this.getWaitStatusDetail();
+    
+    if (!waitStatus) {
+      throw new Error('No tienes una estadía activa');
+    }
+    
+    if (waitStatus.estado !== 'asignado') {
+      throw new Error('Solo puedes liberar la mesa si tienes una mesa asignada');
+    }
+
+    console.log('🔄 Liberando mesa para estadía:', waitStatus.id);
+
+    // 2. Actualizar estado de lista_espera a 'finalizado'
+    const { error: errorLista } = await this._supabase
+      .from('lista_espera')
+      .update({ 
+        estado: 'finalizado',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', waitStatus.id);
+
+    if (errorLista) {
+      console.error('❌ Error al actualizar lista_espera:', errorLista);
+      throw new Error('Error al finalizar la estadía');
+    }
+
+    // 3. Liberar la mesa (cambiar estado a 'libre')
+    if (waitStatus.numero_mesa) {
+      const { error: errorMesa } = await this._supabase
+        .from('mesas')
+        .update({ 
+          estado: 'libre',
+          updated_at: new Date().toISOString()
+        })
+        .eq('numero', waitStatus.numero_mesa);
+
+      if (errorMesa) {
+        console.error('❌ Error al liberar mesa:', errorMesa);
+        // No lanzamos error aquí porque la estadía ya se marcó como finalizada
+        console.warn('⚠️ Mesa no se pudo liberar, pero la estadía se finalizó');
+      } else {
+        console.log('✅ Mesa liberada exitosamente');
+      }
+    }
+
+    console.log('✅ Estadía finalizada exitosamente');
+  }
+
+  /**
+   * Verifica si el cliente puede completar una encuesta
+   */
+  async puedeCompletarEncuesta(): Promise<boolean> {
+    const waitStatus = await this.getWaitStatusDetail();
+    return waitStatus?.estado === 'asignado';
+  }
+
+  /**
+   * Verifica si el cliente ya completó una encuesta para su estadía actual
+   */
+  async yaCompletoEncuesta(): Promise<boolean> {
+    const waitStatus = await this.getWaitStatusDetail();
+    
+    if (!waitStatus) return false;
+    
+    const { data, error } = await this._supabase
+      .from('encuesta_respuestas')
+      .select('id')
+      .eq('lista_espera_id', waitStatus.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      console.error('❌ Error al verificar encuesta:', error);
+      return false;
+    }
+    
+    return !!data;
+  }
+
+  /**
+   * Solicita la cuenta al mozo
+   */
+  async solicitarCuenta(numeroMesa: number): Promise<void> {
+    console.log('=== solicitarCuenta ===');
+    console.log('Mesa:', numeroMesa);
+
+    try {
+      // Enviar notificación usando canal realtime directo
+      const channel = this._supabase.channel('solicitud_cuenta_mozo');
+      
+      await channel.send({
+        type: 'broadcast',
+        event: 'solicitud_cuenta',
+        payload: {
+          mesa_numero: numeroMesa,
+          mensaje: `Mesa ${numeroMesa} solicita la cuenta`,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      console.log('✅ Solicitud de cuenta enviada al mozo via realtime');
+    } catch (error) {
+      console.error('❌ Error al enviar solicitud de cuenta:', error);
+      throw new Error('No se pudo enviar la solicitud de cuenta');
+    }
+  }
+
+  /**
+   * Verifica si el cliente tiene pedidos sin pagar
+   */
+  async tienePedidosSinPagar(): Promise<boolean> {
+    const waitStatus = await this.getWaitStatusDetail();
+    
+    if (!waitStatus || waitStatus.estado !== 'asignado') return false;
+    
+    const uid = await this.ensureUserId();
+    
+      // Buscar pedidos del cliente que no estén pagados
+      // Consideramos "sin pagar" los pedidos que no están en estado 'pagado' o 'finalizado'
+      const { data, error } = await this._supabase
+        .from('pedidos')
+        .select('id, estado')
+        .eq('idCliente', uid)
+        .not('estado', 'in', '(pagado,finalizado)');
+    
+    if (error) {
+      console.error('❌ Error al verificar pedidos sin pagar:', error);
+      return false;
+    }
+    
+    return data && data.length > 0;
+  }
+
+  /**
+   * Verifica si el cliente puede completar una encuesta (tiene mesa asignada Y pagó)
+   */
+  async puedeCompletarEncuestaConPago(): Promise<boolean> {
+    const puedeCompletar = await this.puedeCompletarEncuesta();
+    if (!puedeCompletar) return false;
+    
+    const tienePendientes = await this.tienePedidosSinPagar();
+    return !tienePendientes; // Puede completar si NO tiene pendientes
+  }
+
 }

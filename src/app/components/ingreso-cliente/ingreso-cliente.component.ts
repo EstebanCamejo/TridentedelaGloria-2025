@@ -100,18 +100,21 @@
 //     await t.present();
 //   }
 // }
-import { Component } from '@angular/core';
+
+
+//ultimo
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonToast, IonModal } from '@ionic/angular/standalone';
+import { IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonModal } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { qrCodeOutline, albumsOutline } from 'ionicons/icons';
-import { SupabaseService } from 'src/app/services/supabase.service';
+import { SupabaseService, UsuarioLocalData } from 'src/app/services/supabase.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { checkmarkCircleOutline, hourglassOutline, peopleOutline } from 'ionicons/icons';
 
-type EstadoLE = 'noAtendido' | 'esperando' | 'asignado';
+type EstadoLE = 'noAtendido' | 'esperando' | 'asignado' | 'finalizado';
 addIcons({ qrCodeOutline, albumsOutline, checkmarkCircleOutline, hourglassOutline, peopleOutline });
 
 @Component({
@@ -119,15 +122,16 @@ addIcons({ qrCodeOutline, albumsOutline, checkmarkCircleOutline, hourglassOutlin
   templateUrl: './ingreso-cliente.component.html',
   styleUrls: ['./ingreso-cliente.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule ,IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonToast, IonModal],
+  imports: [CommonModule, FormsModule ,IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonModal],
 })
 
-export class IngresoClienteComponent{
+export class IngresoClienteComponent implements OnInit {
   ui: '' | 'form' | 'none' | 'esperando' | 'mesa-lista' = '';
   mesa_numero: number | null = null;
   cant = 2;
   nota = '';
- isReady = false;
+  isReady = false;
+  userData: UsuarioLocalData | null = null;
  
   constructor(
     private supa: SupabaseService,
@@ -135,7 +139,47 @@ export class IngresoClienteComponent{
     private toast: ToastController,
   ) {
     addIcons({ qrCodeOutline, albumsOutline });
-        const nav = this.router.getCurrentNavigation();
+  }
+
+  async ngOnInit() {
+    console.log('=== INICIO ngOnInit ingreso-cliente ===');
+    
+    // Primero intentar obtener datos del localStorage
+    try {
+      this.userData = await this.supa.getUserDataFromLocal();
+      
+      if (this.userData && this.userData.auth_id) {
+        console.log('✅ Datos de usuario obtenidos del localStorage:', this.userData);
+        // Actualizar idUsuario en el servicio con los datos locales
+        this.supa.idUsuario = this.userData.auth_id;
+        console.log('✅ idUsuario actualizado a:', this.supa.idUsuario);
+        
+        // Marcar como listo - no necesitamos verificar sesión de Supabase
+        // porque usaremos los datos locales para las consultas
+        this.isReady = true;
+        console.log('✅ Componente listo con datos locales');
+        return;
+      } else {
+        console.log('❌ No hay datos en localStorage o están incompletos');
+      }
+    } catch (error) {
+      console.error('❌ Error al obtener datos del localStorage:', error);
+    }
+
+    // Si no hay datos en localStorage, intentar verificar la sesión de Supabase
+    try {
+      console.log('🔄 Intentando verificar sesión de Supabase...');
+      await this.supa.ensureSessionOrThrow();
+      console.log('✅ Sesión verificada correctamente en ingreso-cliente');
+      this.isReady = true;
+    } catch (error) {
+      console.error('❌ Error al verificar sesión en ingreso-cliente:', error);
+      this.msg('Error de sesión. Por favor, inicia sesión nuevamente.', true);
+      // Redirigir al login si no hay sesión válida
+      this.router.navigate(['/login']);
+    }
+    
+    console.log('=== FIN ngOnInit ingreso-cliente ===');
   }
   // async inscribirme() {
 
@@ -217,84 +261,96 @@ export class IngresoClienteComponent{
 
 
 async inscribirme() {
-  //       console.log("entre a inscribirme");
-  //     console.log(this.supa.idUsuario);
-  // try {
-  //     const { data: actual, error } = await this.supa.client
-  //       .from('lista_espera')
-  //       .select('id, estado, numero_mesa')
-  //       .eq('usuario_id', this.supa.idUsuario)
-  //       .in('estado', ['noAtendido','esperando','asignado'])
-  //       .order('created_at', { ascending: false }) // quítalo si no existe
-  //       .limit(1)
-  //       .maybeSingle();
-
-  //     if (error) throw error;
-  //     console.log("entre a inscribirme");
-  //     console.log(this.supa.idUsuario);
-  //     console.log(error);
-
-  //     const estado = (actual?.estado as EstadoLE) ?? 'noAtendido';
-  //     console.log('actual', actual?.id);
-  //     console.log('estado',estado);
-  //     if (estado === 'noAtendido') {
-  //       this.ui = 'form';
-  //       return;
-  //     }
-  //     if (estado === 'asignado') {
-  //       this.mesa_numero = actual?.numero_mesa ?? null;
-  //       this.ui = 'mesa-lista';
-  //       return;
-  //     }
-  //     if (estado === 'esperando') {
-  //       this.ui = 'esperando';
-  //       return;
-  //     }
-
-  //     // si no hay fila o está en noAsignado -> mostrar form para completar datos
-  //     this.cant = Math.max(1, this.cant || 2);
-  //     this.nota = this.nota ?? '';
-  //     this.ui = 'form';
-  //   } catch (e: any) {
-  //     console.error('[inscribirme] error', e);
-  //     console.log('e.message:',e.message);
-  //      console.log('e:',e);
-  //     // tu toast/mensaje
-  //   }
-  const { data: sess } = await this.supa.client.auth.getSession();
-console.log('token?', !!sess?.session?.access_token, 'uid?', sess?.session?.user?.id);
-
-      await this.supa.ensureSessionOrThrow(); // 👈 asegura token cargado
-    const d = await this.supa.getWaitStatusDetail();
+  console.log('=== INICIO inscribirme() ===');
+  console.log('isReady:', this.isReady);
+  console.log('userData:', this.userData);
+  console.log('idUsuario en servicio:', this.supa.idUsuario);
+  
+  // Verificar que el componente esté listo
+  if (!this.isReady) {
+    console.log('❌ Componente no está listo');
+    this.msg('El componente aún se está inicializando. Intenta nuevamente.', true);
+    return;
+  }
 
   try {
-    console.log('[inscribirme] uid =', this.supa.idUsuario);
+    // Asegurar que tenemos el idUsuario correcto
+    if (this.userData && this.userData.auth_id) {
+      console.log('✅ Usando datos locales, idUsuario:', this.userData.auth_id);
+      this.supa.idUsuario = this.userData.auth_id;
+    } else if (!this.supa.idUsuario) {
+      console.log('❌ No hay idUsuario disponible');
+      throw new Error('No hay datos de usuario disponibles');
+    }
+    
+    console.log('🔄 Obteniendo estado de espera...');
     const d = await this.supa.getWaitStatusDetail();
-    console.log('[inscribirme] fila activa =', d);
+    console.log('Estado obtenido:', d);
 
     if (!d || d.estado === 'noAtendido') {
-      this.cant = 2; this.nota = ''; this.ui = 'form'; return;
+      console.log('📝 Mostrando formulario de inscripción');
+      this.cant = 2;
+      this.nota = '';
+      this.ui = 'form';
+      return;
     }
-    if (d.estado === 'esperando') { this.ui = 'esperando'; return; }
-    if (d.estado === 'asignado')  { this.mesa_numero = d.numero_mesa ?? null; this.ui = 'mesa-lista'; return; }
-  } catch (e) {
-    console.error('[inscribirme] error', e);
+    if (d.estado === 'esperando') {
+      console.log('⏳ Usuario ya está en lista de espera');
+      this.ui = 'esperando';
+      return;
+    }
+    if (d.estado === 'asignado') {
+      console.log('✅ Usuario tiene mesa asignada:', d.numero_mesa);
+      this.mesa_numero = d.numero_mesa ?? null;
+      this.ui = 'mesa-lista';
+      return;
+    }
+
+    // fallback
+    console.log('📝 Fallback: mostrando formulario');
+    this.ui = 'form';
+  } catch (e: any) {
+    console.error('❌ Error en inscribirme():', e);
+    this.msg(e?.message || 'Error al consultar tu estado.', true);
   }
+  
+  console.log('=== FIN inscribirme() ===');
 }
 
 
   async confirmarInscripcion() {
+    console.log('=== INICIO confirmarInscripcion() ===');
+    
     if (!Number.isInteger(this.cant) || this.cant < 1 || this.cant > 12) {
+      console.log('❌ Cantidad inválida:', this.cant);
       this.msg('Ingresá una cantidad válida (1–12).', true);
       return;
     }
+    
     try {
+      // Asegurar que tenemos el idUsuario correcto
+      if (this.userData && this.userData.auth_id) {
+        console.log('✅ Usando datos locales, idUsuario:', this.userData.auth_id);
+        this.supa.idUsuario = this.userData.auth_id;
+      } else if (!this.supa.idUsuario) {
+        console.log('❌ No hay idUsuario disponible');
+        throw new Error('No hay datos de usuario disponibles');
+      }
+      
+      console.log('🔄 Inscribiendo en lista de espera...');
+      console.log('Cantidad:', this.cant, 'Nota:', this.nota);
+      
       await this.supa.joinWaitlist(this.cant, this.nota?.trim() || undefined);
+      
+      console.log('✅ Inscripción exitosa');
       this.ui = 'none';
       this.msg('¡Listo! Quedaste en la lista de espera.');
-    } catch (e:any) {
+    } catch (e: any) {
+      console.error('❌ Error en confirmarInscripcion():', e);
       this.msg(e?.message || 'No se pudo inscribir.', true);
     }
+    
+    console.log('=== FIN confirmarInscripcion() ===');
   }
 
 
