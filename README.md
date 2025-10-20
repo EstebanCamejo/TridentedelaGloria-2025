@@ -166,6 +166,29 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 - Correccion realizada en la anterior entrega.
 - Videos realizados hasta el momento: Punto 1, 2 , 3 , 4 , 5 , 6 , 7 , 8 y 15.
 
+  ## 📆 Semana 6: Sábado 11/10 al 18/10 ENTREGA EXTENDIDA
+  //correccion: no hubo correcciones por el parcial
+
+*Diseño*
+- Panel pedido en curso -> Sofia Dorbessan
+- Panel Mozo (pendientes + chat)-> Sofia Dorbessan
+- Panel pendientes Cocinero y Bartender -> Sofia Dorbessan
+- Diseño pago y propina  → Esteban Camejo
+
+
+*Gestión*
+- Flujo QR propinas → Esteban Camejo
+- Flujo Cliente realiza el pago + propinas → Esteban Camejo
+- Push notifications Mozo Estado Pedido  → Esteban Camejo
+- Flujo estado pedido Mozo supabase + home mozo → Esteban Camejo
+- Push notification Cliente Estado Pedido -> Sofia Dorbessan
+- Flujo estado pedido cliente supabase + home cliente -> Sofia Dorbessan
+  
+
+  ✅ *Entrega:*
+- Correcciones realizadas en todas las entregas.
+- Todos los puntos funcionando (del 1 al 19 + Requerimientos excluyentes).
+
   ## 📲 Imagenes de la aplicacion 📲
 
 | Imagen             | Explicacion                                   
@@ -176,6 +199,14 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 | <img width="302" height="676" alt="image" src="https://github.com/user-attachments/assets/d532802c-1451-4c70-9b61-a48ba78e3700" />| Vista clientes en espera por perfil dueño/supervisor |
 | <img width="315" height="659" alt="image" src="https://github.com/user-attachments/assets/2ee2fc7a-080a-4e06-b73e-0e7f52ea145e" /> | Panel Cliente |
 |<img width="315" height="661" alt="image" src="https://github.com/user-attachments/assets/9e1cc081-6d37-4cb1-92fd-9de6c4194717" />| Splash |
+|<img width="321" height="692" alt="image" src="https://github.com/user-attachments/assets/0f57a0ca-e222-4740-9e41-3fa7bda3d9b6" />| Panel Mozo|
+|<img width="317" height="688" alt="image" src="https://github.com/user-attachments/assets/e0e91f5f-a610-42d2-b248-7fe6ea4642ca" />|Chat Mozo/Cliente|
+|<img width="349" height="702" alt="image" src="https://github.com/user-attachments/assets/22a0f236-b5b0-4afa-ac15-4a80a2f40b8c" />|QR Mesa: Ver Menu , pedir, Juegos y chat|
+
+| Imagen             | Valor                                   
+|--------------------|---------------------------------------|
+|<img width="267" height="270" alt="image" src="https://github.com/user-attachments/assets/8d4c7cd0-130f-468d-aff9-0ae2ecd473b0" />| Lista de espera|
+|<img width="257" height="263" alt="image" src="https://github.com/user-attachments/assets/c3347795-49c3-434a-b4b0-a8fdf71fc1b2" />| Mesa (ej: mesa 5)|
 
 
 
