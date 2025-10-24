@@ -187,7 +187,26 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 
   ✅ *Entrega:*
 - Correcciones realizadas en todas las entregas.
-- Todos los puntos funcionando (del 1 al 19 + Requerimientos excluyentes).
+- Puntos funcionando del 1 al 19 + Requerimientos excluyentes.
+
+    ## 📆 Semana 7: Sábado 18/10 al 25/10 
+  //correccion: no hubo correcciones 
+
+*Diseño*
+- Home cliente Reservas -> Sofia Dorbessan
+- Home Mozo Reservas -> Sofia Dorbessan
+- Correo Aceptacion/Rechazo reservas -> Sofia Dorbessan
+- Factura pago Cliente  → Esteban Camejo
+
+*Gestión*
+- Flujo QR propinas → Esteban Camejo
+- Flujo Cliente realiza el pago + descuento juegos → Esteban Camejo
+- Push notifications Mozo/Cliente/Adimin flujo pedido  → Esteban Camejo
+- Componente Reservas Cliente y Admin -> Sofia Dorbessan
+- Push notifications Cliente/Admin Reservas -> Sofia Dorbessan  
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 19 + Requerimientos excluyentes.
 
   ## 📲 Imagenes de la aplicacion 📲
 
