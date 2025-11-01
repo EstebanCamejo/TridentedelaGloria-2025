@@ -125,21 +125,45 @@ export class EncuestasService {
    * Sube fotos (si hay) al bucket `encuestas` y guarda sus URLs en foto_urls.
    */
   async enviarEncuesta(p: EnviarEncuestaPayload): Promise<EnviarEncuestaResult> {
+    console.log('[DEBUG ENCUESTA] === INICIANDO ENVÍO DE ENCUESTA ===');
+    console.log('[DEBUG ENCUESTA] Payload recibido:', p);
+    
     // validaciones mínimas
     if (!p.encuesta_id) throw new Error('Encuesta inválida.');
     if (!p.calificacion_limpieza) throw new Error('Ingresá tu calificación de limpieza.');
     if (!p.aspecto_valorado) throw new Error('Indicá qué aspecto valoraste.');
 
+    console.log('[DEBUG ENCUESTA] Validaciones básicas OK');
+
     // VALIDACIÓN: Verificar que puede completar encuesta (mesa asignada)
+    console.log('[DEBUG ENCUESTA] Verificando si puede completar encuesta...');
     const puedeCompletar = await this.supa.puedeCompletarEncuesta();
+    console.log('[DEBUG ENCUESTA] Puede completar encuesta:', puedeCompletar);
     if (!puedeCompletar) {
+      console.log('[DEBUG ENCUESTA] ❌ No puede completar - mesa no asignada');
       throw new Error('Solo puedes completar la encuesta mientras tienes mesa asignada.');
     }
 
     // NUEVA VALIDACIÓN: Verificar que no haya completado ya una encuesta
+    console.log('[DEBUG ENCUESTA] Verificando si ya completó encuesta...');
     const yaCompleto = await this.supa.yaCompletoEncuesta();
+    console.log('[DEBUG ENCUESTA] Ya completó encuesta:', yaCompleto);
     if (yaCompleto) {
+      console.log('[DEBUG ENCUESTA] ❌ Ya completó encuesta');
       throw new Error('Ya completaste la encuesta para esta estadía.');
+    }
+
+    // Obtener el lista_espera_id automáticamente si no se proporcionó
+    let lista_espera_id = p.lista_espera_id;
+    console.log('[DEBUG ENCUESTA] Lista espera ID inicial:', lista_espera_id);
+    if (!lista_espera_id) {
+      console.log('[DEBUG ENCUESTA] Obteniendo waitStatus automáticamente...');
+      const waitStatus = await this.supa.getWaitStatusDetail();
+      console.log('[DEBUG ENCUESTA] WaitStatus obtenido:', waitStatus);
+      if (waitStatus?.id) {
+        lista_espera_id = String(waitStatus.id);
+        console.log('[DEBUG ENCUESTA] Lista espera ID obtenido:', lista_espera_id);
+      }
     }
 
     // 1) Subir fotos si vinieron
@@ -154,9 +178,13 @@ export class EncuestasService {
     }
 
     // 2) INSERT
+    // CORRECCIÓN: Convertir lista_espera_id a UUID válido
+    const listaEsperaUuid = lista_espera_id ? `00000000-0000-0000-0000-${String(lista_espera_id).padStart(12, '0')}` : null;
+    console.log('[DEBUG ENCUESTA] Lista espera ID convertido a UUID:', listaEsperaUuid);
+    
     const insertData: any = {
       encuesta_id: p.encuesta_id,
-      lista_espera_id: p.lista_espera_id ?? null,
+      lista_espera_id: listaEsperaUuid,
       mesas_id: p.mesas_id ?? null,
       user_id: p.user_id ?? null,
       calificacion_limpieza: p.calificacion_limpieza,
@@ -166,15 +194,23 @@ export class EncuestasService {
       foto_urls: foto_urls ?? null,
     };
 
-    // IMPORTANTE: el nombre de la tabla es la que ya tenés: encuesta_respuestas (plural)
+    console.log('[DEBUG ENCUESTA] Datos para insertar:', insertData);
+
+    // IMPORTANTE: el nombre de la tabla es encuesta_respuesta (singular)
+    console.log('[DEBUG ENCUESTA] Ejecutando INSERT en encuesta_respuesta...');
     const { data, error } = await this.supa.client
-      .from('encuesta_respuestas')
+      .from('encuesta_respuesta')
       .insert(insertData)
       .select('id')
       .single();
 
-    if (error) throw error;
+    console.log('[DEBUG ENCUESTA] Resultado INSERT:', { data, error });
+    if (error) {
+      console.log('[DEBUG ENCUESTA] ❌ Error en INSERT:', error);
+      throw error;
+    }
 
+    console.log('[DEBUG ENCUESTA] ✅ Encuesta enviada exitosamente, ID:', data.id);
     return { id: data.id as string, foto_urls };
   }
 

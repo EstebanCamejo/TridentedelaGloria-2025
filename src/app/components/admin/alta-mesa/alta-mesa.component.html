@@ -26,7 +26,10 @@
 
   <ion-item>
     <ion-label position="stacked">Tipo</ion-label>
-    <ion-select [(ngModel)]="tipo" (ionChange)="updateBtnDisabled()">
+    <ion-select [(ngModel)]="tipo" 
+                (ionChange)="updateBtnDisabled()"
+                okText="CONFIRMAR"
+                cancelText="CANCELAR">
       <ion-select-option value="estandar">Estándar</ion-select-option>
       <ion-select-option value="vip">VIP</ion-select-option>
       <ion-select-option value="mov_reducida">Movilidad reducida</ion-select-option>
@@ -97,7 +100,7 @@
 
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ mesaId ? 'Editar mesa' : 'Alta de mesa' }}</ion-title>
+    <ion-title>{{ mesaId ? 'Editar mesa #' + numero : 'Alta de mesa' }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="cancelar()">Cerrar</ion-button>
     </ion-buttons>
@@ -105,14 +108,12 @@
 </ion-header>
 
 <ion-content class="pa-4">
-  <ion-item>
+  <ion-item *ngIf="!mesaId">
     <ion-label position="stacked">Número de mesa</ion-label>
     <ion-input type="number"
-               [readonly]="!!mesaId" 
                [(ngModel)]="numero"
                (ionInput)="updateBtnDisabled()"
-               placeholder="Ej: 12"
-               [readonly]="!!mesaId"></ion-input>
+               placeholder="Ej: 12"></ion-input>
   </ion-item>
 
   <ion-item>
@@ -125,7 +126,10 @@
 
   <ion-item>
     <ion-label position="stacked">Tipo</ion-label>
-    <ion-select [(ngModel)]="tipo" (ionChange)="updateBtnDisabled()">
+    <ion-select [(ngModel)]="tipo" 
+                (ionChange)="updateBtnDisabled()"
+                okText="CONFIRMAR"
+                cancelText="CANCELAR">
       <ion-select-option value="estandar">Estándar</ion-select-option>
       <ion-select-option value="vip">VIP</ion-select-option>
       <ion-select-option value="mov_reducida">Movilidad reducida</ion-select-option>

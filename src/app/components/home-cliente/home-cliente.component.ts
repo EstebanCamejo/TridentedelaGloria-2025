@@ -2,7 +2,7 @@
 // home-cliente.component.ts
 import { Component ,NgZone, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {  IonContent, IonButton, IonIcon, IonHeader, IonToolbar
+import {  IonContent, IonButton, IonIcon, IonHeader, IonToolbar, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { qrCodeOutline, albumsOutline } from 'ionicons/icons';
@@ -34,18 +34,25 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     private qrHtml5: QrHtml5Service,  // 🆕 Scanner web que NO afecta Supabase
     private zone: NgZone,
     private clienteRt: ClienteRealtimeService,  // 🆕 Servicio de notificaciones para cliente
-    private toast: ToastrService
+    private toast: ToastrService,
+    private alertCtrl: AlertController
   ) {
     addIcons({ qrCodeOutline, albumsOutline });
     this.email$ = this.supa.authEmail$;
   }
 
   async ngOnInit() {
+    console.log('[DEBUG HOME-CLIENTE] 🚀 Iniciando ngOnInit...');
+    
     // Iniciar el servicio de notificaciones para cliente
+    console.log('[DEBUG HOME-CLIENTE] 🔔 Iniciando ClienteRealtimeService...');
     await this.clienteRt.init();
+    console.log('[DEBUG HOME-CLIENTE] ✅ ClienteRealtimeService iniciado');
     
     // Verificar si tiene mesa asignada
+    console.log('[DEBUG HOME-CLIENTE] 🔍 Verificando estado de mesa...');
     await this.verificarEstadoMesa();
+    console.log('[DEBUG HOME-CLIENTE] ✅ ngOnInit completado');
   }
 
   ngOnDestroy() {
@@ -152,7 +159,18 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       this.zone.run(async () => {
         if (!payload) {
           console.warn('[scanQr] ⚠️ Payload no válido');
-          alert('QR no válido');
+          const alert = await this.alertCtrl.create({
+            header: 'QR no válido',
+            message: 'El código QR escaneado no es válido. Por favor intenta nuevamente.',
+            buttons: [
+              {
+                text: 'CONFIRMAR',
+                cssClass: 'alert-button-confirm'
+              }
+            ],
+            cssClass: 'custom-alert'
+          });
+          await alert.present();
           return;
         }
 
@@ -193,7 +211,18 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     try {
       const userId = this.supa.idUsuario;
       if (!userId) {
-        alert('No se pudo identificar el usuario. Por favor inicia sesión nuevamente.');
+        const alert = await this.alertCtrl.create({
+          header: 'Error de identificación',
+          message: 'No se pudo identificar el usuario. Por favor inicia sesión nuevamente.',
+          buttons: [
+            {
+              text: 'CONFIRMAR',
+              cssClass: 'alert-button-confirm'
+            }
+          ],
+          cssClass: 'custom-alert'
+        });
+        await alert.present();
         return;
       }
 
@@ -211,13 +240,35 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
 
       if (error) {
         console.error('[handleMesaScan] Error al consultar lista_espera:', error);
-        alert('Error al verificar tu estado. Intenta nuevamente.');
+        const alert = await this.alertCtrl.create({
+          header: 'Error',
+          message: 'Error al verificar tu estado. Intenta nuevamente.',
+          buttons: [
+            {
+              text: 'CONFIRMAR',
+              cssClass: 'alert-button-confirm'
+            }
+          ],
+          cssClass: 'custom-alert'
+        });
+        await alert.present();
         return;
       }
 
       // CASO 1: No tiene mesa asignada aún (estado 'esperando')
       if (!waitRow || waitRow.estado === 'esperando') {
-        alert('⏳ Aún no tienes una mesa asignada.\n\nPor favor espera a que el maitre te asigne una mesa.');
+        const alert = await this.alertCtrl.create({
+          header: 'Esperando asignación',
+          message: '⏳ Aún no tienes una mesa asignada.\n\nPor favor espera a que el maitre te asigne una mesa.',
+          buttons: [
+            {
+              text: 'CONFIRMAR',
+              cssClass: 'alert-button-confirm'
+            }
+          ],
+          cssClass: 'custom-alert'
+        });
+        await alert.present();
         return;
       }
 
@@ -225,7 +276,18 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       if (waitRow.estado === 'asignado') {
         if (!waitRow.mesa_id) {
           console.error('[handleMesaScan] Mesa asignada sin mesa_id');
-          alert('Error: mesa asignada incorrectamente. Contacta al personal.');
+          const alert = await this.alertCtrl.create({
+            header: 'Error',
+            message: 'Error: mesa asignada incorrectamente. Contacta al personal.',
+            buttons: [
+              {
+                text: 'CONFIRMAR',
+                cssClass: 'alert-button-confirm'
+              }
+            ],
+            cssClass: 'custom-alert'
+          });
+          await alert.present();
           return;
         }
 
@@ -240,9 +302,21 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
 
           const numeroAsignado = mesaAsignada?.numero ?? '?';
           
-          alert(`❌ Esta no es tu mesa asignada.\n\n` +
-                `Tu mesa asignada es la N° ${numeroAsignado}.\n\n` +
-                `Por favor escanea el QR de la mesa ${numeroAsignado}.`);
+          const alert = await this.alertCtrl.create({
+            header: 'Mesa incorrecta',
+            message: `❌ Esta no es tu mesa asignada.\n\n` +
+                    `Tu mesa asignada es la N° ${numeroAsignado}.\n\n` +
+                    `Por favor escanea el QR de la mesa ${numeroAsignado}.`,
+            buttons: [
+              {
+                text: 'CONFIRMAR',
+                cssClass: 'alert-button-confirm'
+              }
+            ],
+            cssClass: 'custom-alert'
+          });
+          
+          await alert.present();
           return;
         }
 
@@ -260,7 +334,18 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       }
     } catch (e: any) {
       console.error('[handleMesaScan] Error:', e);
-      alert('Error al verificar la mesa: ' + (e?.message || 'Error desconocido'));
+      const alert = await this.alertCtrl.create({
+        header: 'Error',
+        message: 'Error al verificar la mesa: ' + (e?.message || 'Error desconocido'),
+        buttons: [
+          {
+            text: 'CONFIRMAR',
+            cssClass: 'alert-button-confirm'
+          }
+        ],
+        cssClass: 'custom-alert'
+      });
+      await alert.present();
     }
   }
 
@@ -290,10 +375,13 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
    */
   async verificarEstadoMesa() {
     try {
+      console.log('[DEBUG HOME-CLIENTE] 🔍 Iniciando verificarEstadoMesa...');
       const waitStatus = await this.supa.getWaitStatusDetail();
+      console.log('[DEBUG HOME-CLIENTE] ✅ WaitStatus obtenido:', waitStatus);
       this.tieneMesaAsignada = waitStatus?.estado === 'asignado';
+      console.log('[DEBUG HOME-CLIENTE] ✅ tieneMesaAsignada:', this.tieneMesaAsignada);
     } catch (error) {
-      console.error('Error al verificar estado de mesa:', error);
+      console.error('[DEBUG HOME-CLIENTE] ❌ Error al verificar estado de mesa:', error);
       this.tieneMesaAsignada = false;
     }
   }

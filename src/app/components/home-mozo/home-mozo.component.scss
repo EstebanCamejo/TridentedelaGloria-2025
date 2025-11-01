@@ -113,5 +113,100 @@
 
 /* FAB salir - REMOVIDO: no se usa en este componente */
 
-/* mensaje vacío */
+/* ===== Título grande ===== */
+.title-large {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ===== Mensajes de lista vacía con estilo "cartel" ===== */
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  margin: 20px;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+  border-radius: 20px;
+  border: 3px solid #7b2f2f;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #7b2f2f;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.empty-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 12px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  letter-spacing: 1px;
+}
+
+.empty-subtitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #f0f0f0;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.empty-description {
+  font-size: 1rem;
+  color: #d0d0d0;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* mensaje vacío (mantener compatibilidad) */
 .empty{ margin: 16px auto; text-align: center; opacity:.8; color:#000; }
+
+/* ===== Estilos para alertas personalizadas ===== */
+.custom-alert {
+  --backdrop-opacity: 0.6;
+  --background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+  --backdrop-filter: blur(8px);
+  --border-radius: 16px;
+  --box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.custom-alert .alert-head {
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.custom-alert .alert-message {
+  color: #f0f0f0;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.alert-button-cancel {
+  --color: #7b2f2f;
+  --background: transparent;
+  --border-color: #7b2f2f;
+  --border-width: 2px;
+  --border-style: solid;
+  --border-radius: 8px;
+  font-weight: 700;
+}
+
+.alert-button-confirm {
+  --color: #fff;
+  --background: #7b2f2f;
+  --border-radius: 8px;
+  font-weight: 700;
+}

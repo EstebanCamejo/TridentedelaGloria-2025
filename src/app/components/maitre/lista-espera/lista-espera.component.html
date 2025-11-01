@@ -1,7 +1,7 @@
 
    <ion-header>
   <ion-toolbar>
-    <ion-title>Lista de espera</ion-title>
+    <ion-title class="title-large">LISTA DE ESPERA</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -51,10 +51,15 @@
 <ng-template #estado>
   <div class="wl-state">
     <ng-container *ngIf="loading; else vacio">
-      Cargando lista de espera…
+      <div class="loading-message">Cargando lista de espera…</div>
     </ng-container>
     <ng-template #vacio>
-      No hay clientes en espera.
+      <div class="empty-message">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">¡LISTA DE ESPERA VACÍA!</div>
+        <div class="empty-subtitle">No hay clientes esperando</div>
+        <div class="empty-description">Todos los clientes han sido atendidos exitosamente</div>
+      </div>
     </ng-template>
   </div>
 </ng-template>

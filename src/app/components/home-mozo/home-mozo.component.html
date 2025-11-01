@@ -1,6 +1,6 @@
 <ion-header class="mz-header">
   <ion-toolbar>
-    <div class="nav-pill"> Bienvenido | {{ (email | async) || '—' }}</div>
+    <div class="nav-pill title-large"> Bienvenido | {{ (email | async) || '—' }}</div>
   </ion-toolbar>
 
   <!-- tira con fondo sólido/blur -->
@@ -37,8 +37,11 @@
       </div>
 
       <!-- Sin pedidos pendientes -->
-      <div *ngIf="!cargandoPedidos && pedidos.length === 0" class="empty-state">
-        <p>✅ No hay pedidos pendientes de confirmación</p>
+      <div *ngIf="!cargandoPedidos && pedidos.length === 0" class="empty-message">
+        <ion-icon name="checkmark-circle-outline" class="empty-icon"></ion-icon>
+        <div class="empty-title">¡PEDIDOS PENDIENTES VACÍOS!</div>
+        <div class="empty-subtitle">No hay pedidos pendientes de confirmación</div>
+        <div class="empty-description">Todos los pedidos están procesados correctamente</div>
       </div>
 
       <!-- Lista de pedidos pendientes -->
@@ -95,8 +98,11 @@
       </div>
 
       <!-- Sin pedidos en curso -->
-      <div *ngIf="!cargandoPedidosEnCurso && pedidosEnCurso.length === 0" class="empty-state">
-        <p>✅ No hay pedidos en curso</p>
+      <div *ngIf="!cargandoPedidosEnCurso && pedidosEnCurso.length === 0" class="empty-message">
+        <ion-icon name="time-outline" class="empty-icon"></ion-icon>
+        <div class="empty-title">¡PEDIDOS EN CURSO VACÍOS!</div>
+        <div class="empty-subtitle">No hay pedidos en curso</div>
+        <div class="empty-description">Todos los pedidos están completados o pendientes</div>
       </div>
 
       <!-- Lista de pedidos en curso -->
@@ -200,7 +206,12 @@
   </ng-container>
 
   <ng-template #sinConsultas>
-    <div class="empty">No hay consultas todavía.</div>
+    <div class="empty-message">
+      <ion-icon name="chatbubbles-outline" class="empty-icon"></ion-icon>
+      <div class="empty-title">¡CONSULTAS VACÍAS!</div>
+      <div class="empty-subtitle">No hay consultas todavía</div>
+      <div class="empty-description">Los clientes aún no han realizado consultas</div>
+    </div>
   </ng-template>
 </ng-container>
 

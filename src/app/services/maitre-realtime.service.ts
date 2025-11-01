@@ -84,10 +84,11 @@ export class MaitreRealtimeService implements OnDestroy {
         event: 'INSERT',
         schema: 'public',
         table: 'lista_espera',
-        filter: 'estado=eq.esperando',    // <- INSERTs que van directo a 'esperando'
+        filter: 'estado=eq.esperando'
       }, async (payload) => {
         console.log('[MaitreRealtimeService] 🔔 INSERT detectado:', payload);
         const it: any = payload.new || {};
+        
         const nombre = it.nombre || it.alias || 'Cliente';
         const cant = it.cantidad_comensales ?? '-';
 

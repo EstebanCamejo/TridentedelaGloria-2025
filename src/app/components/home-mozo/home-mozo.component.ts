@@ -4,7 +4,7 @@ import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonContent, IonSegment, IonSegmentButton, IonLabel,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon,
-  IonCardSubtitle, IonSpinner, IonRefresher, IonRefresherContent
+  IonCardSubtitle, IonSpinner, IonRefresher, IonRefresherContent, AlertController
 } from '@ionic/angular/standalone';
 import { chevronForwardOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, closeCircleOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
@@ -56,7 +56,8 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
     private supa: SupabaseService,
     private chatSvc: ChatService,
     private mozoRt: MozoRealtimeService,
-    private mozoPedidosSvc: MozoPedidosService
+    private mozoPedidosSvc: MozoPedidosService,
+    private alertCtrl: AlertController
   ) {
     console.log('[HomeMozoComponent] 🏗️ Constructor ejecutado');
     addIcons({ 
@@ -203,8 +204,28 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
   async rechazarPedidoPendiente(pedido: PedidoPendiente) {
     if (this.rechazandoId === pedido.id) return;
     
-    const confirmacion = confirm(`¿Estás seguro de que quieres rechazar el pedido de la Mesa ${pedido.mesa_numero}?\n\nEl cliente podrá modificarlo y enviarlo nuevamente.`);
-    if (!confirmacion) return;
+    const alert = await this.alertCtrl.create({
+      header: 'Confirmar rechazo',
+      message: `¿Estás seguro de que quieres rechazar el pedido de la Mesa ${pedido.mesa_numero}?\n\nEl cliente podrá modificarlo y enviarlo nuevamente.`,
+      buttons: [
+        {
+          text: 'CANCELAR',
+          role: 'cancel',
+          cssClass: 'alert-button-cancel'
+        },
+        {
+          text: 'CONFIRMAR',
+          cssClass: 'alert-button-confirm',
+          handler: () => this.procesarRechazoPendiente(pedido)
+        }
+      ],
+      cssClass: 'custom-alert'
+    });
+    
+    await alert.present();
+  }
+
+  private async procesarRechazoPendiente(pedido: PedidoPendiente) {
 
     try {
       this.rechazandoId = pedido.id;
@@ -236,8 +257,28 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
   async rechazarPedido(pedido: PedidoPendiente) {
     if (this.rechazandoId === pedido.id) return;
     
-    const confirmacion = confirm(`¿Estás seguro de que quieres rechazar el pedido de la Mesa ${pedido.mesa_numero}?\n\nEl cliente podrá modificarlo y enviarlo nuevamente.`);
-    if (!confirmacion) return;
+    const alert = await this.alertCtrl.create({
+      header: 'Confirmar rechazo',
+      message: `¿Estás seguro de que quieres rechazar el pedido de la Mesa ${pedido.mesa_numero}?\n\nEl cliente podrá modificarlo y enviarlo nuevamente.`,
+      buttons: [
+        {
+          text: 'CANCELAR',
+          role: 'cancel',
+          cssClass: 'alert-button-cancel'
+        },
+        {
+          text: 'CONFIRMAR',
+          cssClass: 'alert-button-confirm',
+          handler: () => this.procesarRechazoEnCurso(pedido)
+        }
+      ],
+      cssClass: 'custom-alert'
+    });
+    
+    await alert.present();
+  }
+
+  private async procesarRechazoEnCurso(pedido: PedidoPendiente) {
 
     try {
       this.rechazandoId = pedido.id;
