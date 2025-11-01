@@ -3,7 +3,6 @@
 <img width="179" height="219" alt="488039206-32abba29-e5fe-418d-bd17-2637ea8a77a2" src="https://github.com/user-attachments/assets/02a354da-5dfc-4909-a3b7-268c63f91d97" />
 
 
-
 ## 📖 Descripción
 > Esta aplicación móvil facilita la gestión de información y operaciones en un restaurante, optimizando la experiencia de los usuarios y el personal.  
 > Mediante el uso de la cámara y la lectura de códigos QR, se mejora la administración y la interacción con los clientes, empleados y supervisores.  
@@ -190,7 +189,18 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 - Puntos funcionando del 1 al 19 + Requerimientos excluyentes.
 
     ## 📆 Semana 7: Sábado 18/10 al 25/10 
-  //correccion: no hubo correcciones 
+  //correccion: Alejandro constanzo.
+
+  Github: completo
+Punto 1: el primer dispositivo esta grabado muy lejos, se ve que ingresan datos pero la verdad nos imaginamos y no nos tendríamos que imaginar sino poder constatarlo. Los otros dispositivos tienen una visual correcta. Vuelvan a grabar el primer dispositivo (que justo es el que hace el ingreso de todos los datos). A nivel visual esta correcto y funcionalmente también correcto.
+Puntos 2 y 3: En la sección donde tienen 2 botones grandes (visualizar pendiente y agregar nueva bebida) usan scroll y no deberían porque justamente tienen 2 botones grandes, eso aplíquenlo a cualquier parte donde ocurra algo similar, eviten el uso del scroll y limítenlo a lugares que sean sumamente necesarios.
+Ya veo el menú en un dispositivo y ahí hago una aclaración: el menú si van a usar scroll (recomiendo que no pero lo pueden hacer) si van por ese camino que el scroll cuando pasan de una imagen a otra que la misma se frene y ocupen toda la pantalla, es decir que no quede ni la mitad ni una cuarta parte de un articulo anterior ni posterior. Ahora previendo la segunda parte del proyecto (punto 31) les recomiendo que usen un estilo de carrusel y ya preparan el menú para ese punto. A nivel visual esta correcto y funcionalmente también correcto.
+Punto 4: otra vez el primer dispositivo se ve lejos, y no se (porque repito se ve lejos) pero pareciera que cuando eliminan mesa la confirmación aparecen palabras en ingles (OK-CANCEL), si no es así desestimar esto, pero vuelvan a grabar esta parte mas cerca porque no se distingue, funcionalmente bien.
+Puntos 5-6-7-8: Los botones de aceptación y rechazo siguen igual, siguen 2 botones minúsculos, eso cámbienlo para poner dos botones un poco mas grande. El correo de aceptación que tenga colores tendiendo al verde (aceptar) y el de rechazo tendiendo al rojo (rechazar).
+Puntos 9-10-11: palabra en ingles (OK). Hay un mensaje “No hay clientes en espera” se pierde o confunde con el fondo, además se ve arriba de todo en chiquito. Si ponen un mensaje que muestra un lista vacía, o ponen el mensaje bien grande que ocupe toda la pantalla o pongan una imagen alusiva que muestre dicha acción (esto aplicarlo a cualquier acción similar). El punto 11 no lo muestran bien como se debe, lo pasan muy por arriba, deben mostrar bien el menú de productos con sus 3 fotos, con sus tiempos de preparación con su valor bien en grande, con las categorías correspondientes (comidas, bebidas y postres) ,etc como se pide en el punto 11.
+Puntos 12-13: ídem al punto 11 muestren el menú. Otra vez pantallas vacías donde no hay nada que mostrar (detallado puntos 9-10-11). Palabras en ingles (OK-CANCEL).
+Puntos 14-16-17-18-19: ok
+Punto 15: ok
 
 *Diseño*
 - Home cliente Reservas -> Sofia Dorbessan
@@ -207,6 +217,43 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 
   ✅ *Entrega:*
 - Puntos funcionando del 1 al 19 + Requerimientos excluyentes.
+
+## 📆 Semana 7: Sábado 25/10 al 01/11 
+  //correccion: Maximiliano Neiner
+
+Vista Reserva Admin:
+Las letras rojo oscuro, sobre el fondo negro no hacen un buen contraste.
+Igualar los componentes (inputs y buttons) para que entre sí, tengan el mismo tamaño.
+Dejar espacios entre 'renglones' para abarcar mayor superficie (espacio hacia abajo tienen y mucho). Quitar palabra email.
+Vista Reserva Cliente:
+agrandaría un poco más el mensaje 'pendiente de confirmación'.
+Home Cliente Reserva:
+dejar más espacio entre el primer botón (Escanear QR) y el borde superior de la pantalla. Tratar de que los espacios entre los bordes sean lo más parejos posibles (sin solapar otros controles).
+
+El video es muy extenso, separarlo por puntos individuales.
+Agrandar más las fuentes, en particular la de los totales.
+
+*Diseño*
+- Arreglo home Maitre -> Sofia Dorbessan
+- Arreglo correos Aceptacion/Rechazo -> Sofia Dorbessan
+- Arreglo visual admin lista de espera -> Sofia Dorbessan
+- Correos Aceptacion/Rechazo reservas -> Sofia Dorbessan
+- Arreglo Menu → *Ivan Laurito*
+- Arreglo componentes sin informacion en lista  → Esteban Camejo
+- Arreglo home admin mesas  → Esteban Camejo
+- Correo con PDF factura → Esteban Camejo
+
+*Gestión*
+- PDF factura → Esteban Camejo
+- Correo con PDF factura a cliente registrado → Esteban Camejo
+- Push con factura al cliente no registrado → Esteban Camejo
+- Flujo correos Aceptacion/Rechazo reservas -> Sofia Dorbessan
+- Componente Reservas Cliente y Admin -> Sofia Dorbessan
+
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 22 + Requerimientos excluyentes.
+- Se entregan los puntos del 1 al 13 actualizados con las ultimas correcciones realizadas.
 
   ## 📲 Imagenes de la aplicacion 📲
 
