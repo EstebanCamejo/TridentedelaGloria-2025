@@ -81,6 +81,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/reservas',
+    loadComponent: () =>
+      import('./components/admin/reservas/reservas.component').then(
+        (m) => m.ReservasAdminComponent
+      ),
+  },
+  {
     path: 'admin/mesas/editar/:id',
     loadComponent: () =>
       import('./components/admin/alta-mesa/alta-mesa.component')
@@ -129,6 +136,13 @@ export const routes: Routes = [
       import(
         './components/cliente/cliente-realiza-pedido/cliente-realiza-pedido.component'
       ).then((m) => m.ClienteRealizaPedidoComponent),
+  },
+  {
+    path: 'cliente/hacer-reserva',
+    loadComponent: () =>
+      import(
+        './components/cliente/hacer-reserva/hacer-reserva.component'
+      ).then((m) => m.HacerReservaComponent),
   },
   {
     path: 'cliente-detalle-cuenta',

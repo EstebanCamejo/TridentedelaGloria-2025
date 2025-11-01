@@ -3,9 +3,10 @@
 /* Centrado perfecto del card */
 .wrapper {
   min-height: 100%;
-  display: grid;
-  place-items: center;
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 8px 24px 24px;
 }
 
 /* Card con ancho similar al modelo */
@@ -21,8 +22,28 @@
 }
 
 
-.form-container { display: flex; flex-direction: column; gap: 12px; }
-.toggle { margin-top: 1px; display: flex; justify-content: center; color: #e7dac4; background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));}
+.form-container { display: flex; flex-direction: column; gap: 6px; }
+.toggle { 
+  margin-top: 0; 
+  margin-bottom: 0;
+  padding: 8px 12px;
+  display: flex; 
+  justify-content: center; 
+  color: #e7dac4; 
+  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.toggle ion-toggle {
+  --background: rgba(255,255,255,.1);
+  --background-checked: #7b2f2f;
+  --handle-background: #ffe9d3;
+  --handle-background-checked: #ffe9d3;
+  --handle-width: 20px;
+  --handle-height: 20px;
+  margin-left: 8px;
+}
 
 
 /* input file oculto para fallback web */
@@ -139,7 +160,7 @@
   backdrop-filter: blur(8px) saturate(1.05);
   -webkit-backdrop-filter: blur(8px) saturate(1.05);
   padding: calc(var(--badge-clearance) + 12px) var(--pad-x) var(--pad-y);
-  margin: clamp(6px, 1.6svh, 12px) auto 8px;
+  margin: 0 auto 4px;
 }
 
 /* Grilla vertical del form */

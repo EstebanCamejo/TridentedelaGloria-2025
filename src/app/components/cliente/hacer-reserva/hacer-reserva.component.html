@@ -1,0 +1,159 @@
+<ion-header class="reserva-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+    </ion-buttons>
+    <ion-title>Hacer Reserva</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="reserva-content">
+  <div class="reserva-container">
+    
+    <!-- Sección: Mis Reservas Activas -->
+    <ion-card class="reservas-activas-card" *ngIf="cargandoReservas">
+      <ion-card-header>
+        <ion-card-title>Mis Reservas Activas</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="loading-reservas">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Cargando tus reservas...</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="reservas-activas-card" *ngIf="!cargandoReservas && reservasActivas.length > 0">
+      <ion-card-header>
+        <ion-card-title>Mis Reservas Activas</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item *ngFor="let reserva of reservasActivas" lines="full">
+            <ion-label>
+              <h2>{{ formatearFecha(reserva.fecha) }}</h2>
+              <p>
+                <ion-icon name="time-outline"></ion-icon>
+                {{ reserva.hora }} | 
+                <ion-icon name="people-outline"></ion-icon>
+                {{ reserva.cantidad_comensales }} persona{{ reserva.cantidad_comensales > 1 ? 's' : '' }}
+              </p>
+              <p *ngIf="reserva.nota">
+                <strong>Nota:</strong> {{ reserva.nota }}
+              </p>
+              <p>
+                <ion-badge [color]="obtenerColorEstado(reserva.estado)">
+                  {{ formatearEstado(reserva.estado) }}
+                </ion-badge>
+              </p>
+            </ion-label>
+            <ion-button 
+              *ngIf="reserva.estado !== 'rechazada'"
+              slot="end" 
+              fill="clear" 
+              color="danger"
+              (click)="cancelarReserva(reserva)"
+              [disabled]="cargando">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Formulario de Nueva Reserva -->
+    <ion-card class="formulario-card">
+      <ion-card-header>
+        <ion-card-title>🗓️ Nueva Reserva</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form (ngSubmit)="crearReserva()" class="reserva-form">
+          
+          <!-- Fecha -->
+          <div class="form-group">
+            <ion-label class="form-label">
+              <ion-icon name="calendar-outline"></ion-icon>
+              Fecha de la reserva
+            </ion-label>
+            <ion-datetime
+              [(ngModel)]="fecha"
+              name="fecha"
+              [min]="fechaMinima"
+              [max]="fechaMaxima"
+              presentation="date"
+              [showDefaultButtons]="true"
+              [showClearButton]="false"
+              [doneText]="'Listo'"
+              [cancelText]="'Cancelar'"
+              class="form-datetime"
+              placeholder="Toca para seleccionar fecha">
+            </ion-datetime>
+          </div>
+
+          <!-- Hora -->
+          <div class="form-group">
+            <ion-label class="form-label">
+              <ion-icon name="time-outline"></ion-icon>
+              Hora de la reserva
+            </ion-label>
+            <ion-select
+              [(ngModel)]="hora"
+              name="hora"
+              required
+              class="form-select"
+              placeholder="Selecciona una hora"
+              interface="popover">
+              <ion-select-option *ngFor="let horaOption of horasDisponibles" [value]="horaOption.value">
+                {{ horaOption.label }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+
+          <!-- Cantidad de comensales -->
+          <div class="form-group">
+            <ion-label class="form-label">
+              <ion-icon name="people-outline"></ion-icon>
+              Cantidad de comensales
+            </ion-label>
+            <ion-input
+              type="number"
+              [(ngModel)]="cantidadComensales"
+              name="cantidadComensales"
+              min="1"
+              max="20"
+              required
+              class="form-input"
+              placeholder="Ej: 2">
+            </ion-input>
+          </div>
+
+          <!-- Nota opcional -->
+          <div class="form-group">
+            <ion-label class="form-label">
+              <ion-icon name="document-text-outline"></ion-icon>
+              Nota adicional (opcional)
+            </ion-label>
+            <ion-textarea
+              [(ngModel)]="nota"
+              name="nota"
+              rows="3"
+              class="form-textarea"
+              placeholder="Ej: Preferencia de ubicación, alergias, celebración especial, etc.">
+            </ion-textarea>
+          </div>
+
+          <!-- Botón de crear reserva -->
+          <div class="button-container">
+            <ion-button
+              expand="block"
+              type="submit"
+              [disabled]="!fecha || !hora || !cantidadComensales"
+              class="btn-crear-reserva">
+              ✨ Crear Reserva
+            </ion-button>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+

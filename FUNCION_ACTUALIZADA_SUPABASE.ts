@@ -1,5 +1,3 @@
-
-
 // supabase/functions/notificar-cliente/index.ts
 
 // CORS (en prod podés restringir el Origin)
@@ -14,7 +12,7 @@ type Body = {
   email: string;
   nombres: string;
   apellidos: string;
-  estado: "aprobado" | "rechazado" | "rechazada" | "pendiente" | "confirmada";
+  estado: "aprobado" | "rechazado" | "pendiente" | "confirmada";
   tipo?: "usuario" | "reserva";
   datosReserva?: {
     fecha: string;
@@ -58,100 +56,18 @@ function formatearFecha(fecha: string): string {
   }
 }
 
-
-// function makeHtml(nombres: string, apellidos: string, estado: Body["estado"]) {
-//   const titulo =
-//     estado === "aprobado"
-//       ? "Registro aprobado – El Tridente de la Gloria"
-//       : estado === "rechazado"
-//       ? "Registro rechazado – El Tridente de la Gloria"
-//       : "Registro en revisión – El Tridente de la Gloria";
-
-//   const lead =
-//     estado === "aprobado"
-//       ? "Ya podés ingresar a la app con tu correo y contraseña."
-//       : estado === "rechazado"
-//       ? "Tu registro fue rechazado. Si creés que es un error, respondé este email."
-//       : "Tu registro está siendo revisado. Te avisaremos cuando haya novedades.";
-
-//   const saludo = `Hola ${nombres} ${apellidos},`;
-
-//   return `<!doctype html>
-// <html lang="es"><head>
-//   <meta charset="utf-8"><meta name="viewport" content="width=device-width">
-//   <title>${titulo}</title>
-//   <style>
-//     /* Dark mode (cuando el cliente lo soporte) */
-//     @media (prefers-color-scheme: dark) {
-//       .d-bg   { background: #0f0f0f !important; }
-//       .d-card { background: #1a1a1a !important; color: #eee !important; }
-//       .d-head { background: ${BRAND_PRIMARY} !important; }
-//       .d-muted{ color:#bbb !important; }
-//       .cta    { background: ${BRAND_PRIMARY} !important; color:#fff !important; }
-//       a       { color:#8ab4f8 !important; }
-//     }
-//   </style>
-// </head>
-// <body style="margin:0;padding:0;background:#f7f7f7;font-family:Arial,Helvetica,sans-serif;" class="d-bg">
-//   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f7f7f7;padding:24px 0;">
-//     <tr><td align="center">
-//       <table role="presentation" width="600" cellspacing="0" cellpadding="0"
-//              style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.04)" class="d-card">
-//         <!-- Header -->
-//         <tr>
-//           <td style="background:${BRAND_PRIMARY};padding:16px 24px;text-align:center;" class="d-head">
-//             ${
-//               BRAND_LOGO_URL
-//                 ? `<img src="${BRAND_LOGO_URL}" alt="El Tridente de la Gloria" style="max-height:64px;max-width:100%;object-fit:contain;border-radius:8px;background:#ffffff;padding:6px" />`
-//                 : `<div style="color:#fff;font-weight:700;font-size:18px;letter-spacing:.3px">El Tridente de la Gloria</div>`
-//             }
-//           </td>
-//         </tr>
-
-//         <!-- Cuerpo -->
-//         <tr><td style="padding:20px 24px;background:${BRAND_BG};" class="d-card">
-//           <h1 style="margin:0 0 8px;font-size:20px;line-height:1.35;color:#222">${titulo}</h1>
-//           <div style="opacity:.85;margin:0 0 14px;color:#222">${saludo}</div>
-//           <div style="margin:0 0 16px;color:#333">${lead}</div>
-
-//           <!-- CTA (deep link) -->
-//           <div style="text-align:center;margin:16px 0 6px">
-//             <a href="${BRAND_DEEP_LINK}"
-//                style="display:inline-block;background:${BRAND_PRIMARY};color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600"
-//                class="cta">
-//               Abrir la app
-//             </a>
-//           </div>
-//           <div style="text-align:center;font-size:12px;opacity:.8;margin-top:6px" class="d-muted">
-//             Si el botón no funciona, copiá y pegá este enlace en tu navegador:<br>
-//             <span style="word-break:break-all;">${BRAND_APP_URL}</span>
-//           </div>
-//         </td></tr>
-
-//         <!-- Pie -->
-//         <tr><td style="padding:12px 24px 20px;background:#ffffff;text-align:center" class="d-card">
-//           <div style="font-size:12px;color:#777" class="d-muted">
-//             Mensaje automático de <strong>El Tridente de la Gloria</strong>.
-//           </div>
-//         </td></tr>
-//       </table>
-//     </td></tr>
-//   </table>
-// </body></html>`;
-// }
-
 function makeHtml(nombres: string, apellidos: string, estado: Body["estado"], tipo?: Body["tipo"], datosReserva?: Body["datosReserva"]) {
   const esReserva = tipo === "reserva";
   
   // Colores de fondo dinámicos según el estado
   const CONFIRM_BG_COLOR = "#D4EDDA"; // Verde claro para confirmación/aprobación
-  const REJECT_BG_COLOR = "#F8D7DA"; // Rojo claro para rechazo
-  const PENDING_BG_COLOR = BRAND_BG; // Crema para pendiente/en revisión
+  const REJECT_BG_COLOR  = "#F8D7DA";  // Rojo claro para rechazo
+  const PENDING_BG_COLOR = BRAND_BG;  // Crema para pendiente/en revisión
   
   let bodyBgColor = PENDING_BG_COLOR;
   if (estado === "confirmada" || estado === "aprobado") {
     bodyBgColor = CONFIRM_BG_COLOR;
-  } else if (estado === "rechazado" || estado === "rechazada") {
+  } else if (estado === "rechazado") {
     bodyBgColor = REJECT_BG_COLOR;
   }
   
@@ -201,7 +117,7 @@ function makeHtml(nombres: string, apellidos: string, estado: Body["estado"], ti
   <meta name="viewport" content="width=device-width" />
   <title>${titulo}</title>
   <style>
-    /* ---- DARK MODE (cuando el cliente lo soporta) ---- */
+    /* ---- DARK MODE (cuando el cliente lo soporte) ---- */
     @media (prefers-color-scheme: dark) {
       body      { background:#0f0f0f !important; }
       .card     { background:#181818 !important; color:#eee !important; }
@@ -242,7 +158,7 @@ function makeHtml(nombres: string, apellidos: string, estado: Body["estado"], ti
 
           <!-- BODY -->
           <tr>
-            <td style="padding:22px 24px; background:${bodyBgColor};">
+            <td style="padding:22px 24px; background:${BRAND_BG};">
               <h1 style="margin:0 0 8px; font-size:20px; line-height:1.35; color:#222;">${titulo}</h1>
               ${nombreCompleto ? `<div style="margin:0 0 10px; color:#222; opacity:.9;">Hola ${nombreCompleto},</div>` : ``}
               <p style="margin:0 0 12px; color:#333;">${lead}</p>
@@ -303,8 +219,6 @@ function makeHtml(nombres: string, apellidos: string, estado: Body["estado"], ti
 </html>`;
 }
 
-
-
 Deno.serve(async (req: Request) => {
 
   // Orígenes permitidos en dev y app empaquetada
@@ -325,10 +239,7 @@ Deno.serve(async (req: Request) => {
     };
   }
 
-
   const cors = buildCorsHeaders(req);
-
-
 
   // Preflight
   if (req.method === "OPTIONS") {
@@ -422,8 +333,6 @@ Detalles de tu reserva:
   }
 
   text += `\n\n— El Tridente de la Gloria`;
-// Abrir la app: ${BRAND_DEEP_LINK}
-// Fallback: ${BRAND_APP_URL}`;
 
   // Adjuntar logo inline (CID) si hay URL pública
   let attachments: Array<{
@@ -505,3 +414,4 @@ Detalles de tu reserva:
     );
   }
 });
+

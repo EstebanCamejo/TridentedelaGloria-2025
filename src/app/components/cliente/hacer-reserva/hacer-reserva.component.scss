@@ -1,0 +1,404 @@
+/* ===== Variables ===== */
+:root {
+  --cream-25: #F5E7D8;
+  --cream-50: #F5E7D8;
+  --cream-100: #C0A090;
+  --maroon-600: #8B3A3A;
+  --maroon-700: #6B2C2C;
+  --maroon-800: #6B2C2C;
+  --maroon-900: #4A1F1F;
+}
+
+/* ===== Header ===== */
+.reserva-header {
+  ion-toolbar {
+    --background: #6B2C2C;
+    --color: #fff;
+    box-shadow: 0 2px 8px rgba(107, 44, 44, 0.3);
+  }
+
+  ion-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: #fff;
+  }
+
+  ion-back-button {
+    --color: #fff;
+    font-weight: 600;
+  }
+}
+
+/* ===== Content ===== */
+.reserva-content {
+  --background: #F5E7D8;
+}
+
+.reserva-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ===== Cards ===== */
+ion-card {
+  margin: 16px 0;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(107, 44, 44, 0.25);
+  border: 1px solid #C0A090;
+
+  ion-card-header {
+    background: #6B2C2C;
+    border-radius: 16px 16px 0 0;
+    padding: 16px 20px;
+
+    ion-card-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: #fff;
+      margin: 0;
+    }
+  }
+
+  ion-card-content {
+    padding: 20px;
+    background: #fff;
+  }
+}
+
+/* ===== Reservas Activas ===== */
+.reservas-activas-card {
+  background: #f5d6d6;
+
+  .loading-reservas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+
+    ion-spinner {
+      margin-bottom: 16px;
+      --color: #6B2C2C;
+    }
+
+    p {
+      color: #6B2C2C;
+      font-weight: 500;
+      margin: 0;
+      font-size: 1rem;
+    }
+  }
+
+  ion-list {
+    background: transparent;
+  }
+
+  ion-item {
+    --background: transparent;
+    --border-color: var(--cream-100);
+
+    ion-label {
+      h2 {
+        font-weight: 600;
+        color: black;
+        margin-bottom: 6px;
+        text-transform: capitalize;
+      }
+
+      p {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: black;
+        font-size: 0.9rem;
+        margin: 4px 0;
+
+        ion-icon {
+          font-size: 1rem;
+        }
+      }
+
+      // Agrandar el mensaje de estado pendiente
+      ion-badge {
+        font-size: 1rem !important; /* texto un poco más pequeño */
+        font-weight: 700 !important;
+        padding: 6px 12px !important; /* menos padding */
+        border-radius: 18px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.8px !important;
+        min-width: 100px !important; /* ancho mínimo reducido */
+        text-align: center !important;
+      }
+
+      strong {
+        color: black;
+      }
+    }
+
+    ion-button {
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 16px;
+      --padding-bottom: 16px;
+      height: 64px;
+      width: 64px;
+      
+      ion-icon {
+        font-size: 2.4rem;
+      }
+    }
+  }
+}
+
+/* ===== Nota de reservas llenas ===== */
+.reservas-llenas-note {
+  display: block;
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  font-size: 0.9rem;
+
+  p {
+    margin: 4px 0;
+    color: #856404;
+  }
+}
+
+/* ===== Formulario ===== */
+.formulario-card {
+  background: #fff;
+  border: 2px solid var(--maroon-600);
+  box-shadow: 0 8px 24px rgba(61, 43, 43, 0.2);
+
+  .reserva-form {
+    padding: 8px 0;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+
+    .form-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      color: #6B2C2C;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      text-transform: none;
+
+      ion-icon {
+        font-size: 1.3rem;
+        color: #8B3A3A;
+      }
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-datetime,
+    .form-select {
+      --background: rgba(139, 58, 58, 0.1);
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      border-radius: 12px;
+      border: 1px solid #C0A090;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #6B2C2C;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(107, 44, 44, 0.1);
+
+      &:focus-within {
+        border-color: #8B3A3A;
+        box-shadow: 0 0 0 3px rgba(139, 58, 58, 0.2);
+        transform: translateY(-2px);
+        --background: rgba(139, 58, 58, 0.15);
+      }
+
+      &::placeholder {
+        color: #D3D3D3;
+        opacity: 0.8;
+        font-weight: 500;
+      }
+    }
+
+    // Estilos específicos para ion-datetime
+    .form-datetime {
+      --background: rgba(139, 58, 58, 0.1);
+      --color: #6B2C2C;
+      --placeholder-color: #D3D3D3;
+      --placeholder-opacity: 0.8;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    // Estilos específicos para ion-select
+    .form-select {
+      --background: rgba(139, 58, 58, 0.1);
+      --color: #6B2C2C;
+      --placeholder-color: #D3D3D3;
+      --placeholder-opacity: 0.8;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .form-textarea {
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      min-height: 100px;
+      resize: vertical;
+    }
+  }
+}
+
+/* ===== Botones ===== */
+.button-container {
+  margin-top: 20px;
+}
+
+.btn-crear-reserva {
+  --background: #F5E7D8;
+  --background-hover: #F0DCC8;
+  --background-activated: #F0DCC8;
+  --color: #6B2C2C;
+  --border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  height: 60px;
+  font-size: 1.2rem;
+  box-shadow: 0 6px 20px rgba(107, 44, 44, 0.4);
+  transition: all 0.3s ease;
+  border: 2px solid #6B2C2C;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(107, 44, 44, 0.5);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(107, 44, 44, 0.2);
+  }
+}
+
+/* ===== Card de Información ===== */
+.info-card {
+  background: #F5E7D8;
+  border: 2px solid #8B3A3A;
+  border-radius: 16px;
+
+  ion-card-header {
+    background: #8B3A3A;
+    
+    ion-card-title {
+      color: #fff;
+      font-size: 1.2rem;
+    }
+  }
+
+  ion-card-content {
+    background: #F5E7D8;
+    
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #6B2C2C;
+
+      li {
+        margin: 10px 0;
+        line-height: 1.6;
+        font-size: 1rem;
+        font-weight: 500;
+
+        strong {
+          color: #6B2C2C;
+          font-weight: 700;
+        }
+      }
+    }
+  }
+}
+
+/* ===== Estilos específicos para ion-datetime ===== */
+ion-datetime {
+  --color: #6B2C2C;
+  --background: rgba(139, 58, 58, 0.1);
+  
+  .datetime-text {
+    color: #6B2C2C !important;
+    font-weight: 600 !important;
+  }
+  
+  .datetime-placeholder {
+    color: #D3D3D3 !important;
+    opacity: 0.8 !important;
+  }
+}
+
+/* ===== Estilos específicos para ion-select ===== */
+ion-select {
+  --color: #6B2C2C;
+  --background: rgba(139, 58, 58, 0.1);
+  
+  .select-text {
+    color: #6B2C2C !important;
+    font-weight: 600 !important;
+  }
+  
+  .select-placeholder {
+    color: #D3D3D3 !important;
+    opacity: 0.8 !important;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 576px) {
+  .reserva-container {
+    padding: 12px;
+  }
+
+  ion-card {
+    margin: 12px 0;
+  }
+
+  .reserva-header ion-title {
+    font-size: 1.1rem;
+  }
+
+  .btn-crear-reserva {
+    height: 50px;
+    font-size: 1.1rem;
+  }
+}
+
+/* ===== Animaciones ===== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+ion-card {
+  animation: slideIn 0.3s ease-out;
+}
+

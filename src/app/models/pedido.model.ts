@@ -23,3 +23,17 @@ export interface PedidoConMesaYDetalles {
     menu: { nombre: string; tipo: string; sector: string };
   }[];
 }
+
+export interface Reserva {
+  id?: number;
+  usuario_id: string;
+  fecha: string;
+  hora: string;
+  cantidad_comensales: number;
+  nota?: string;
+  estado: 'pendiente confirmacion' | 'confirmada' | 'rechazada' | 'cancelada';
+  created_at?: string;
+  updated_at?: string;
+  nombre_cliente?: string;
+  email_cliente?: string;
+}
