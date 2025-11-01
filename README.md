@@ -275,7 +275,6 @@ Agrandar más las fuentes, en particular la de los totales.
 |<img width="267" height="270" alt="image" src="https://github.com/user-attachments/assets/8d4c7cd0-130f-468d-aff9-0ae2ecd473b0" />| QR Lista de espera|
 |<img width="257" height="263" alt="image" src="https://github.com/user-attachments/assets/c3347795-49c3-434a-b4b0-a8fdf71fc1b2" />| QR Mesa (ej: mesa 5)|
 |<img width="387" height="389" alt="image" src="https://github.com/user-attachments/assets/c46e44ab-7501-4e60-b50b-8c438b4c0a01" />|QR Propina: 20%|
-|<img width="391" height="390" alt="image" src="https://github.com/user-attachments/assets/b3434d0c-c9b4-4f31-ac42-6a2fa2b4301b" />
 |<img width="391" height="390" alt="image" src="https://github.com/user-attachments/assets/8d886b93-662d-4ae1-befb-efdfb7d28519" />|QR Propina: 15%|
 |<img width="395" height="389" alt="image" src="https://github.com/user-attachments/assets/828916f7-92e2-4272-9d15-0d71e6e884bc" />|QR Propina: 10%|
 |<img width="389" height="381" alt="image" src="https://github.com/user-attachments/assets/b8a496ae-c4b3-458f-baa4-c6264cdaf031" />|QR Propina: 5%|
