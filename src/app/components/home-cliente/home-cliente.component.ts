@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import {  IonContent, IonButton, IonIcon, IonHeader, IonToolbar, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { qrCodeOutline, albumsOutline } from 'ionicons/icons';
+import { qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline } from 'ionicons/icons';
 import { Observable } from 'rxjs';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { Router } from '@angular/router';
@@ -13,6 +13,8 @@ import { QrPayload, QrService } from 'src/app/services/qr.service';
 import { QrHtml5Service } from 'src/app/services/qr-html5.service';
 import { ClienteRealtimeService } from 'src/app/services/cliente-realtime.service';
 import { ToastrService } from 'ngx-toastr';
+import { ReservasService } from 'src/app/services/reservas.service';
+import { SesionService } from 'src/app/services/sesion.service';
 
 @Component({
   selector: 'app-home-cliente',
@@ -26,6 +28,7 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
   loadingLogout = false;
   tieneMesaAsignada = false;
   loadingLiberar = false;
+  esClienteRegistrado = false;
 
   constructor(
     private supa: SupabaseService,
@@ -35,24 +38,39 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     private zone: NgZone,
     private clienteRt: ClienteRealtimeService,  // 🆕 Servicio de notificaciones para cliente
     private toast: ToastrService,
+    private reservasService: ReservasService,
+    private sesion: SesionService
     private alertCtrl: AlertController
   ) {
-    addIcons({ qrCodeOutline, albumsOutline });
+    addIcons({ qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline });
     this.email$ = this.supa.authEmail$;
+    console.log('🏗️ [HomeCliente] Constructor ejecutado');
   }
 
   async ngOnInit() {
-    console.log('[DEBUG HOME-CLIENTE] 🚀 Iniciando ngOnInit...');
+    console.log('🚀 [HomeCliente] ngOnInit iniciado');
+    console.log('🔍 [HomeCliente] esClienteRegistrado inicial:', this.esClienteRegistrado);
     
-    // Iniciar el servicio de notificaciones para cliente
-    console.log('[DEBUG HOME-CLIENTE] 🔔 Iniciando ClienteRealtimeService...');
-    await this.clienteRt.init();
-    console.log('[DEBUG HOME-CLIENTE] ✅ ClienteRealtimeService iniciado');
+    // PRIMERO: Verificar si es cliente registrado (antes de otros servicios)
+    console.log('🔍 [HomeCliente] Llamando a verificarTipoCliente...');
+    await this.verificarTipoCliente();
+    console.log('✅ [HomeCliente] verificarTipoCliente completado');
     
-    // Verificar si tiene mesa asignada
-    console.log('[DEBUG HOME-CLIENTE] 🔍 Verificando estado de mesa...');
-    await this.verificarEstadoMesa();
-    console.log('[DEBUG HOME-CLIENTE] ✅ ngOnInit completado');
+    try {
+      // Iniciar el servicio de notificaciones para cliente
+      console.log('🔧 [HomeCliente] Iniciando clienteRt...');
+      await this.clienteRt.init();
+      console.log('✅ [HomeCliente] clienteRt iniciado');
+      
+      // Verificar si tiene mesa asignada
+      console.log('🔧 [HomeCliente] Verificando estado de mesa...');
+      await this.verificarEstadoMesa();
+      console.log('✅ [HomeCliente] Estado de mesa verificado');
+
+    } catch (error) {
+      console.error('❌ [HomeCliente] Error en servicios (pero verificación de cliente ya completada):', error);
+    }
+
   }
 
   ngOnDestroy() {
@@ -414,5 +432,77 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     } finally {
       this.loadingLiberar = false;
     }
+  }
+
+  /**
+   * Verifica si el usuario es cliente registrado
+   */
+  async verificarTipoCliente() {
+    try {
+      // Método 1: Usar servicio de sesión
+      await this.esperarPerfilCargado();
+      
+      console.log('🔍 Debug - Usuario BD:', this.sesion.usuarioBD);
+      console.log('🔍 Debug - Perfil:', this.sesion.usuarioBD?.perfil);
+      console.log('🔍 Debug - esCliente():', this.sesion.esCliente());
+      
+      // Verificar usando el servicio de sesión
+      this.esClienteRegistrado = this.sesion.esCliente() && 
+        this.sesion.usuarioBD?.perfil === 'clienteReg';
+      
+      console.log('✅ Es cliente registrado (método 1):', this.esClienteRegistrado);
+      
+      // Método 2: Verificación directa si el método 1 falla
+      if (!this.esClienteRegistrado) {
+        console.log('🔄 Intentando verificación directa...');
+        const esRegistradoDirecto = await this.reservasService.esClienteRegistrado();
+        console.log('✅ Es cliente registrado (método 2):', esRegistradoDirecto);
+        this.esClienteRegistrado = esRegistradoDirecto;
+      }
+      
+    } catch (error) {
+      console.error('❌ Error al verificar tipo de cliente:', error);
+      this.esClienteRegistrado = false;
+    }
+  }
+
+  /**
+   * Espera a que el perfil esté cargado
+   */
+  private async esperarPerfilCargado(timeout = 5000): Promise<void> {
+    console.log('⏳ [HomeCliente] Esperando perfil cargado...');
+    console.log('⏳ [HomeCliente] perfilCargado actual:', this.sesion.perfilCargado);
+    
+    const inicio = Date.now();
+    while (!this.sesion.perfilCargado) {
+      if (Date.now() - inicio > timeout) {
+        console.error('❌ [HomeCliente] Timeout esperando perfil');
+        throw new Error('Timeout esperando perfil');
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    console.log('✅ [HomeCliente] Perfil cargado correctamente');
+  }
+
+  /**
+   * Navega a la página de hacer reserva
+   */
+  hacerReserva() {
+    if (!this.esClienteRegistrado) {
+      this.toast.warning('Solo los clientes registrados pueden hacer reservas');
+      return;
+    }
+    this.router.navigate(['/cliente/hacer-reserva']);
+  }
+
+  /**
+   * Navega a la página de pedido de delivery
+   */
+  hacerPedidoDelivery() {
+    // Por ahora navega a la misma página de pedidos, pero podrías crear una específica para delivery
+    this.router.navigate(['/cliente/cliente-realiza-pedido'], { 
+      queryParams: { tipo: 'delivery' } 
+    });
   }
 }

@@ -5,11 +5,12 @@ import {
   IonButton, IonIcon, IonTitle, IonToolbar, IonHeader } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart} from 'ionicons/icons';
+import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart, calendarOutline} from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { ToastrService } from 'ngx-toastr';
-import { AdminRealtimeService } from 'src/app/services/admin-realtime.service'; 
+import { AdminRealtimeService } from 'src/app/services/admin-realtime.service';
+import { AdminReservasRealtimeService } from 'src/app/services/admin-reservas-realtime.service'; 
 
 @Component({
   selector: 'app-home-admin',
@@ -28,9 +29,10 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
     private supa: SupabaseService, 
     private toast: ToastrService, 
     private route: ActivatedRoute,
-    private adminRt: AdminRealtimeService
+    private adminRt: AdminRealtimeService,
+    private adminReservasRt: AdminReservasRealtimeService
   ) {
-    addIcons({ checkmarkDoneCircle, personAdd, restaurant, statsChart, create });    
+    addIcons({ checkmarkDoneCircle, personAdd, restaurant, statsChart, create, calendarOutline });    
   }
 
   async ngOnInit() {
@@ -72,9 +74,16 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
   
     if (!me || !['dueno','supervisor'].includes(me.perfil as string)) return;
   
-    // Al tocar la notificación → ir a Pendientes
-    LocalNotifications.addListener('localNotificationActionPerformed', async () => {
-      this.router.navigate(['/admin/pendientes']);
+    // Al tocar la notificación → ir a Pendientes o Reservas según el tipo
+    LocalNotifications.addListener('localNotificationActionPerformed', async (notification) => {
+      console.log('[HomeAdminComponent] 🔔 Notificación tocada:', notification);
+      
+      const extra = notification.notification?.extra;
+      if (extra?.tipo === 'nueva_reserva') {
+        this.router.navigate(['/admin/reservas']);
+      } else {
+        this.router.navigate(['/admin/pendientes']);
+      }
     });
   
     // 3) Realtime: INSERT en usuarios con estado='pendiente'
@@ -113,19 +122,22 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
       })
       .subscribe();
 
-    // Inicializar servicio de notificaciones para administradores
+    // Inicializar servicios de notificaciones para administradores
     await this.adminRt.init();
+    await this.adminReservasRt.init();
   }
   
 
   ngOnDestroy() {
     if (this.rtChannel) this.supa.client.removeChannel(this.rtChannel as any);
     this.adminRt.dispose();
+    this.adminReservasRt.dispose();
   }
 
   irAListaDeEspera() { this.router.navigate(['/admin/pendientes']); }
   irAAltaUsuarios()  { this.router.navigate(['/admin/alta-usuario']); }
   irAResultados()    { this.router.navigate(['/pagina-resultados-encuestas']); }
   irAMesas()         { this.router.navigate(['/admin/mesas']);}
+  irAReservas()      { this.router.navigate(['/admin/reservas']);}
 
 }

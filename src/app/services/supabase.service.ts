@@ -51,7 +51,7 @@ export type AltaEmpleadoPayload = {
   cuil: string;
   email: string;
   password: string;
-  perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
+  rol_usua: 'maitre'|'mozo'|'cocinero'|'bartender';
   photoBase64: string | null; // dataURL o null
 };
 

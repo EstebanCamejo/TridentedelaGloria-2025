@@ -1,0 +1,111 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Gestionar Reservas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarReservas()" [disabled]="cargando">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="refrescar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading spinner -->
+  <div *ngIf="cargando && reservas.length === 0" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando reservas...</p>
+  </div>
+
+  <!-- Lista de reservas -->
+  <div *ngIf="!cargando || reservas.length > 0" class="reservas-container">
+    <ion-card *ngFor="let reserva of reservas" class="reserva-card">
+      <ion-card-content>
+        <!-- Información de la reserva -->
+        <div class="reserva-info">
+          <h2 class="fecha-reserva">{{ formatearFecha(reserva.fecha) }}</h2>
+          
+          <div class="hora-comensales">
+            <span class="hora">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ formatearHora(reserva.hora) }}
+            </span>
+            <span class="comensales">
+              <ion-icon name="people-outline"></ion-icon>
+              {{ reserva.cantidad_comensales }} persona{{ reserva.cantidad_comensales > 1 ? 's' : '' }}
+            </span>
+          </div>
+          
+          <div class="cliente-info">
+            <p><strong>Nombre:</strong> {{ obtenerNombreCliente(reserva) }}</p>
+            <p><strong>Correo:</strong> {{ obtenerEmailCliente(reserva) }}</p>
+          </div>
+          
+          <p *ngIf="reserva.nota" class="nota">
+            <strong>Nota:</strong> {{ reserva.nota }}
+          </p>
+          
+          <!-- Motivo de rechazo -->
+          <div *ngIf="reserva.estado === 'rechazada' && reserva.motivo_rechazo" class="motivo-rechazo">
+            <p><strong>Motivo del rechazo:</strong></p>
+            <p class="motivo-texto">{{ reserva.motivo_rechazo }}</p>
+          </div>
+        </div>
+        
+        <!-- Estado y botones -->
+        <div class="estado-acciones">
+          <ion-badge [color]="obtenerColorEstado(reserva.estado)" class="estado-badge">
+            {{ formatearEstado(reserva.estado) }}
+          </ion-badge>
+          
+          <div *ngIf="reserva.estado === 'pendiente confirmacion'" class="botones-accion">
+            <ion-button 
+              fill="solid" 
+              color="success"
+              (click)="confirmarReserva(reserva)"
+              [disabled]="cargandoAccion || cargandoConfirmar"
+              class="btn-confirmar">
+              <ion-spinner *ngIf="cargandoConfirmar" name="crescent"></ion-spinner>
+              <ion-icon *ngIf="!cargandoConfirmar" name="checkmark-circle-outline"></ion-icon>
+              <span *ngIf="cargandoConfirmar">Aceptando...</span>
+              <span *ngIf="!cargandoConfirmar">Aceptar</span>
+            </ion-button>
+            <ion-button 
+              fill="solid" 
+              color="danger"
+              (click)="rechazarReserva(reserva)"
+              [disabled]="cargandoAccion || cargandoRechazar"
+              class="btn-rechazar">
+              <ion-spinner *ngIf="cargandoRechazar" name="crescent"></ion-spinner>
+              <ion-icon *ngIf="!cargandoRechazar" name="close-circle-outline"></ion-icon>
+              <span *ngIf="cargandoRechazar">Rechazando...</span>
+              <span *ngIf="!cargandoRechazar">Rechazar</span>
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Mensaje cuando no hay reservas -->
+  <div *ngIf="!cargando && reservas.length === 0" class="empty-state">
+    <ion-icon name="calendar-outline" size="large"></ion-icon>
+    <h3>No hay reservas pendientes</h3>
+    <p>Todas las reservas han sido procesadas</p>
+  </div>
+
+  <!-- Loading overlay para acciones -->
+  <div *ngIf="cargandoAccion" class="loading-overlay">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Procesando...</p>
+  </div>
+
+</ion-content>

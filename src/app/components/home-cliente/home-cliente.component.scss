@@ -153,43 +153,74 @@
 
 /* Layout central: reserva espacio inferior para no chocar con la barra del sistema ni el FAB */
 .client-wrap{
-  min-height: 100%;
+  height: 100vh; /* altura fija para evitar scroll */
   display: grid;
   place-items: center;
   padding: 18px clamp(10px, 4vw, 22px)
-           calc(var(--safe-bottom) + 96px); /* deja aire abajo */
+           calc(var(--safe-bottom) + 120px); /* más espacio abajo para evitar solapamiento */
+  box-sizing: border-box;
 }
 .client-stack{
   width: min(620px, 94vw);
   display: grid;
-  gap: clamp(18px, 6svh, 100px);
+  gap: clamp(12px, 3svh, 24px); /* menos espacio entre botones */
 }
 
-/* Botones grandes */
+/* Botones más compactos para 4 botones */
 .cta{
   font-family: "Inter", sans-serif;
   font-weight: 700;
   letter-spacing: .2px;
   text-transform: none;
-  height: clamp(110px, 24svh, 200px);
-  --border-radius: 24px;
-  font-size: 1.25rem;
+  height: clamp(80px, 16svh, 120px); /* altura reducida */
+  --border-radius: 20px;
+  font-size: 1.1rem; /* texto un poco más pequeño */
 }
 .cta::part(native){ justify-content: center; padding: 0 22px; }
 .cta [slot="start"]{ margin-inline-end: 12px; }
 .cta ion-icon{ font-size: 1.6em; }
 
+/* Estilos específicos para el botón de reservas */
+.btn-reserva {
+  --background: #5d2222;
+  --color: var(--cream-25);
+  --background-hover: #7b2f2f;
+  --background-activated: #3f1717;
+}
+
+/* Estilos específicos para el botón de delivery */
+.btn-delivery {
+  --background: #5d2222;
+  --color: var(--cream-25);
+  --background-hover: #7b2f2f;
+  --background-activated: #3f1717;
+}
+
 /* Ajustes para pantallas muy chicas */
 @media (max-width: 360px){
-  .cta{ height: clamp(96px, 22svh, 150px); }
+  .cta{ 
+    height: clamp(70px, 14svh, 100px); /* aún más compacto en pantallas pequeñas */
+    font-size: 1rem;
+  }
+  .client-stack {
+    gap: clamp(8px, 2svh, 16px); /* menos espacio en pantallas pequeñas */
+  }
 }
 
 /* ===== FAB Logout - REMOVIDO: no se usa en este componente ===== */
 
 
-/* (Extra) deja más aire si el dispositivo es súper bajo en alto */
+/* (Extra) ajusta para pantallas muy bajas para evitar scroll */
 @media (max-height: 640px){
-  .client-wrap{ padding-bottom: calc(var(--safe-bottom) + 112px); }
+  .client-wrap{ 
+    padding-bottom: calc(var(--safe-bottom) + 60px); /* menos padding para pantallas bajas */
+  }
+  .cta {
+    height: clamp(65px, 12svh, 90px); /* aún más compacto */
+  }
+  .client-stack {
+    gap: clamp(6px, 1.5svh, 12px); /* mínimo espacio */
+  }
 }
 .qr-preview-modal::part(content) {
   --background: #000;         /* fondo negro tipo cámara */

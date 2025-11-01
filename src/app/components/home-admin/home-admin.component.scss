@@ -129,8 +129,9 @@
 .admin-actions{
   flex: 1;                          /* ocupa todo lo que queda bajo el header */
   display: flex;
-  align-items: center;              /* centra vertical */
+  align-items: flex-start;          /* cambia de center a flex-start para subir los botones */
   justify-content: center;          /* seguridad extra */
+  padding-top: 8px;                 /* espacio mínimo desde el header */
 }
 
 /* Forzamos al row a comportarse como columna con gap */
@@ -139,7 +140,7 @@
   max-width: 460px;                 /* que no se pegue a bordes en móviles angostos */
   display: flex !important;
   flex-direction: column;
-  gap: 16px;                        /* ← espacio entre botones (ajustá a gusto) */
+  gap: 8px;                         /* ← espacio muy reducido entre botones */
 }
 
 /* Quitamos paddings verticales de las columnas */
@@ -165,12 +166,14 @@
 
 /* Ajustes en pantallas muy bajas (que sigan centrados) */
 @media (max-height: 700px){
-  .admin-actions > ion-row{ gap: 12px; }
+  .admin-actions > ion-row{ gap: 6px; }
   .admin-actions ion-button::part(native){ min-height: 96px; }
+  .admin-actions{ padding-top: 5px; }
 }
 @media (max-height: 560px){
   .admin-actions{ align-items: flex-start; }        /* subimos un poco el bloque */
   .admin-actions > ion-row{ margin-top: 6px; }
+  .admin-actions{ padding-top: 3px; }
 }
 /* empuja el contenido por debajo del notch/status bar */
 .safe-top{

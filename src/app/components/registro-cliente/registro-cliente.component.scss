@@ -20,18 +20,21 @@
   --panel-max: 340px;
 }
 
-/* Contenedor interno (no ocupa toda la pantalla porque vive dentro del card del padre) */
+/* Contenedor interno sin centrado vertical */
 .wrapper{
-  max-width: var(--panel-max);      /* antes 560 */
-  padding: clamp(8px, 1.6svh, 14px) /* arriba */
+  max-width: var(--panel-max);
+  padding: clamp(4px, 0.8svh, 8px) /* arriba */
            clamp(10px, 4vw, 16px)   /* laterales */
            clamp(10px, 1.8svh, 14px);/* abajo */
-  gap: clamp(6px, 1vh, 10px);       /* menos aire entre bloques */
+  gap: clamp(6px, 1vh, 10px);
   margin-inline: auto;
-  margin-top: 80px;
+  margin-top: 0;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-/* El form con look de “card” */
+/* El form con look de "card" */
 .register-form{
   width:100%;
   max-width: 420px;
@@ -41,13 +44,13 @@
   box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
   backdrop-filter: blur(8px) saturate(1.05);
   -webkit-backdrop-filter: blur(8px) saturate(1.05);
-  padding: 22px 18px 18px;
+  padding: 18px 16px 16px;
   position: relative;
   overflow: visible;
-  padding-top: calc(100px + var(--badge-clearance));
-  margin-top:  calc(var(--badge-clearance) * .35);
-  padding-bottom: clamp(8px, 1svh, 12px); /* antes era más grande */
-  margin-bottom: 8px;  
+  padding-top: calc(10px + var(--badge-clearance));
+  margin-top: 0;
+  padding-bottom: clamp(12px, 1.2svh, 16px);
+  margin-bottom: 0;
 }
 
 /* Badge */
@@ -88,9 +91,9 @@
 
 /* Form fields */
 .form-group{ margin:0; }
-.form-group + .form-group{ margin-top: clamp(12px, 1.8vh, 18px); }
+.form-group + .form-group{ margin-top: clamp(10px, 1.4vh, 14px); }
 .subTittle{
-  margin:10px 2px 6px; color:#f3e7da; font-family:"Inter",sans-serif;
+  margin:6px 2px 4px; color:#f3e7da; font-family:"Inter",sans-serif;
   font-weight:600; font-size:.95rem;
 }
 input[type="text"], input[type="email"], input[type="password"], input[type="number"]{
@@ -112,7 +115,7 @@ input:focus{
   width:100%; border-radius:14px; padding:.9rem 1rem;
   font-family:"Inter",sans-serif; font-weight:700; font-size:1.05rem;
   cursor:pointer; transition: transform .04s ease, filter .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
-  margin-top:12px;
+  margin-top:16px;
 }
 .buttonLogin{ border:2px solid rgba(255,221,190,.65); color:#1b0f0f; background:#ffe9d3; }
 .buttonRegister{ background:transparent; color:#ffe4cc; border:2px solid rgba(255,221,190,.9); }
@@ -161,7 +164,7 @@ input:focus{
   display: grid;
   justify-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 .avatar-ctr{ width: 88px; height: 88px; border-radius: 9999px; background:#7b2f2f; display:flex; align-items:center; justify-content:center; }
 .avatar-ctr img{ width:74px; height:74px; border-radius:9999px; object-fit:cover; background:#eee; border:2px solid #fff; }
@@ -170,7 +173,7 @@ input:focus{
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
 }
 @media (max-width: 340px){
   .acciones{ grid-template-columns: 1fr; }
@@ -227,3 +230,32 @@ input:focus{
 .acciones .btn-scanner{ --padding-start:0!important; --padding-end:0!important; }
 .acciones .btn-subir::part(native),
 .acciones .btn-scanner::part(native){ padding-left:12px!important; padding-right:12px!important; justify-content:center!important; }
+
+/* Responsive adjustments for better centering on different screen sizes */
+@media (max-height: 600px) {
+  .wrapper {
+    min-height: 100vh;
+    padding-top: clamp(4px, 0.8svh, 8px);
+    padding-bottom: clamp(4px, 0.8svh, 8px);
+  }
+  
+  .register-form {
+    padding-top: calc(8px + var(--badge-clearance));
+    padding-bottom: clamp(8px, 1svh, 12px);
+  }
+  
+  .subidas {
+    margin-bottom: 8px;
+  }
+  
+  .form-group + .form-group {
+    margin-top: clamp(8px, 1.2vh, 12px);
+  }
+}
+
+@media (min-height: 800px) {
+  .wrapper {
+    padding-top: clamp(12px, 2svh, 20px);
+    padding-bottom: clamp(12px, 2svh, 20px);
+  }
+}

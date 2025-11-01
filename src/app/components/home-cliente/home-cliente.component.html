@@ -13,6 +13,21 @@
         Escanear QR
       </ion-button>
       
+      <ion-button
+        *ngIf="esClienteRegistrado"
+        class="cta btn-reserva"
+        fill="solid"
+        expand="block"
+        size="large"
+        (click)="hacerReserva()">
+        <ion-icon slot="start" name="calendar-outline"></ion-icon>
+        Hacer Reserva
+      </ion-button>
+
+      <ion-button class="cta btn-delivery" fill="solid" expand="block" size="large" (click)="hacerPedidoDelivery()">
+        <ion-icon slot="start" name="bicycle-outline"></ion-icon>
+        Pedido Delivery
+      </ion-button>
 
       <ion-button class="cta btn-history" fill="solid" expand="block" size="large" (click)="verEncuestas()">
         <ion-icon slot="start" name="albums-outline"></ion-icon>
