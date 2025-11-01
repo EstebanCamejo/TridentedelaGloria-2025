@@ -1,7 +1,7 @@
 <ion-header class="client-header">
   <ion-toolbar>
-    <div class="nav-pill">
-      Productos del sector Cocina
+    <div class="nav-pill title-large">
+      PEDIDOS DE COCINA
     </div>
   </ion-toolbar>
 </ion-header>
@@ -21,7 +21,12 @@
   </div>
 
   <div *ngIf="!cargando && pedidosCocina.length === 0" class="sin-pedidos">
-    No hay pedidos pendientes de cocina.
+    <div class="empty-message">
+      <div class="empty-icon">🍽️</div>
+      <div class="empty-title">¡NO HAY PEDIDOS DE COCINA!</div>
+      <div class="empty-subtitle">No hay pedidos pendientes de cocina</div>
+      <div class="empty-description">Todos los pedidos han sido procesados exitosamente</div>
+    </div>
   </div>
 
   <div class="pedidos-container">

@@ -19,7 +19,9 @@
   
     <!-- Limpieza (1..5) -->
     <ion-item>
-      <ion-label position="stacked">Limpieza del salón</ion-label>
+      <!--<ion-label position="stacked">Limpieza del salón</ion-label>-->
+      <ion-label position="stacked" class="label-lg">Limpieza del salón</ion-label>
+
       <ion-segment [(ngModel)]="limpieza">
         <ion-segment-button [value]="1">1</ion-segment-button>
         <ion-segment-button [value]="2">2</ion-segment-button>
@@ -35,8 +37,8 @@
     <!-- Aspecto valorado -->
     <ion-item>
       <ion-label position="stacked">¿Qué valoraste más?</ion-label>
-      <ion-select placeholder="Elegí una opción" [(ngModel)]="aspecto_valorado">
-        <ion-select-option value="atencion">Atención del personal</ion-select-option>
+      <ion-select placeholder="Elegí una opción" [(ngModel)]="aspecto_valorado" okText="CONFIRMAR" cancelText="CANCELAR">
+        <ion-select-option value="atencion_personal">Atención del personal</ion-select-option>
         <ion-select-option value="calidad_comida">Calidad de la comida</ion-select-option>
         <ion-select-option value="tiempos_espera">Tiempos de espera</ion-select-option>
         <ion-select-option value="ambiente_musica">Ambiente / Música</ion-select-option>
@@ -85,7 +87,6 @@
       Enviar encuesta
     </ion-button>
   
-    <!-- PASO 3.3 — overlay de carga -->
-    <ion-loading [isOpen]="loading" message="Guardando..." spinner="lines"></ion-loading>
+    <!-- SPINNER REMOVIDO - Solo toast de confirmación -->
   </ion-content>
   

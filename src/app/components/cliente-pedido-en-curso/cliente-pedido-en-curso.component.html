@@ -6,21 +6,27 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="client-content">
+<ion-content class="client-content" [scrollY]="true">
   <div class="client-wrap">
 
     <!-- Resumen del pedido (solo visual) -->
     <ion-card class="pedido-card">
       <ion-card-content>
-<div class="estado-pill">
-  <span>Estado del pedido:</span>
-  <strong>{{ estado }}</strong>
-</div>
+        <div class="estado-pill">
+          <span class="estado-label">Estado del pedido:</span>
+          <strong class="estado-value">{{ estado }}</strong>
+        </div>
 
-<div class="totales">
-  <div class="total"><strong>Total: $</strong>{{ total }}</div>
-  <div class="demora"><strong>Demora estimada:</strong> {{ tiempo }}min.</div>
-</div>
+        <div class="totales">
+          <div class="total">
+            <span class="total-label">Total:</span>
+            <span class="total-value">${{ total }}</span>
+          </div>
+          <div class="demora">
+            <span class="demora-label">Demora estimada:</span>
+            <span class="demora-value">{{ tiempo }}min.</span>
+          </div>
+        </div>
 
         <!-- Botones según estado del pedido -->
         <div *ngIf="estado === 'pendiente aceptación'" class="aceptacion-buttons">
@@ -75,30 +81,48 @@
 <ion-button 
   class="option-card var3" 
   expand="block" 
-  routerLink="/cliente/cliente-juegos">
+  routerLink="/cliente/cliente-juegos"
+  [disabled]="esClienteAnonimo">
   <img src="../../../assets/dado.png" class="icono" alt="">
   <span class="btn-text">Juegos</span>
 </ion-button>
 
-<!-- Opciones disponibles solo cuando el pedido está entregado -->
-<div *ngIf="estado === 'entregado'" class="post-entrega-options">
-  <!-- Botón de encuesta solo si no la completó -->
-  <ion-button 
-    *ngIf="!yaCompletoEncuesta"
-    class="option-card var4" 
-    expand="block" 
-    (click)="irAEncuestas()">
-    <img src="../../../assets/encuesta.png" class="icono" alt="">
-    <span class="btn-text">Completar Encuesta</span>
-  </ion-button>
+<!-- Botón de encuesta: siempre visible cuando está entregado, deshabilitado si ya completó o es anónimo -->
+<ion-button 
+  *ngIf="estado === 'entregado'"
+  class="option-card var4" 
+  expand="block" 
+  (click)="irAEncuestas()"
+  [disabled]="yaCompletoEncuesta || esClienteAnonimo">
+  <img src="../../../assets/encuesta.png" class="icono" alt="">
+  <span class="btn-text">Completar Encuesta</span>
+</ion-button>
 
-  <!-- <ion-button 
-    class="option-card var5" 
-    expand="block" 
-    (click)="irAPago()">
-    <img src="../../../assets/pagar.png" class="icono" alt="">
-    <span class="btn-text">Pagar Pedido</span>
-  </ion-button> -->
+<!-- Mensaje para clientes anónimos sobre juegos -->
+<div *ngIf="esClienteAnonimo" class="anonimo-message">
+  <ion-note color="medium">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    Los juegos están disponibles solo para clientes registrados
+  </ion-note>
+</div>
+
+<!-- Mensajes para encuesta -->
+<div *ngIf="estado === 'entregado'">
+  <!-- Mensaje para clientes anónimos sobre encuestas -->
+  <div *ngIf="esClienteAnonimo && !yaCompletoEncuesta" class="anonimo-message">
+    <ion-note color="medium">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      Las encuestas están disponibles solo para clientes registrados
+    </ion-note>
+  </div>
+
+  <!-- Mensaje cuando ya completó la encuesta -->
+  <div *ngIf="yaCompletoEncuesta" class="anonimo-message encuesta-completada">
+    <ion-note color="medium">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      Ya completaste la encuesta para esta estadía
+    </ion-note>
+  </div>
 </div>
 </div>
 

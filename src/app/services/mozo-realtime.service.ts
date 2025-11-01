@@ -117,7 +117,7 @@ export class MozoRealtimeService implements OnDestroy {
             notifications: [{
               id: Date.now() % 2147483647,
               title: esPedidoReenviado ? `🔄 Pedido modificado - Mesa ${mesaNumero || '?'}` : `🍽️ Nuevo pedido - Mesa ${mesaNumero || '?'}`,
-              body: esPedidoReenviado ? `Cliente modificó y reenvió el pedido. Total: $${pedido.total || 0}` : `Total: $${pedido.total || 0} - Requiere confirmación`,
+              body: esPedidoReenviado ? `Cliente modificó y reenvió el pedido. Requiere confirmación.` : `Nuevo pedido recibido. Requiere confirmación.`,
               channelId: 'mozo_pedidos',
               smallIcon: 'ic_stat_notify',
               extra: { 
@@ -188,7 +188,7 @@ export class MozoRealtimeService implements OnDestroy {
               notifications: [{
                 id: Date.now() % 2147483647,
                 title: `🍽️ Pedido listo - Mesa ${mesaNumero || '?'}`,
-                body: `Total: $${pedido.total || 0} - Listo para entregar`,
+              body: `Pedido listo para entregar.`,
                 channelId: 'mozo_pedidos',
                 smallIcon: 'ic_stat_notify',
                 extra: { 
@@ -277,7 +277,7 @@ export class MozoRealtimeService implements OnDestroy {
               notifications: [{
                 id: Date.now() % 2147483647,
               title: `💳 PAGO REALIZADO - Mesa ${mesaNumero || '?'}`,
-              body: `Cliente realizó el pago. Total: $${pedido.total || 0} - Requiere confirmación del mozo`,
+              body: `Cliente realizó el pago. Requiere confirmación del mozo.`,
                 channelId: 'mozo_pedidos',
                 smallIcon: 'ic_stat_notify',
                 extra: { 

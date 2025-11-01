@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Chat</ion-title>
+    <ion-title class="title-large">CHAT CON MOZO</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -15,7 +15,14 @@
       <div #bottom></div>
     </ng-container>
     <ng-template #vacio>
-      <div class="empty">Todavía no hay mensajes.</div>
+      <div class="empty">
+        <div class="empty-message">
+          <div class="empty-icon">💬</div>
+          <div class="empty-title">¡CHAT VACÍO!</div>
+          <div class="empty-subtitle">No hay mensajes todavía</div>
+          <div class="empty-description">Inicia la conversación con tu mozo</div>
+        </div>
+      </div>
     </ng-template>
   </div>
 

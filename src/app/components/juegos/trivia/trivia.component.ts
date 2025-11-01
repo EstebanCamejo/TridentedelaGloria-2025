@@ -340,47 +340,83 @@ private endClaiming() {
 //     this.endClaiming();
 //   }
 // }
-async claim() {
-  if (!this.finished || this.claiming || this.yaSeAplicoDescuento) return;
+  async claim() {
+    console.log('🚫🚫🚫🚫DESCUENTOS🚫🚫🚫🚫');
+    console.log('[DEBUG TRIVIA] === INICIANDO RECLAMO DE DESCUENTO ===');
+  console.log('[DEBUG TRIVIA] finished:', this.finished);
+  console.log('[DEBUG TRIVIA] claiming:', this.claiming);
+  console.log('[DEBUG TRIVIA] yaSeAplicoDescuento:', this.yaSeAplicoDescuento);
+  
+  if (!this.finished || this.claiming || this.yaSeAplicoDescuento) {
+    console.log('[DEBUG TRIVIA] ❌ Reclamo bloqueado por condiciones');
+    return;
+  }
 
   // rescatar pedidoId por si vino en history.state
   if (!this.pedidoId) {
     const fromState = (history.state?.pedidoId as number) || 0;
     if (fromState) this.pedidoId = fromState;
+    console.log('[DEBUG TRIVIA] PedidoId rescatado de history.state:', this.pedidoId);
   }
-  if (!this.pedidoId) return; // sin alertas
+  
+  if (!this.pedidoId) {
+    console.log('[DEBUG TRIVIA] ❌ No hay pedidoId');
+    return;
+  }
+
+  console.log('[DEBUG TRIVIA] Reclamando descuento de trivia...');
+  console.log('[DEBUG TRIVIA] PedidoId:', this.pedidoId);
+  console.log('[DEBUG TRIVIA] Score:', this.score);
+  console.log('[DEBUG TRIVIA] Descuento esperado:', this.discount);
 
   this.claiming = true;
   try {
-    const { data, error } = await this.supabase.rpc('claim_game_reward', {
+    console.log('[DEBUG TRIVIA] Llamando RPC claim_game_discount...');
+    const { data, error } = await this.supabase.rpc('claim_game_discount', {
       p_pedido_id: Number(this.pedidoId),
       p_juego: 'trivia',
       p_score: this.score
     });
-    if (error) throw error;
+    
+    console.log('[DEBUG TRIVIA] Respuesta RPC completa:', { data, error });
+    
+    if (error) {
+      console.log('[DEBUG TRIVIA] ❌ Error en RPC:', error);
+      console.log('[DEBUG TRIVIA] Error code:', error.code);
+      console.log('[DEBUG TRIVIA] Error message:', error.message);
+      console.log('[DEBUG TRIVIA] Error details:', error.details);
+      throw error;
+    }
 
     const row = Array.isArray(data) ? data[0] : data;
-    const pct = Number(row?.descuento_pct ?? 0);
-    const tot = Number(row?.total_con_descuento ?? 0);
+    console.log('[DEBUG TRIVIA] Row obtenida:', row);
+    
+    const pct = Number(row?.pct ?? 0);
+    const tot = Number(row?.total_final ?? 0);
+
+    console.log('[DEBUG TRIVIA] Descuento aplicado (%):', pct);
+    console.log('[DEBUG TRIVIA] Total con descuento:', tot);
 
     // Actualizar estado local
     this.prizeClaimed = pct > 0;
     if (pct > 0) {
-      this.yaSeAplicoDescuento = true; // Marcar que ya se aplicó descuento
+      this.yaSeAplicoDescuento = true;
+      console.log('[DEBUG TRIVIA] ✅ Descuento aplicado exitosamente');
+    } else {
+      console.log('[DEBUG TRIVIA] ⚠️ No se aplicó descuento (pct = 0)');
     }
 
-    // (opcional) si llevás store de pedido, actualizá total:
-    // this.pedidosSvc.patchPedido(this.pedidoId, { total: tot });
-
-  } catch {
-    // sin alertas; podés loguear si querés
-    // console.warn('[claim] error', e);
+  } catch (e: any) {
+    console.error('[DEBUG TRIVIA] ❌ Error al reclamar descuento:', e);
+    console.error('[DEBUG TRIVIA] Error completo:', JSON.stringify(e, null, 2));
   } finally {
-    // Redirigir siempre a la pestaña
-    this.zone.run(() => {
-      this.router.navigate(['/cliente-pedido-en-curso'], { state: { pedidoId: this.pedidoId } });
-    });
-    this.endClaiming();
+        console.log('[DEBUG TRIVIA] Redirigiendo a pedido en curso...');
+        console.log('🚫🚫🚫🚫DESCUENTOS🚫🚫🚫🚫');
+        // Redirigir siempre a la pestaña
+        this.zone.run(() => {
+          this.router.navigate(['/cliente-pedido-en-curso'], { state: { pedidoId: this.pedidoId } });
+        });
+        this.endClaiming();
   }
 }
 

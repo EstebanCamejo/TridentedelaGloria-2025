@@ -6,7 +6,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel,
   IonTextarea, IonSelect, IonSelectOption, IonButton,
   IonSegment, IonSegmentButton, IonList, IonCheckbox,
-  IonLoading, IonCard, IonCardContent
+  IonCard, IonCardContent
 } from '@ionic/angular/standalone';
 import { ToastrService } from 'ngx-toastr';
 import { EncuestasService } from 'src/app/services/encuestas.service';
@@ -18,12 +18,13 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
   selector: 'app-pagina-formulario-encuesta',
   standalone: true,
   templateUrl: './pagina-formulario-encuesta.html',
+  styleUrls: ['./pagina-formulario-encuesta.scss'],
   imports: [
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonItem, IonLabel, IonTextarea, IonSelect, IonSelectOption,
     IonButton, IonSegment, IonSegmentButton, IonList, IonCheckbox,
-    IonLoading, IonCard, IonCardContent
+    IonCard, IonCardContent
   ]
 })
 export class PaginaFormularioEncuestaPage implements OnInit {
@@ -48,7 +49,6 @@ export class PaginaFormularioEncuestaPage implements OnInit {
   mensaje: string = '';
 
   // PASO 3.3 — estado de validación/UX
-  loading = false;
   errores: string[] = [];
   maxComentario = 300;
 
@@ -63,9 +63,9 @@ export class PaginaFormularioEncuestaPage implements OnInit {
     await this.verificarPermisosEncuesta();
   }
 
-  // Botón enviar deshabilitado si falta algo o está guardando
+  // Botón enviar deshabilitado si falta algo
   get formularioInvalido(): boolean {
-    return this.loading || !this.validaLimpieza() || !this.validaAspecto() || !this.validaComentario();
+    return !this.validaLimpieza() || !this.validaAspecto() || !this.validaComentario();
   }
 
   // ===== Validaciones (PASO 3.3) =====
@@ -104,9 +104,10 @@ export class PaginaFormularioEncuestaPage implements OnInit {
       .filter(([, v]) => v)
       .map(([k]) => k);
 
-    this.loading = true;
     try {
-      await this.encuestas.enviarEncuesta({
+      console.log('[DEBUG ENCUESTA COMPONENTE] 🚀 Iniciando envío de encuesta...');
+      
+      const resultado = await this.encuestas.enviarEncuesta({
         encuesta_id: this.encuestaId,
         lista_espera_id: this.lista_espera_id,
         mesas_id: this.mesas_id,
@@ -116,21 +117,26 @@ export class PaginaFormularioEncuestaPage implements OnInit {
         mensaje: this.mensaje?.trim() || null,
       });
 
+      console.log('[DEBUG ENCUESTA COMPONENTE] ✅ Encuesta enviada exitosamente, resultado:', resultado);
+      
       try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
+      console.log('[DEBUG ENCUESTA COMPONENTE] ✅ Haptic feedback ejecutado');
+      
       this.toast.success('¡Gracias! Tu opinión fue enviada.', 'Encuesta');
+      console.log('[DEBUG ENCUESTA COMPONENTE] ✅ Toast de éxito mostrado');
 
       this.resetForm();
+      console.log('[DEBUG ENCUESTA COMPONENTE] ✅ Formulario reseteado');
       
-      // Redirigir de vuelta al home del cliente
-      this.router.navigate(['/cliente-pedido-en-curso']);
+      // Navegar inmediatamente después del toast
+      console.log('[DEBUG ENCUESTA COMPONENTE] 🚀 Navegando a /home-cliente...');
+      this.router.navigate(['/home-cliente']);
+      console.log('[DEBUG ENCUESTA COMPONENTE] ✅ Navegación ejecutada');
 
     } catch (e: any) {
-      console.error('[encuesta] enviar ERROR', e);
+      console.error('[DEBUG ENCUESTA COMPONENTE] ❌ Error al enviar encuesta:', e);
       this.errores = [e?.message || 'No se pudo enviar la encuesta. Probá de nuevo.'];
       try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch {}
-
-    } finally {
-      this.loading = false;
     }
   }
 
@@ -161,13 +167,18 @@ export class PaginaFormularioEncuestaPage implements OnInit {
         return;
       }
 
-      // Verificar si puede completar encuesta (debe tener mesa asignada)
+      // TEMPORALMENTE: Deshabilitar validación de encuesta para debugging
+      console.log('[DEBUG ENCUESTA COMPONENTE] ⚠️ Validación de encuesta TEMPORALMENTE DESHABILITADA');
+      const puedeCompletar = true; // Forzar a true temporalmente
+      
+      /* LÓGICA ORIGINAL (comentada para debug)
       const puedeCompletar = await this.encuestas.puedeCompletarEncuesta();
       if (!puedeCompletar) {
         this.toast.warning('Solo puedes completar la encuesta mientras tienes mesa asignada');
         this.router.navigate(['/home-cliente']);
         return;
       }
+      */
 
     } catch (error: any) {
       console.error('Error al verificar permisos de encuesta:', error);

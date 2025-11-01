@@ -1,121 +1,318 @@
 .cuenta-container {
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
+  padding: 0 8px;
 }
 
+/* ===== Títulos y headers ===== */
+.mesa-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1976d2;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.mesa-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  text-align: center;
+  font-weight: 600;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+/* ===== Cards principales ===== */
 .mesa-info {
-  --background: #e3f2fd;
-  margin-bottom: 16px;
-  
-  ion-card-title {
-    color: #1976d2;
-    font-weight: bold;
-  }
+  --background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
 }
 
 .pedidos-card, .descuentos-card, .propina-card, .totales-card {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
 }
 
-.subtotal {
-  font-weight: bold;
+/* ===== Lista de pedidos ===== */
+.pedidos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pedido-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 12px;
+  border-left: 4px solid #4caf50;
+}
+
+.pedido-info {
+  flex: 1;
+}
+
+.pedido-nombre {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 6px 0;
+}
+
+.pedido-detalle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+.pedido-subtotal {
+  font-size: 1.3rem;
+  font-weight: 800;
   color: #2e7d32;
-  font-size: 1.1em;
+  text-shadow: 1px 1px 2px rgba(0,0,0,.1);
+}
+
+/* ===== Lista de descuentos ===== */
+.descuentos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.descuento-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffebee;
+  padding: 16px;
+  border-radius: 12px;
+  border-left: 4px solid #d32f2f;
+}
+
+.descuento-info {
+  flex: 1;
+}
+
+.descuento-juego {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 6px 0;
+}
+
+.descuento-detalle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
 }
 
 .descuento-monto {
-  font-weight: bold;
+  font-size: 1.3rem;
+  font-weight: 800;
   color: #d32f2f;
-  font-size: 1.1em;
+  text-shadow: 1px 1px 2px rgba(0,0,0,.1);
 }
 
+/* ===== Sección de propinas ===== */
 .propina-info {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.propina-placeholder {
+  text-align: center;
+  padding: 24px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  border: 2px dashed #ccc;
   
-  .propina-placeholder {
+  .placeholder-icon {
+    font-size: 3rem;
+    color: #999;
+    margin-bottom: 12px;
+  }
+  
+  p {
+    font-size: 1.1rem;
     color: #666;
     font-style: italic;
-    text-align: center;
-    padding: 16px;
-    background: #f5f5f5;
-    border-radius: 8px;
-  }
-  
-  .propina-seleccionada {
-    background: #e8f5e8;
-    padding: 16px;
-    border-radius: 8px;
-    border-left: 4px solid #4caf50;
-    
-    p {
-      margin: 4px 0;
-    }
+    margin: 0;
   }
 }
 
+.propina-seleccionada {
+  background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid #4caf50;
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.propina-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.propina-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.propina-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+/* ===== Botones ===== */
 .btn-qr-propina {
   --border-color: #4caf50;
   --color: #4caf50;
+  --border-width: 2px;
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
+.btn-pagar {
+  --background: #4caf50;
+  --background-hover: #45a049;
+  font-weight: 700;
+  font-size: 1.2rem;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+/* ===== Totales ===== */
 .totales-card {
-  --background: #f8f9fa;
+  --background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #dee2e6;
+}
+
+.totales-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.7);
+  border: 1px solid rgba(0,0,0,.1);
   
-  .total-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #e0e0e0;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    &.descuento {
-      color: #d32f2f;
-    }
-    
-    &.propina {
-      color: #4caf50;
-    }
-    
-    &.total-final {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #1976d2;
-      border-top: 2px solid #1976d2;
-      margin-top: 8px;
-      padding-top: 16px;
-    }
+  &.subtotal {
+    background: rgba(33, 150, 243, 0.1);
+    border-left: 4px solid #2196f3;
+  }
+  
+  &.descuento {
+    background: rgba(211, 47, 47, 0.1);
+    border-left: 4px solid #d32f2f;
+  }
+  
+  &.propina {
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 4px solid #4caf50;
+  }
+  
+  &.total-final {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-shadow: 1px 1px 2px rgba(0,0,0,.3);
+    border: none;
+    box-shadow: 0 6px 16px rgba(25, 118, 210, 0.3);
   }
 }
 
+.total-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.total-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.total-final .total-label,
+.total-final .total-value {
+  color: white;
+  font-size: 1.3rem;
+}
+
+/* ===== Botones de acción ===== */
 .action-buttons {
-  margin-top: 24px;
-  
-  .btn-pagar {
-    margin-bottom: 12px;
-    --background: #4caf50;
-    --background-hover: #45a049;
-  }
+  margin-top: 30px;
   
   .btn-volver {
-    --color: #666;
+    --background: #7b2f2f;
+    --color: #fff;
+    --background-hover: #6b2727;
+    font-weight: 700;
+    font-size: 1.1rem;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
   }
 }
 
 // Responsive
 @media (max-width: 768px) {
   .cuenta-container {
-    padding: 0 8px;
+    padding: 0 4px;
+  }
+  
+  .mesa-title {
+    font-size: 1.6rem;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+  }
+  
+  .pedido-nombre,
+  .descuento-juego {
+    font-size: 1.1rem;
+  }
+  
+  .pedido-subtotal,
+  .descuento-monto {
+    font-size: 1.2rem;
   }
   
   .total-line {
-    font-size: 0.9em;
-    
-    &.total-final {
-      font-size: 1.1em;
-    }
+    padding: 12px 8px;
+  }
+  
+  .total-label,
+  .total-value {
+    font-size: 1rem;
+  }
+  
+  .total-final .total-label,
+  .total-final .total-value {
+    font-size: 1.2rem;
   }
 }

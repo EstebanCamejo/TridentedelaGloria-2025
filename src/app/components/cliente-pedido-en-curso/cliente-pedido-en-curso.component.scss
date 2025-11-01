@@ -35,51 +35,104 @@
 .client-content{
   /* usá tu patrón de fondo aquí si lo tenés */
   --background: transparent;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .client-wrap{
   min-height: 100%;
   display: grid;
   grid-template-rows: auto 1fr;
-  padding: 0 var(--wrap-x) calc(var(--safe-bottom) + 84px);
+  padding: 0 var(--wrap-x);
   gap: var(--stack-gap);
   margin-top: var(--header-clearance);
+  padding-bottom: calc(var(--safe-bottom) + clamp(140px, 18svh, 200px)); /* Espacio suficiente para ver hasta el final del último botón */
 }
 
 /* ===== Card de pedido (estado/total/demora) ===== */
 .pedido-card{
   margin: 0 auto;
-  background: rgba(0,0,0,.82);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 16px;
-  box-shadow: 0 14px 34px rgba(0,0,0,.24);
+  background: rgba(0,0,0,.85);
+  border: 2px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.3);
   color: #fff;
-  width: min(560px, 100%);
+  width: min(600px, 100%);
   margin-bottom: var(--actions-gap);
 }
-.pedido-card ion-card-content{ padding: 16px 14px; }
+.pedido-card ion-card-content{ 
+  padding: 24px 20px; 
+}
 
 .estado-pill{
-  display: inline-block;
+  display: block;
   width: 100%;
-  background: #7d3b3b;
+  background: linear-gradient(135deg, #7b2f2f 0%, #6b2727 100%);
   color: #fff;
-  border-radius: 12px;
-  padding: 10px 12px;
+  border-radius: 16px;
+  padding: 20px 16px;
   text-align: center;
   font-weight: 700;
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,.12);
+  box-shadow: 0 8px 20px rgba(0,0,0,.3);
+  border: 1px solid rgba(255,255,255,.1);
 }
-.estado-pill span{ opacity: .9; display:block; font-weight:600; }
+
+.estado-label{
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.estado-value{
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-shadow: 1px 1px 2px rgba(0,0,0,.5);
+  letter-spacing: 0.5px;
+}
 
 .totales{
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
-  gap: 8px 12px;
-  margin-top: 12px;
+  gap: 20px;
+  margin-top: 20px;
 }
-.total{ font-size: 1.06rem; }
-.demora{ opacity: .9; }
+
+.total, .demora{
+  background: rgba(255,255,255,.05);
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.total-label, .demora-label{
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+
+.total-value, .demora-value{
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-shadow: 1px 1px 2px rgba(0,0,0,.5);
+  letter-spacing: 0.5px;
+}
+
+.total-value{
+  color: #4caf50;
+}
+
+.demora-value{
+  color: #ff9800;
+}
 
 /* CTA dentro de la card */
 .pedido-card .cta{
@@ -159,7 +212,7 @@ ion-row{
 /* === ESPACIO ENTRE BOTONES (robusto) === */
 /* === Espaciado confiable entre botones === */
 :root{
-  --actions-gap: clamp(24px, 5svh, 40px); /* ajustá a gusto */
+  --actions-gap: clamp(16px, 3svh, 24px); /* Espaciado más compacto pero separado */
 }
 
 .action-stack{
@@ -213,10 +266,13 @@ ion-button.option-card::part(native){
   box-shadow: 0 10px 22px rgba(0,0,0,.16);
 }
 
-/* --- Espacio fijo por cada botón (SIN variables) --- */
-ion-button.option-card.var1{ margin-bottom: 26px !important; }
-ion-button.option-card.var2{ margin-bottom: 26px !important; }
-ion-button.option-card.var3{ margin-bottom: 0   !important;  } /* último */
+/* --- Eliminamos márgenes individuales, usamos gap del contenedor --- */
+ion-button.option-card.var1,
+ion-button.option-card.var2,
+ion-button.option-card.var3,
+ion-button.option-card.var4 { 
+  margin-bottom: 0 !important; 
+}
 /* ===== Colores de marca ===== */
 :root{
   --bordo: #6e2e2e;            /* rojo/bordo de las cards */
@@ -251,7 +307,18 @@ ion-button.option-card::part(native){
 }
 
 ion-button.option-card:hover::part(native){ filter: brightness(1.03); }
-ion-button.option-card[disabled]::part(native){ opacity:.65; }
+ion-button.option-card[disabled]::part(native){ 
+  opacity: 0.5;
+  filter: grayscale(0.6);
+  cursor: not-allowed;
+}
+
+/* Estilo mejorado para botón de encuesta deshabilitado */
+ion-button.option-card.var4[disabled]::part(native) {
+  background-color: rgba(110, 46, 46, 0.4) !important;
+  border-color: rgba(74, 30, 30, 0.4) !important;
+  opacity: 0.6;
+}
 
 /* 2) Bajar el card de estado del pedido */
 .pedido-card{
@@ -260,4 +327,38 @@ ion-button.option-card[disabled]::part(native){ opacity:.65; }
 }
 
 /* (opcional) un poquito más de aire entre botones */
-.action-stack{ gap: clamp(20px, 5svh, 20px); }
+.action-stack{ 
+  gap: clamp(16px, 3svh, 24px); 
+}
+
+/* Eliminamos estilos de post-entrega-options ya que el botón está dentro de action-stack */
+
+/* ===== Mensajes para clientes anónimos ===== */
+.anonimo-message {
+  margin: calc(var(--actions-gap) * 0.5) 0;
+  padding: 8px 12px;
+  background: rgba(var(--ion-color-medium-rgb), 0.1);
+  border-radius: 8px;
+  border-left: 3px solid var(--ion-color-medium);
+  
+  ion-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    
+    ion-icon {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+/* Mensaje cuando la encuesta está completada */
+.encuesta-completada {
+  background: rgba(var(--ion-color-success-rgb), 0.1);
+  border-left-color: var(--ion-color-success);
+  
+  ion-note {
+    color: var(--ion-color-success-shade);
+  }
+}

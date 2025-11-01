@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, inject, NgZone } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
          IonList, IonItem, IonLabel, IonBadge, IonAvatar, IonIcon,
-         IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
+         IonRefresher, IonRefresherContent, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, pencil, refresh, trash } from 'ionicons/icons';
 import { ModalController } from '@ionic/angular';
@@ -29,6 +29,7 @@ import { Router } from '@angular/router';
 export class MesasComponent implements OnInit , ViewWillEnter{
   private modalCtrl = inject(ModalController);
   private mesasSrv = inject(MesasService);
+  private alertCtrl = inject(AlertController);
 
   mesas: MesaRow[] = [];
   cargando = false;
@@ -160,37 +161,54 @@ export class MesasComponent implements OnInit , ViewWillEnter{
   }
 
   async eliminarMesa(m: MesaRow) {
-    // confirmación simple (si preferís usar IonAlert, avísame y te paso el bloque)
-    const ok = confirm(`¿Eliminar definitivamente la mesa #${m.numero}?`);
-    if (!ok) return;
-  
-    // UI optimista: la saco de la lista ya mismo
-    const prev = this.mesas;
-    this.mesas = prev.filter(x => x.id !== m.id);
-  
-    try {
-      // llamada real al backend
-      await this.mesasSrv.eliminarMesa(m.id);
-  
-      // sincronizo por si hay latencia de replicación/caché
-      // (espera mínima y recarga segura)
-      await new Promise(r => setTimeout(r, 120));
-      //await this.cargarMesas();
-      await this.recargarVista();
-  
-    } catch (e: any) {
-      console.error('[mesas] eliminarMesa error', e);
-      // rollback si falló por RLS u otro motivo
-      this.mesas = prev;
-  
-      // mensajes típicos que vimos en tus logs
-      const msg = String(e?.message || e);
-      if (msg.toLowerCase().includes('rls') || msg.toLowerCase().includes('permission')) {
-        alert('No se pudo eliminar. Verificá permisos/RLS.');
-      } else {
-        alert('No se pudo eliminar la mesa.');
-      }
-    }
+    const alert = await this.alertCtrl.create({
+      header: 'Confirmar eliminación',
+      message: `¿Eliminar definitivamente la mesa #${m.numero}?`,
+      buttons: [
+        {
+          text: 'CANCELAR',
+          role: 'cancel',
+          cssClass: 'alert-button-cancel'
+        },
+        {
+          text: 'CONFIRMAR',
+          role: 'destructive',
+          cssClass: 'alert-button-confirm',
+          handler: async () => {
+            // UI optimista: la saco de la lista ya mismo
+            const prev = this.mesas;
+            this.mesas = prev.filter(x => x.id !== m.id);
+          
+            try {
+              // llamada real al backend
+              await this.mesasSrv.eliminarMesa(m.id);
+          
+              // sincronizo por si hay latencia de replicación/caché
+              // (espera mínima y recarga segura)
+              await new Promise(r => setTimeout(r, 120));
+              //await this.cargarMesas();
+              await this.recargarVista();
+          
+            } catch (e: any) {
+              console.error('[mesas] eliminarMesa error', e);
+              // rollback si falló por RLS u otro motivo
+              this.mesas = prev;
+          
+              // mensajes típicos que vimos en tus logs
+              const msg = String(e?.message || e);
+              if (msg.toLowerCase().includes('rls') || msg.toLowerCase().includes('permission')) {
+                window.alert('No se pudo eliminar. Verificá permisos/RLS.');
+              } else {
+                window.alert('No se pudo eliminar la mesa.');
+              }
+            }
+          }
+        }
+      ],
+      cssClass: 'custom-alert'
+    });
+    
+    await alert.present();
   }
   
 
