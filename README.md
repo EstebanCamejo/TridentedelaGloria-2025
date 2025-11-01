@@ -261,13 +261,11 @@ Agrandar más las fuentes, en particular la de los totales.
 |--------------------|---------------------------------------|
 | <img width="312" height="649" alt="image" src="https://github.com/user-attachments/assets/d15bbfbf-186c-4296-bfff-b0655d00f713" /> | Inicio de sesion con boton de usuarios (acceso rapido) desplegado |
 | <img width="308" height="645" alt="image" src="https://github.com/user-attachments/assets/7c012853-7edc-4e55-b827-8e277b3a8c7f" /> | Pantalla registro nuevo cliente |
-| <img width="276" height="608" alt="image" src="https://github.com/user-attachments/assets/2337288d-ab09-4605-8f1a-c8d8278080db" />
- /> | Panel dueño/supervisor |
+| <img width="276" height="608" alt="image" src="https://github.com/user-attachments/assets/2337288d-ab09-4605-8f1a-c8d8278080db" />| Panel dueño/supervisor |
 | <img width="302" height="676" alt="image" src="https://github.com/user-attachments/assets/d532802c-1451-4c70-9b61-a48ba78e3700" />| Vista clientes en espera por perfil dueño/supervisor |
 | <img width="272" height="603" alt="image" src="https://github.com/user-attachments/assets/59a453d2-8fb1-4b77-bbfc-466d4f5ee206" />/> | Panel Cliente |
 |<img width="315" height="661" alt="image" src="https://github.com/user-attachments/assets/9e1cc081-6d37-4cb1-92fd-9de6c4194717" />| Splash |
-|<img width="283" height="608" alt="image" src="https://github.com/user-attachments/assets/773cdd01-8488-4341-9af0-8e10c86cd037" />
-|Vista Reservas Cliente|
+|<img width="283" height="608" alt="image" src="https://github.com/user-attachments/assets/773cdd01-8488-4341-9af0-8e10c86cd037" />|Vista Reservas Cliente|
 |<img width="321" height="692" alt="image" src="https://github.com/user-attachments/assets/0f57a0ca-e222-4740-9e41-3fa7bda3d9b6" />| Panel Mozo|
 |<img width="317" height="688" alt="image" src="https://github.com/user-attachments/assets/e0e91f5f-a610-42d2-b248-7fe6ea4642ca" />|Chat Mozo/Cliente|
 |<img width="349" height="702" alt="image" src="https://github.com/user-attachments/assets/22a0f236-b5b0-4afa-ac15-4a80a2f40b8c" />|QR Mesa: Ver Menu , pedir, Juegos y chat|
