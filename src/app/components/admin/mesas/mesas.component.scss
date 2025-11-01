@@ -10,8 +10,9 @@
 :host { display: block; }
 
 ion-item {
-  --inner-padding-top: 10px;
-  --inner-padding-bottom: 10px;
+  --inner-padding-top: 16px;
+  --inner-padding-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .row1 {
@@ -29,4 +30,49 @@ ion-item {
   gap: 12px;
   opacity: .9;
   font-size: .95rem;
+}
+
+/* Estilos para el alert personalizado con colores del cartel */
+.custom-alert {
+  --background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  --backdrop-filter: blur(6px) saturate(1.03);
+  --border-radius: 14px;
+  --box-shadow: 0 10px 28px rgba(61,43,43,.22), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.custom-alert .alert-wrapper {
+  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  backdrop-filter: blur(6px) saturate(1.03);
+  box-shadow: 0 10px 28px rgba(61,43,43,.22), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.custom-alert .alert-head {
+  color: #f3e7da;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+}
+
+.custom-alert .alert-message {
+  color: #f3e7da;
+  font-family: "Inter", sans-serif;
+}
+
+.alert-button-cancel {
+  --color: #f3e7da;
+  --background: transparent;
+  --border-color: rgba(255,221,190,.55);
+  --border-width: 1.5px;
+  --border-radius: 12px;
+  font-weight: 600;
+}
+
+.alert-button-confirm {
+  --color: #201212;
+  --background: linear-gradient(180deg, #ffe9d3, #f6ecdc);
+  --border-color: rgba(255,221,190,.75);
+  --border-width: 2px;
+  --border-radius: 14px;
+  font-weight: 800;
 }

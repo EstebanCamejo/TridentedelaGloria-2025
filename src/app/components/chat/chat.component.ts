@@ -28,25 +28,38 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private sub?: Subscription;
   @ViewChild('bottom') bottom?: ElementRef;
- @ViewChild(IonContent) ionContent?: IonContent;
+  @ViewChild(IonContent) ionContent?: IonContent;
   constructor(
     private route: ActivatedRoute,
     private chat: ChatService,
     private supa: SupabaseService,
-  ) { addIcons({ chevronBackOutline, sendOutline }); }
+  ) { 
+    console.log('[ChatComponent] 🔧 Constructor ejecutado');
+    addIcons({ chevronBackOutline, sendOutline }); 
+  }
 
 async ngOnInit() {
+  console.log('[ChatComponent] 🚀 ngOnInit iniciado');
+  
   const qp = this.route.snapshot.queryParamMap;
   const mesa_num = +(qp.get('mesa') || 0);
+  console.log('[ChatComponent] 📍 Mesa número:', mesa_num);
 
   const { data: ures } = await this.supa.client.auth.getUser();
   this.meUid = ures?.user?.id ?? null;
+  console.log('[ChatComponent] 👤 Usuario ID:', this.meUid);
 
   // 1) Modo MOZO: /mozo/chat/:roomId
   const roomFromRoute = this.route.snapshot.paramMap.get('roomId');
+  console.log('[ChatComponent] 🔍 Room desde ruta:', roomFromRoute);
+  
   if (roomFromRoute) {
+    console.log('[ChatComponent] 🍽️ Modo MOZO detectado');
     this.roomId = +roomFromRoute;
+    console.log('[ChatComponent] 🏠 Room ID:', this.roomId);
+    
     this.sub = this.chat.streamMessages(this.roomId).subscribe(arr => {
+      console.log('[ChatComponent] 📨 Mensajes recibidos:', arr.length);
       this.mensajes = arr;
       this.scrollDownSoon();
     });
@@ -55,18 +68,41 @@ async ngOnInit() {
 
   // 2) Modo CLIENTE: /cliente/chat/:pedidoId
   this.pedidoId = +(this.route.snapshot.paramMap.get('pedidoId') || 0);
-  const cliente_uid = this.meUid!;
+  console.log('[ChatComponent] 🛒 Modo CLIENTE detectado');
+  console.log('[ChatComponent] 📋 Pedido ID:', this.pedidoId);
+  
+  if (!this.meUid) {
+    console.error('[ChatComponent] ❌ Error: Usuario no autenticado');
+    return;
+  }
+  
+  const cliente_uid = this.meUid;
+  console.log('[ChatComponent] 🔐 Cliente UID:', cliente_uid);
 
-  this.roomId = await this.chat.ensureRoomByPedido(this.pedidoId, mesa_num, cliente_uid);
-  this.sub = this.chat.streamMessages(this.roomId).subscribe(arr => {
-    this.mensajes = arr;
-    this.scrollDownSoon();
-  });
+  try {
+    console.log('[ChatComponent] 🏗️ Creando/obteniendo sala de chat...');
+    this.roomId = await this.chat.ensureRoomByPedido(this.pedidoId, mesa_num, cliente_uid);
+    console.log('[ChatComponent] ✅ Sala creada/obtenida. Room ID:', this.roomId);
+    
+    this.sub = this.chat.streamMessages(this.roomId).subscribe(arr => {
+      console.log('[ChatComponent] 📨 Mensajes recibidos:', arr.length);
+      this.mensajes = arr;
+      this.scrollDownSoon();
+    });
+  } catch (error) {
+    console.error('[ChatComponent] ❌ Error al crear/obtener sala:', error);
+  }
 }
 
 async enviar() {
+  console.log('[ChatComponent] 📤 Intentando enviar mensaje');
   const t = this.nuevo.trim();
-  if (!t) return;
+  if (!t) {
+    console.log('[ChatComponent] ⚠️ Mensaje vacío, no se envía');
+    return;
+  }
+
+  console.log('[ChatComponent] 📝 Mensaje a enviar:', t);
 
   // 👇 Optimista: lo ves al instante
   const optimista: ChatMessage = {
@@ -77,23 +113,31 @@ async enviar() {
     text: t,
     created_at: new Date().toISOString()
   };
+  
+  console.log('[ChatComponent] 🎭 Mensaje optimista creado:', optimista);
+  
   this.mensajes = [...this.mensajes, optimista];
   this.nuevo = '';
   this.scrollDownSoon();
 
   try {
+    console.log('[ChatComponent] 🚀 Enviando mensaje al servidor...');
     await this.chat.send(this.roomId, t);
+    console.log('[ChatComponent] ✅ Mensaje enviado exitosamente');
     // Cuando llegue el INSERT del Realtime, la versión "real" quedará al final.
     // Si querés, podés luego deduplicar por tiempo/texto; no es crítico.
   } catch (e) {
+    console.error('[ChatComponent] ❌ Error al enviar mensaje:', e);
     // Si falla el insert, quitamos el optimista
     this.mensajes = this.mensajes.filter(m => m.id !== optimista.id);
     console.warn('No se pudo enviar:', e);
   }
 }
   soyYo(m: ChatMessage) { return m.from_uid === this.meUid; }
-    scrollDownSoon() {
+  scrollDownSoon() {
+    console.log('[ChatComponent] 📜 ScrollDownSoon ejecutado');
     setTimeout(() => {
+      console.log('[ChatComponent] 📜 Ejecutando scroll...');
       // 1) intenta con anchor
       this.bottom?.nativeElement.scrollIntoView({ behavior: 'smooth' });
       // 2) y además usa IonContent por si el anchor no alcanza
@@ -101,5 +145,8 @@ async enviar() {
     }, 50);
   }
 
-  ngOnDestroy() { this.sub?.unsubscribe(); }
+  ngOnDestroy() { 
+    console.log('[ChatComponent] 🗑️ ngOnDestroy ejecutado');
+    this.sub?.unsubscribe(); 
+  }
 }

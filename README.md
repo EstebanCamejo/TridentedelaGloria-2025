@@ -3,7 +3,6 @@
 <img width="179" height="219" alt="488039206-32abba29-e5fe-418d-bd17-2637ea8a77a2" src="https://github.com/user-attachments/assets/02a354da-5dfc-4909-a3b7-268c63f91d97" />
 
 
-
 ## 📖 Descripción
 > Esta aplicación móvil facilita la gestión de información y operaciones en un restaurante, optimizando la experiencia de los usuarios y el personal.  
 > Mediante el uso de la cámara y la lectura de códigos QR, se mejora la administración y la interacción con los clientes, empleados y supervisores.  
@@ -187,7 +186,74 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 
   ✅ *Entrega:*
 - Correcciones realizadas en todas las entregas.
-- Todos los puntos funcionando (del 1 al 19 + Requerimientos excluyentes).
+- Puntos funcionando del 1 al 19 + Requerimientos excluyentes.
+
+    ## 📆 Semana 7: Sábado 18/10 al 25/10 
+  //correccion: Alejandro constanzo.
+
+  Github: completo
+Punto 1: el primer dispositivo esta grabado muy lejos, se ve que ingresan datos pero la verdad nos imaginamos y no nos tendríamos que imaginar sino poder constatarlo. Los otros dispositivos tienen una visual correcta. Vuelvan a grabar el primer dispositivo (que justo es el que hace el ingreso de todos los datos). A nivel visual esta correcto y funcionalmente también correcto.
+Puntos 2 y 3: En la sección donde tienen 2 botones grandes (visualizar pendiente y agregar nueva bebida) usan scroll y no deberían porque justamente tienen 2 botones grandes, eso aplíquenlo a cualquier parte donde ocurra algo similar, eviten el uso del scroll y limítenlo a lugares que sean sumamente necesarios.
+Ya veo el menú en un dispositivo y ahí hago una aclaración: el menú si van a usar scroll (recomiendo que no pero lo pueden hacer) si van por ese camino que el scroll cuando pasan de una imagen a otra que la misma se frene y ocupen toda la pantalla, es decir que no quede ni la mitad ni una cuarta parte de un articulo anterior ni posterior. Ahora previendo la segunda parte del proyecto (punto 31) les recomiendo que usen un estilo de carrusel y ya preparan el menú para ese punto. A nivel visual esta correcto y funcionalmente también correcto.
+Punto 4: otra vez el primer dispositivo se ve lejos, y no se (porque repito se ve lejos) pero pareciera que cuando eliminan mesa la confirmación aparecen palabras en ingles (OK-CANCEL), si no es así desestimar esto, pero vuelvan a grabar esta parte mas cerca porque no se distingue, funcionalmente bien.
+Puntos 5-6-7-8: Los botones de aceptación y rechazo siguen igual, siguen 2 botones minúsculos, eso cámbienlo para poner dos botones un poco mas grande. El correo de aceptación que tenga colores tendiendo al verde (aceptar) y el de rechazo tendiendo al rojo (rechazar).
+Puntos 9-10-11: palabra en ingles (OK). Hay un mensaje “No hay clientes en espera” se pierde o confunde con el fondo, además se ve arriba de todo en chiquito. Si ponen un mensaje que muestra un lista vacía, o ponen el mensaje bien grande que ocupe toda la pantalla o pongan una imagen alusiva que muestre dicha acción (esto aplicarlo a cualquier acción similar). El punto 11 no lo muestran bien como se debe, lo pasan muy por arriba, deben mostrar bien el menú de productos con sus 3 fotos, con sus tiempos de preparación con su valor bien en grande, con las categorías correspondientes (comidas, bebidas y postres) ,etc como se pide en el punto 11.
+Puntos 12-13: ídem al punto 11 muestren el menú. Otra vez pantallas vacías donde no hay nada que mostrar (detallado puntos 9-10-11). Palabras en ingles (OK-CANCEL).
+Puntos 14-16-17-18-19: ok
+Punto 15: ok
+
+*Diseño*
+- Home cliente Reservas -> Sofia Dorbessan
+- Home Mozo Reservas -> Sofia Dorbessan
+- Correo Aceptacion/Rechazo reservas -> Sofia Dorbessan
+- Factura pago Cliente  → Esteban Camejo
+
+*Gestión*
+- Flujo QR propinas → Esteban Camejo
+- Flujo Cliente realiza el pago + descuento juegos → Esteban Camejo
+- Push notifications Mozo/Cliente/Adimin flujo pedido  → Esteban Camejo
+- Componente Reservas Cliente y Admin -> Sofia Dorbessan
+- Push notifications Cliente/Admin Reservas -> Sofia Dorbessan  
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 19 + Requerimientos excluyentes.
+
+## 📆 Semana 7: Sábado 25/10 al 01/11 
+  //correccion: Maximiliano Neiner
+
+Vista Reserva Admin:
+Las letras rojo oscuro, sobre el fondo negro no hacen un buen contraste.
+Igualar los componentes (inputs y buttons) para que entre sí, tengan el mismo tamaño.
+Dejar espacios entre 'renglones' para abarcar mayor superficie (espacio hacia abajo tienen y mucho). Quitar palabra email.
+Vista Reserva Cliente:
+agrandaría un poco más el mensaje 'pendiente de confirmación'.
+Home Cliente Reserva:
+dejar más espacio entre el primer botón (Escanear QR) y el borde superior de la pantalla. Tratar de que los espacios entre los bordes sean lo más parejos posibles (sin solapar otros controles).
+
+El video es muy extenso, separarlo por puntos individuales.
+Agrandar más las fuentes, en particular la de los totales.
+
+*Diseño*
+- Arreglo home Maitre -> Sofia Dorbessan
+- Arreglo correos Aceptacion/Rechazo -> Sofia Dorbessan
+- Arreglo visual admin lista de espera -> Sofia Dorbessan
+- Correos Aceptacion/Rechazo reservas -> Sofia Dorbessan
+- Arreglo Menu → *Ivan Laurito*
+- Arreglo componentes sin informacion en lista  → Esteban Camejo
+- Arreglo home admin mesas  → Esteban Camejo
+- Correo con PDF factura → Esteban Camejo
+
+*Gestión*
+- PDF factura → Esteban Camejo
+- Correo con PDF factura a cliente registrado → Esteban Camejo
+- Push con factura al cliente no registrado → Esteban Camejo
+- Flujo correos Aceptacion/Rechazo reservas -> Sofia Dorbessan
+- Componente Reservas Cliente y Admin -> Sofia Dorbessan
+
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 22 + Requerimientos excluyentes.
+- Se entregan los puntos del 1 al 13 actualizados con las ultimas correcciones realizadas.
 
   ## 📲 Imagenes de la aplicacion 📲
 
@@ -195,18 +261,23 @@ Pantalla Maitre: tienen 2 botones, que ocupen toda la pantalla, eso aplíquenlo 
 |--------------------|---------------------------------------|
 | <img width="312" height="649" alt="image" src="https://github.com/user-attachments/assets/d15bbfbf-186c-4296-bfff-b0655d00f713" /> | Inicio de sesion con boton de usuarios (acceso rapido) desplegado |
 | <img width="308" height="645" alt="image" src="https://github.com/user-attachments/assets/7c012853-7edc-4e55-b827-8e277b3a8c7f" /> | Pantalla registro nuevo cliente |
-| <img width="307" height="658" alt="image" src="https://github.com/user-attachments/assets/88d4864e-ba6b-4f13-8455-721c60c256ce" /> | Pantalla vista dueño/supervisor |
+| <img width="276" height="608" alt="image" src="https://github.com/user-attachments/assets/2337288d-ab09-4605-8f1a-c8d8278080db" />| Panel dueño/supervisor |
 | <img width="302" height="676" alt="image" src="https://github.com/user-attachments/assets/d532802c-1451-4c70-9b61-a48ba78e3700" />| Vista clientes en espera por perfil dueño/supervisor |
-| <img width="315" height="659" alt="image" src="https://github.com/user-attachments/assets/2ee2fc7a-080a-4e06-b73e-0e7f52ea145e" /> | Panel Cliente |
+| <img width="272" height="603" alt="image" src="https://github.com/user-attachments/assets/59a453d2-8fb1-4b77-bbfc-466d4f5ee206" />/> | Panel Cliente |
 |<img width="315" height="661" alt="image" src="https://github.com/user-attachments/assets/9e1cc081-6d37-4cb1-92fd-9de6c4194717" />| Splash |
+|<img width="283" height="608" alt="image" src="https://github.com/user-attachments/assets/773cdd01-8488-4341-9af0-8e10c86cd037" />|Vista Reservas Cliente|
 |<img width="321" height="692" alt="image" src="https://github.com/user-attachments/assets/0f57a0ca-e222-4740-9e41-3fa7bda3d9b6" />| Panel Mozo|
 |<img width="317" height="688" alt="image" src="https://github.com/user-attachments/assets/e0e91f5f-a610-42d2-b248-7fe6ea4642ca" />|Chat Mozo/Cliente|
 |<img width="349" height="702" alt="image" src="https://github.com/user-attachments/assets/22a0f236-b5b0-4afa-ac15-4a80a2f40b8c" />|QR Mesa: Ver Menu , pedir, Juegos y chat|
 
 | Imagen             | Valor                                   
 |--------------------|---------------------------------------|
-|<img width="267" height="270" alt="image" src="https://github.com/user-attachments/assets/8d4c7cd0-130f-468d-aff9-0ae2ecd473b0" />| Lista de espera|
-|<img width="257" height="263" alt="image" src="https://github.com/user-attachments/assets/c3347795-49c3-434a-b4b0-a8fdf71fc1b2" />| Mesa (ej: mesa 5)|
+|<img width="267" height="270" alt="image" src="https://github.com/user-attachments/assets/8d4c7cd0-130f-468d-aff9-0ae2ecd473b0" />| QR Lista de espera|
+|<img width="257" height="263" alt="image" src="https://github.com/user-attachments/assets/c3347795-49c3-434a-b4b0-a8fdf71fc1b2" />| QR Mesa (ej: mesa 5)|
+|<img width="387" height="389" alt="image" src="https://github.com/user-attachments/assets/c46e44ab-7501-4e60-b50b-8c438b4c0a01" />|QR Propina: 20%|
+|<img width="391" height="390" alt="image" src="https://github.com/user-attachments/assets/8d886b93-662d-4ae1-befb-efdfb7d28519" />|QR Propina: 15%|
+|<img width="395" height="389" alt="image" src="https://github.com/user-attachments/assets/828916f7-92e2-4272-9d15-0d71e6e884bc" />|QR Propina: 10%|
+|<img width="389" height="381" alt="image" src="https://github.com/user-attachments/assets/b8a496ae-c4b3-458f-baa4-c6264cdaf031" />|QR Propina: 5%|
 
 
 

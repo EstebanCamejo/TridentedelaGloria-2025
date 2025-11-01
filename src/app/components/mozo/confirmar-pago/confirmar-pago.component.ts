@@ -5,19 +5,24 @@ import { Router } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel,
   IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonList, IonIcon, IonLoading, IonBadge, IonRefresher, IonRefresherContent
+  IonCardSubtitle, IonList, IonIcon, IonLoading, IonBadge, IonRefresher, IonRefresherContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkCircleOutline, timeOutline, receiptOutline } from 'ionicons/icons';
 import { ToastrService } from 'ngx-toastr';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { MozoRealtimeService } from 'src/app/services/mozo-realtime.service';
+import { environment } from 'src/environments/environment';
 
 interface PagoPendiente {
   id: number;
   numero_mesa: number;
   cliente_nombre: string;
   total: number;
+  base_total?: number;
+  subtotal?: number;
+  monto_descuento?: number;
+  descuento_pct?: number;
   propina_monto: number;
   propina_pct: number;
   fecha_solicitud: string;
@@ -38,7 +43,7 @@ interface PagoPendiente {
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonItem, IonLabel, IonButton, IonCard, IonCardContent,
-    IonCardHeader, IonCardTitle, IonList, IonIcon, IonLoading,
+    IonCardHeader, IonCardTitle, IonCardSubtitle, IonList, IonIcon, IonLoading,
     IonBadge, IonRefresher, IonRefresherContent
   ]
 })
@@ -75,6 +80,9 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
         .select(`
           id,
           total,
+          descuento_pct,
+          propina_pct,
+          propina_monto,
           created_at,
           idCliente,
           pedidos_detalles (
@@ -109,16 +117,20 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
           const { data: usuario } = await this.supa.client
             .from('usuarios')
             .select('nombres, apellidos')
-            .eq('id', clienteId)
-            .single();
+            .eq('auth_id', clienteId)
+            .maybeSingle();
 
           pagosPorCliente.set(clienteId, {
             id: pedido.id,
             numero_mesa: listaEspera?.numero_mesa || 0,
             cliente_nombre: `${usuario?.nombres || ''} ${usuario?.apellidos || ''}`.trim() || 'Cliente',
-            total: pedido.total || 0,
-            propina_monto: 0, // TODO: Implementar cálculo de propina
-            propina_pct: 0,
+            total: 0, // Se recalculará después
+            base_total: 0, // Se recalculará después
+            subtotal: 0, // Se recalculará después
+            monto_descuento: 0, // Se recalculará después
+            descuento_pct: Number(pedido.descuento_pct || 0),
+            propina_monto: pedido.propina_monto || 0,
+            propina_pct: pedido.propina_pct || 0,
             fecha_solicitud: pedido.created_at,
             pedidos: []
           });
@@ -135,6 +147,27 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
             subtotal: detalle.cantidad * detalle.precioUnitario
           });
         }
+      }
+
+      // Recalcular totales correctamente después de agregar todos los items
+      for (const pago of pagosPorCliente.values()) {
+        // 1. Subtotal = suma de todos los items
+        const subtotal = pago.pedidos.reduce((sum, item) => sum + item.subtotal, 0);
+        
+        // 2. Descuento = subtotal * descuento_pct / 100
+        const montoDescuento = subtotal * (pago.descuento_pct || 0) / 100;
+        
+        // 3. Base para propina = subtotal - descuento
+        const baseParaPropina = Math.max(0, subtotal - montoDescuento);
+        
+        // 4. Total = base + propina
+        const totalCorrecto = baseParaPropina + pago.propina_monto;
+        
+        // Actualizar valores
+        pago.subtotal = subtotal;
+        pago.monto_descuento = montoDescuento;
+        pago.base_total = baseParaPropina;
+        pago.total = totalCorrecto;
       }
 
       this.pagosPendientes = Array.from(pagosPorCliente.values());
@@ -196,6 +229,9 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
 
       // 4. Enviar notificaciones push
       await this.enviarNotificacionesPago(pago);
+
+      // 5. Generar factura
+      await this.generarFactura(pago);
 
     } catch (error: any) {
       console.error('Error al confirmar pago:', error);
@@ -319,6 +355,50 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
 
   volver() {
     this.router.navigate(['/home-mozo']);
+  }
+
+  async generarFactura(pago: PagoPendiente) {
+    try {
+      console.log('[ConfirmarPagoComponent] Generando factura para pedido:', pago.id);
+      
+      // Asegurar que la sesión esté activa (refresh automático si es necesario)
+      const { data: sessionData, error: sessionError } = await this.supa.client.auth.getSession();
+      
+      if (sessionError || !sessionData?.session) {
+        console.error('[ConfirmarPagoComponent] No hay sesión activa:', sessionError);
+        this.toast.warning('Pago confirmado, pero no se pudo generar la factura (sesión expirada)');
+        return;
+      }
+
+      const accessToken = sessionData.session.access_token;
+      console.log('[ConfirmarPagoComponent] Token obtenido, invocando Edge Function...');
+
+      // Invocar Edge Function - Supabase automáticamente agrega Authorization si hay sesión
+      // Pero también lo pasamos explícitamente para asegurar
+      const { data, error } = await this.supa.client.functions.invoke('generar-factura', {
+        body: { pedido_id: pago.id }
+        // No pasamos headers personalizados - dejamos que Supabase los agregue automáticamente
+        // Esto evita sobrescribir headers necesarios
+      });
+
+      if (error || (data && (data as any).error)) {
+        console.error('[ConfirmarPagoComponent] Error al generar factura:', error || (data as any).error);
+        this.toast.warning('Pago confirmado, pero hubo un problema al generar la factura');
+        return;
+      }
+
+      console.log('[ConfirmarPagoComponent] ✅ Factura generada exitosamente:', data);
+      
+      if (data?.cliente_anonimo) {
+        this.toast.success('Pago confirmado. Se envió notificación con enlace de descarga de factura');
+      } else {
+        this.toast.success('Pago confirmado. Se envió la factura por email');
+      }
+
+    } catch (error) {
+      console.error('[ConfirmarPagoComponent] Error al generar factura:', error);
+      this.toast.warning('Pago confirmado, pero hubo un problema al generar la factura');
+    }
   }
 
   getPropinaLabel(porcentaje: number): string {

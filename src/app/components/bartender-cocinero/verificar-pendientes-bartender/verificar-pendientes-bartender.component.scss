@@ -337,14 +337,28 @@ ion-card-subtitle {
     .mesa-title {
       font-size: 24px;
       font-weight: bold;
-      color: #2c3e50;
       margin-bottom: 8px;
+      opacity: 1;
+      // Color oscuro para buen contraste sobre fondo claro
+      color: var(--ink, #3b2a2a);
+      
+      // Sombra de texto para mejorar legibilidad
+      text-shadow: 
+        0 0 1px rgba(255, 255, 255, 0.5),
+        0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .fecha-subtitle {
       font-size: 14px;
-      color: #7f8c8d;
       font-weight: 500;
+      opacity: 1;
+      // Color oscuro pero más suave para subtítulos
+      color: var(--ink-soft, #6b5858);
+      
+      // Sombra de texto para mejorar legibilidad
+      text-shadow: 
+        0 0 1px rgba(255, 255, 255, 0.5),
+        0 1px 2px rgba(0, 0, 0, 0.1);
     }
   }
   
@@ -396,6 +410,43 @@ ion-card-subtitle {
             border-radius: 20px;
             min-width: 50px;
           }
+        }
+      }
+    }
+  }
+}
+
+// Asegurar visibilidad en modo oscuro
+@media (prefers-color-scheme: dark) {
+  .pedido-card {
+    .card-header {
+      .mesa-title {
+        color: var(--ink, #3b2a2a) !important;
+        text-shadow: 
+          0 0 2px rgba(255, 255, 255, 0.9),
+          0 1px 3px rgba(255, 255, 255, 0.3); // Sombra más fuerte en modo oscuro
+      }
+      
+      .fecha-subtitle {
+        color: var(--ink-soft, #6b5858) !important;
+        text-shadow: 
+          0 0 2px rgba(255, 255, 255, 0.9),
+          0 1px 3px rgba(255, 255, 255, 0.3); // Sombra más fuerte en modo oscuro
+      }
+    }
+    
+    // Si el card se vuelve oscuro en modo oscuro
+    &[class*="dark"],
+    &[style*="background-color: rgb(33"],
+    &[style*="background-color: #2"],
+    &[style*="background-color: #3"] {
+      .card-header {
+        .mesa-title,
+        .fecha-subtitle {
+          color: var(--ion-color-primary-contrast, #fff8ef) !important;
+          text-shadow: 
+            0 0 1px rgba(0, 0, 0, 0.8),
+            0 1px 3px rgba(0, 0, 0, 0.6); // Sombra oscura para texto claro
         }
       }
     }
@@ -512,4 +563,71 @@ ion-card-subtitle {
   width: 100%;
   color: black;
   padding: 10px 0;
+}
+
+/* Título grande y visible */
+.title-large {
+  font-size: 1.8rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+
+/* Estado vacío/cargando - OCUPA TODA LA PANTALLA */
+.sin-pedidos {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  text-align: center;
+  padding: 2rem;
+}
+
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  width: 90%;
+  max-width: 600px;
+  background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(30,30,30,0.98));
+  border: 3px solid rgba(255,255,255,0.2);
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 2px 8px rgba(255,255,255,0.1);
+}
+
+.empty-icon {
+  font-size: 5rem;
+  filter: drop-shadow(0 4px 8px rgba(255,255,255,0.3));
+}
+
+.empty-title {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-shadow: 0 4px 12px rgba(255,255,255,0.3), 0 0 20px rgba(255,255,255,0.2);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.empty-subtitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #f0f0f0;
+  opacity: 0.95;
+  letter-spacing: 1px;
+  margin-top: 0.5rem;
+}
+
+.empty-description {
+  font-size: 1.2rem;
+  color: #d0d0d0;
+  opacity: 0.9;
+  font-style: italic;
+  margin-top: 0.5rem;
 }

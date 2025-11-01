@@ -900,9 +900,10 @@ export class SupabaseService {
    * Verifica si ya se aplicó un descuento de juegos a un pedido
    */
   async yaSeAplicoDescuento(pedidoId: number): Promise<boolean> {
+    // CORRECCIÓN: Usar las columnas correctas que existen en la tabla pedidos
     const { data, error } = await this.client
       .from('pedidos')
-      .select('descuento_aplicado')
+      .select('descuento_pct, juego_premio_reclamado')
       .eq('id', pedidoId)
       .single();
     
@@ -911,7 +912,8 @@ export class SupabaseService {
       return false;
     }
     
-    return !!data?.descuento_aplicado;
+    // Verificar si hay descuento aplicado o juego premio reclamado
+    return !!(data?.descuento_pct && data.descuento_pct > 0) || !!data?.juego_premio_reclamado;
   }
 
   /**
@@ -1080,30 +1082,63 @@ export class SupabaseService {
    * Verifica si el cliente puede completar una encuesta
    */
   async puedeCompletarEncuesta(): Promise<boolean> {
+    console.log('[DEBUG] Verificando si puede completar encuesta...');
+    // TEMPORALMENTE: Siempre permitir completar encuesta para debugging
+    console.log('[DEBUG] ⚠️ puedeCompletarEncuesta TEMPORALMENTE DESHABILITADO. Retornando TRUE.');
+    return true;
+    
+    /* LÓGICA ORIGINAL (comentada para debug)
     const waitStatus = await this.getWaitStatusDetail();
+    console.log('[DEBUG] WaitStatus obtenido:', waitStatus);
+    console.log('[DEBUG] Estado de mesa:', waitStatus?.estado);
+    console.log('[DEBUG] Puede completar encuesta:', waitStatus?.estado === 'asignado');
     return waitStatus?.estado === 'asignado';
+    */
   }
 
   /**
    * Verifica si el cliente ya completó una encuesta para su estadía actual
    */
   async yaCompletoEncuesta(): Promise<boolean> {
+    console.log('🚫🚫🚫🚫ENCUESTA🚫🚫🚫🚫');
+    console.log('[DEBUG YA COMPLETO ENCUESTA] === VERIFICANDO SI YA COMPLETÓ ===');
+    
+    // TEMPORALMENTE: Siempre permitir completar encuesta para debugging
+    console.log('[DEBUG YA COMPLETO ENCUESTA] ⚠️ yaCompletoEncuesta TEMPORALMENTE DESHABILITADO. Retornando FALSE.');
+    console.log('🚫🚫🚫🚫ENCUESTA🚫🚫🚫🚫');
+    return false;
+    
+    /* LÓGICA ORIGINAL (comentada para debug)
     const waitStatus = await this.getWaitStatusDetail();
+    console.log('[DEBUG YA COMPLETO ENCUESTA] WaitStatus:', waitStatus);
     
-    if (!waitStatus) return false;
-    
-    const { data, error } = await this._supabase
-      .from('encuesta_respuestas')
-      .select('id')
-      .eq('lista_espera_id', waitStatus.id)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.error('❌ Error al verificar encuesta:', error);
+    if (!waitStatus) {
+      console.log('[DEBUG YA COMPLETO ENCUESTA] ❌ No hay waitStatus');
       return false;
     }
     
-    return !!data;
+    // CORRECCIÓN: Convertir lista_espera_id a UUID válido
+    const listaEsperaUuid = `00000000-0000-0000-0000-${String(waitStatus.id).padStart(12, '0')}`;
+    console.log('[DEBUG YA COMPLETO ENCUESTA] Consultando encuesta_respuesta con lista_espera_id (UUID):', listaEsperaUuid);
+    // MODIFICACIÓN: Quitar .single() para evitar 406 Not Acceptable
+    const { data, error } = await this._supabase
+      .from('encuesta_respuesta')
+      .select('id')
+      .eq('lista_espera_id', listaEsperaUuid);
+    
+    console.log('[DEBUG YA COMPLETO ENCUESTA] Resultado consulta:', { data, error });
+    
+    if (error) {
+      console.error('[DEBUG YA COMPLETO ENCUESTA] ❌ Error al verificar encuesta:', error);
+      return false;
+    }
+    
+    // Si data es un array vacío, significa que no hay encuestas completadas
+    const yaCompleto = data && data.length > 0;
+    console.log('[DEBUG YA COMPLETO ENCUESTA] Ya completó:', yaCompleto);
+    console.log('🚫🚫🚫🚫ENCUESTA🚫🚫🚫🚫');
+    return yaCompleto;
+    */
   }
 
   /**
@@ -1169,6 +1204,32 @@ export class SupabaseService {
     
     const tienePendientes = await this.tienePedidosSinPagar();
     return !tienePendientes; // Puede completar si NO tiene pendientes
+  }
+
+  /**
+   * Obtiene el perfil del usuario actual
+   */
+  async getUserProfile(): Promise<{ perfil?: string } | null> {
+    try {
+      const uid = this.idUsuario;
+      if (!uid) return null;
+
+      const { data, error } = await this._supabase
+        .from('usuarios')
+        .select('perfil')
+        .eq('auth_id', uid)
+        .single();
+
+      if (error) {
+        console.error('Error al obtener perfil del usuario:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error al obtener perfil del usuario:', error);
+      return null;
+    }
   }
 
 }

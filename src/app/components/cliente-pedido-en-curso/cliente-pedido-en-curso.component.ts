@@ -28,6 +28,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MenuService } from 'src/app/services/menu.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { ToastrService } from 'ngx-toastr';
+import { PedidosService } from 'src/app/services/pedidos.service';
 
 @Component({
   selector: 'app-cliente-pedido-en-curso',
@@ -45,6 +46,7 @@ export class ClientePedidoEnCursoComponent implements OnInit, OnDestroy {
   yaCompletoEncuesta = false;
   yaRealizoPedido = false; // Nueva propiedad para rastrear si ya realizó un pedido
   yaSeAplicoDescuento = false; // Nueva propiedad para rastrear si ya se aplicó descuento
+  esClienteAnonimo = false; // Nueva propiedad para verificar si es cliente anónimo
   
 
   private channel?: { unsubscribe?: () => void };
@@ -65,17 +67,40 @@ export class ClientePedidoEnCursoComponent implements OnInit, OnDestroy {
     private router: Router, 
     private menu: MenuService,
     private supa: SupabaseService,
-    private toast: ToastrService
+    private toast: ToastrService,
+    private pedidosSvc: PedidosService
   ) {
+    console.log('[ClientePedidoEnCurso] 🔧 Constructor ejecutado');
+    
     // ✅ Esto funciona incluso si recargás la página
     const st: any = history.state;
+    console.log('[ClientePedidoEnCurso] 📋 History state:', st);
+    
     if (st?.pedidoId != null && Number.isFinite(+st.pedidoId)) {
+      console.log('[ClientePedidoEnCurso] ✅ PedidoId encontrado en state:', st.pedidoId);
       this.applyResumen({
         id: +st.pedidoId,
         estado: 'pendiente',
         total: Number(st.total ?? 0),
         tiempoEstimado: Number(st.tiempo ?? 0),
         created_at: new Date().toISOString(),
+      });
+    } else {
+      console.log('[ClientePedidoEnCurso] ❌ No hay pedidoId en state');
+    }
+    
+    // Si no hay pedidoId, intentar obtener el último pedido del cliente
+    if (!this.pedidoId) {
+      console.log('[ClientePedidoEnCurso] 🔍 Intentando obtener último pedido...');
+      this.menu.getUltimoPedidoDelActual().then(ultimoPedido => {
+        if (ultimoPedido) {
+          console.log('[ClientePedidoEnCurso] ✅ Último pedido encontrado:', ultimoPedido);
+          this.applyResumen(ultimoPedido);
+        } else {
+          console.log('[ClientePedidoEnCurso] ❌ No hay pedidos para este cliente');
+        }
+      }).catch(error => {
+        console.error('[ClientePedidoEnCurso] ❌ Error al obtener último pedido:', error);
       });
     }
   }
@@ -139,6 +164,9 @@ async ngOnInit() {
   }
 
   private async ensureResumenAndSubscribe(forceServer = false) {
+    // Verificar perfil del usuario
+    await this.verificarPerfilUsuario();
+    
     // Si no tenemos pedidoId (o queremos refrescar), pedimos el último al server
     if (!Number.isFinite(this.pedidoId as any) || forceServer) {
       const res = await this.menu.getUltimoPedidoDelActual();
@@ -167,6 +195,9 @@ async ngOnInit() {
     // Si hay un pedido con ID, significa que ya realizó un pedido
     if (this.pedidoId && Number.isFinite(this.pedidoId)) {
       this.yaRealizoPedido = true;
+      
+      // ✅ ACTUALIZAR PedidosService para que los juegos estén habilitados
+      this.pedidosSvc.setPedidoActual({ id: this.pedidoId });
     }
 
     // Estados que se consideran "finalizados" (cliente no puede hacer más acciones)
@@ -183,6 +214,20 @@ async ngOnInit() {
     this.hasPedido = false;
     this.yaRealizoPedido = false;
     this.yaSeAplicoDescuento = false;
+    
+    // ✅ LIMPIAR PedidosService cuando no hay pedido
+    this.pedidosSvc.setPedidoActual(null);
+  }
+
+  private async verificarPerfilUsuario() {
+    try {
+      const userProfile = await this.supa.getUserProfile();
+      this.esClienteAnonimo = userProfile?.perfil === 'clienteAnon';
+      console.log('[DEBUG CLIENTE-PEDIDO-EN-CURSO] Perfil del usuario:', userProfile?.perfil, 'esClienteAnonimo:', this.esClienteAnonimo);
+    } catch (error) {
+      console.error('Error al verificar perfil del usuario:', error);
+      this.esClienteAnonimo = false;
+    }
   }
 
   private async verificarEstadoEncuesta() {
@@ -296,14 +341,13 @@ async ngOnInit() {
   this.router.navigate(['/cliente/cliente-realiza-pedido']);
 }
 async irAChat() {
-  if (!this.pedidoId) {
-    // opcional: mostrar toast "no tenés pedido activo"
-    return;
-  }
-
+  console.log('[irAChat] 🚀 Método iniciado');
+  
   // 🔧 Obtener el número de mesa desde lista_espera
   try {
+    console.log('[irAChat] 🔍 Obteniendo usuario...');
     const userId = (await this.menu.getClienteIdActual());
+    console.log('[irAChat] 👤 Usuario ID:', userId);
     
     const { data: waitRow } = await this.supa.client
       .from('lista_espera')
@@ -312,7 +356,11 @@ async irAChat() {
       .eq('estado', 'asignado')
       .single();
 
+    console.log('[irAChat] 📍 WaitRow:', waitRow);
+
     if (waitRow?.mesa_id) {
+      console.log('[irAChat] 🏠 Mesa ID encontrado:', waitRow.mesa_id);
+      
       // Obtener número de mesa
       const { data: mesa } = await this.supa.client
         .from('mesas')
@@ -320,22 +368,30 @@ async irAChat() {
         .eq('id', waitRow.mesa_id)
         .single();
 
+      console.log('[irAChat] 🏠 Datos mesa:', mesa);
       const mesaNumero = mesa?.numero ?? 0;
+      console.log('[irAChat] 🔢 Número mesa:', mesaNumero);
       
       // Navegar con el número de mesa como query param
-      this.router.navigate(['/cliente/chat', this.pedidoId], {
+      // Usar pedidoId si existe, sino usar 0 como placeholder
+      const pedidoIdParaChat = this.pedidoId || 0;
+      console.log('[irAChat] 🚀 Navegando con mesa:', mesaNumero, 'pedidoId:', pedidoIdParaChat);
+      this.router.navigate(['/cliente/chat', pedidoIdParaChat], {
         queryParams: { mesa: mesaNumero }
       });
     } else {
+      console.log('[irAChat] ⚠️ Sin mesa asignada');
       // No tiene mesa asignada, navegar sin número
-      this.router.navigate(['/cliente/chat', this.pedidoId], {
+      const pedidoIdParaChat = this.pedidoId || 0;
+      this.router.navigate(['/cliente/chat', pedidoIdParaChat], {
         queryParams: { mesa: 0 }
       });
     }
   } catch (e) {
-    console.error('[irAChat] Error al obtener número de mesa:', e);
+    console.error('[irAChat] ❌ Error:', e);
     // Navegar de todas formas
-    this.router.navigate(['/cliente/chat', this.pedidoId], {
+    const pedidoIdParaChat = this.pedidoId || 0;
+    this.router.navigate(['/cliente/chat', pedidoIdParaChat], {
       queryParams: { mesa: 0 }
     });
   }

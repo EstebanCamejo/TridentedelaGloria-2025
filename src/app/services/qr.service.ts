@@ -246,8 +246,9 @@ import { Capacitor } from '@capacitor/core';
 // Tipos de payload QR
 export type QrMesa    = { t: 'mesa'; id: string; n?: number };
 export type QrIngreso = { t: 'ingreso'; loc?: string };
-export type QrPropina = { t: 'propina'; mesa_id: string; pct?: number };
-export type QrPayload = QrMesa | QrIngreso | QrPropina;
+export type QrPropina = { t: 'propina'; mesa_id?: string; pct?: number };
+export type QrDescuento = { t: 'descuento'; tipo: string; porcentaje: number; codigo: string };
+export type QrPayload = QrMesa | QrIngreso | QrPropina | QrDescuento;
 
 @Injectable({ providedIn: 'root' })
 export class QrService {
@@ -263,7 +264,10 @@ export class QrService {
         case 'ingreso':
           return { t: 'ingreso', loc: j.loc };
         case 'propina':
-          return (typeof j.mesa_id === 'string') ? { t: 'propina', mesa_id: j.mesa_id, pct: j.pct } : null;
+          return (typeof j.pct === 'number') ? { t: 'propina', mesa_id: j.mesa_id, pct: j.pct } : null;
+        case 'descuento':
+          return (typeof j.porcentaje === 'number' && typeof j.tipo === 'string' && typeof j.codigo === 'string') ? 
+            { t: 'descuento', tipo: j.tipo, porcentaje: j.porcentaje, codigo: j.codigo } : null;
         default:
           return null;
       }
