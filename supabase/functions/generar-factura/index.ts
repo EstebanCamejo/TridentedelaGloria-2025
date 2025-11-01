@@ -302,6 +302,7 @@ Deno.serve(async (req: Request) => {
       })
     }
 
+    
     const baseParaPropina = Math.max(0, subtotal - montoDescuentoTotal)
     const propinaCalculada = typeof pedido.propina_monto === 'number' && !Number.isNaN(pedido.propina_monto)
       ? Number(pedido.propina_monto)
