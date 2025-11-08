@@ -311,18 +311,16 @@ Punto 14, 16, 17, 18 y 19:
 *Diseño*
 - Vista panel Delivery  → Esteban Camejo
 - Vista Delivery Cliente  → Esteban Camejo
-- Pedido Delivery → Esteban Camejo
-
+  
 *Gestión*
 - PDF factura Delivery → Esteban Camejo
 - Delivery/ Cliente Chat → Esteban Camejo
 - Flujo pedido Delivery → Esteban Camejo
 - Flujo Reservas -> Sofia Dorbessan
-- Menú acelerómetro y giroscopio  -> Ivan Laurito
-- Ingreso redes sociales  -> Ivan Laurito
+- Menú con acelerómetro y giroscopio  -> Ivan Laurito
 
   ✅ *Entrega:*
-- Puntos funcionando del 1 al 31 + Requerimientos excluyentes + 22bis com factura.
+- Puntos funcionando del 1 al 22 bis + puntos 24 al 31 + Requerimientos excluyentes.
 
   ## 📲 Imagenes de la aplicacion 📲
 
