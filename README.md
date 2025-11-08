@@ -252,8 +252,77 @@ Agrandar más las fuentes, en particular la de los totales.
 
 
   ✅ *Entrega:*
-- Puntos funcionando del 1 al 22 + Requerimientos excluyentes.
+- Puntos funcionando del 1 al 21 + Requerimientos excluyentes.
 - Se entregan los puntos del 1 al 13 actualizados con las ultimas correcciones realizadas.
+
+## 📆 Semana 7: Sábado 25/10 al 01/11 
+  //correccion: Maximiliano Neiner
+
+En el splah-screen, Iván no tiene tilde... igualar los contenedores de los apellidos y nombres (¿botones?).
+1) Quitar todo tipo de abreviaciones (min, hrs, etc.)
+Utilizar botones de acceso rápido.Punto 1:
+Los 'botones' de la página principal del administrador, hacerlos más grande, que se ajusten para ocupar toda la pantalla.
+La foto del empleado, más grande, está en un circulito arriba y no se ve. Otra opción, al hacer click, que se levante una ventana con la foto ocupando toda esa ventana. Fuentes de los botones muuuucho más grandes.
+Punto 2 y 3:
+parte 1: 
+1)
+parte 2:
+El elemento para agregar los detalles debe ser más grande (más alto, para que se puedan agregar varios renglones)
+Las imágenes se deben mostrar en contenedores con el mismo alto y ancho.
+parte 3: 
+ídem anterior.
+parte 4:
+1)
+Punto 4:
+1)
+Agrandar más los ítems del listado para que se pueda ver mejor las fotos y también los datos, ya que algunos valores se ven en renglones distintos (porque tienen más caracteres) y de paso, los botones de acción dejarlos en otro renglón (bien separados)
+En la pantalla de alta, agrandar los controles, fuentes, etc.
+Punto 5, 6, 7 y 8:
+parte 1:
+ídem foto en circulito del punto 1.
+parte 2:
+Listado de clientes pendientes de aprobación. Ídem listados anteriores, más grandes para visualizar fotos y datos (los correos salen cortados). 
+Quitar EMAIL, ¡¡¡todo en español!!!
+parte 3:
+Ídem anterior.
+Punto 9 y 10:
+parte 1:
+Ídem listados anteriores. Recordar que para el listado de clientes pendientes, lo importante (para el maitre), es la foto y el nombre (que ambos tipos de clientes poseen) y NO el correo, este último es un dato que no aporta nada.
+Recordar que en ningún caso, los listados (en este caso, las encuestas) NO tienen que salir cortados.
+parte 2:
+1)
+Punto 11:
+parte 1: 
+1)
+parte 2:
+1)
+Listado de pedidos (mozo). Nuevamente, datos que no tienen relevancia. Correo electrónico (?) total, no, el tiempo (?). El mozo tiene que ver, por mesa, el listado y cantidad de productos, ¿cómo confirma? Lo más importante son los nombres y cantidades de productos que se quieren confirmar o no...
+En el chat, el que escribe no tiene que tener ni nombres (ni mucho menos correo), solo la fecha con hora y minuto. Del lado del mozo, tiene que llegar la mesa y se responde con el nombre del mozo.
+Punto 12 y 13:
+parte 1:
+1)
+parte 3:
+Ídem anterior.
+Punto 15:
+Agrandar elementos y fuentes.
+Punto 14, 16, 17, 18 y 19:
+ídem  punto 11, parte 2... el bar-man y el cocinero tienen que saber qué y cuánto tienen que preparar (agrupado por mesa), no le importan, correos, totales. etc..
+
+*Diseño*
+- Vista panel Delivery  → Esteban Camejo
+- Vista Delivery Cliente  → Esteban Camejo
+- Pedido Delivery → Esteban Camejo
+
+*Gestión*
+- PDF factura Delivery → Esteban Camejo
+- Delivery/ Cliente Chat → Esteban Camejo
+- Flujo pedido Delivery → Esteban Camejo
+- Flujo Reservas -> Sofia Dorbessan
+- Menú acelerómetro y giroscopio  -> Ivan Laurito
+- Ingreso redes sociales  -> Ivan Laurito
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 31 + Requerimientos excluyentes + 22bis com factura.
 
   ## 📲 Imagenes de la aplicacion 📲
 
