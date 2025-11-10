@@ -1,16 +1,46 @@
 <ion-header class="client-header">
   <ion-toolbar>
     <div class="nav-pill">
-      Bienvenido | {{ (email$ | async) || '—' }}
+      BIENVENIDO | {{ (email$ | async) || '—' }}
     </div>
   </ion-toolbar>
 </ion-header>
 <ion-content class="client-content" fullscreen>
   <div class="client-wrap">
+    
+    <!-- Mensaje alusivo para factura lista -->
+    <div *ngIf="facturaUrl" class="factura-message empty-message">
+      <div class="empty-icon">🧾</div>
+      <div class="empty-title">¡TU FACTURA ESTÁ LISTA!</div>
+      <div class="empty-subtitle">Descarga tu factura de forma rápida y segura</div>
+      <div class="empty-description">Tu comprobante está disponible para descargar</div>
+      
+      <div class="factura-actions">
+        <ion-button 
+          class="btn-descargar-factura" 
+          fill="solid" 
+          expand="block" 
+          size="large"
+          (click)="descargarFactura()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          DESCARGAR FACTURA
+        </ion-button>
+        
+        <ion-button 
+          class="btn-cerrar-factura" 
+          fill="outline" 
+          expand="block" 
+          size="default"
+          (click)="cerrarMensajeFactura()">
+          CERRAR
+        </ion-button>
+      </div>
+    </div>
+
     <div class="client-stack">
       <ion-button class="cta btn-scan" fill="solid" expand="block" size="large" (click)="scanQr()">
         <ion-icon slot="start" name="qr-code-outline"></ion-icon>
-        Escanear QR
+        ESCANEAR QR
       </ion-button>
       
       <ion-button
@@ -21,17 +51,23 @@
         size="large"
         (click)="hacerReserva()">
         <ion-icon slot="start" name="calendar-outline"></ion-icon>
-        Hacer Reserva
+        HACER RESERVA
       </ion-button>
 
-      <ion-button class="cta btn-delivery" fill="solid" expand="block" size="large" (click)="hacerPedidoDelivery()">
+      <ion-button
+        *ngIf="esClienteRegistrado"
+        class="cta btn-delivery"
+        fill="solid"
+        expand="block"
+        size="large"
+        (click)="hacerPedidoDelivery()">
         <ion-icon slot="start" name="bicycle-outline"></ion-icon>
-        Pedido Delivery
+        PEDIDO REPARTIDOR
       </ion-button>
 
       <ion-button class="cta btn-history" fill="solid" expand="block" size="large" (click)="verEncuestas()">
         <ion-icon slot="start" name="albums-outline"></ion-icon>
-        Ver encuestas anteriores
+        VER ENCUESTAS ANTERIORES
       </ion-button>
 
     </div>

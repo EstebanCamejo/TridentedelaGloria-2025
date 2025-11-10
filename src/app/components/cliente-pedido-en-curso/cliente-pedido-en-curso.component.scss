@@ -35,8 +35,9 @@
 .client-content{
   /* usá tu patrón de fondo aquí si lo tenés */
   --background: transparent;
-  overflow-y: auto;
+  overflow-y: auto !important; /* 🆕 Forzar scroll vertical */
   -webkit-overflow-scrolling: touch;
+  height: 100%; /* 🆕 Asegurar altura completa */
 }
 .client-wrap{
   min-height: 100%;
@@ -45,7 +46,14 @@
   padding: 0 var(--wrap-x);
   gap: var(--stack-gap);
   margin-top: var(--header-clearance);
-  padding-bottom: calc(var(--safe-bottom) + clamp(140px, 18svh, 200px)); /* Espacio suficiente para ver hasta el final del último botón */
+  padding-bottom: calc(var(--safe-bottom) + clamp(80px, 10svh, 120px)) !important; /* 🆕 Reducido - solo espacio mínimo necesario */
+  /* Asegurar que el contenido sea scrolleable */
+  overflow-y: visible;
+}
+
+/* 🆕 Cuando hay 3 botones (incluyendo encuesta), reducir aún más el padding-bottom */
+.client-wrap:has(.action-stack:has(ion-button.option-card.var4)) {
+  padding-bottom: calc(var(--safe-bottom) + clamp(40px, 5svh, 60px)) !important; /* 🆕 Mínimo espacio cuando hay 3 botones */
 }
 
 /* ===== Card de pedido (estado/total/demora) ===== */
@@ -181,6 +189,30 @@ ion-col{ padding-top: 0; padding-bottom: 0; }
 }
 .option-card .btn-text{ font-size: 1.06rem; }
 
+/* 🆕 Reducir tamaño de botones cuando hay 3 botones visibles (incluyendo encuesta) - AGRESIVO */
+.action-stack:has(ion-button.option-card.var4) {
+  gap: clamp(8px, 1.5svh, 12px) !important; /* Reducir espacio entre botones al mínimo */
+  margin-top: clamp(8px, 1.5svh, 12px) !important; /* Reducir margen superior */
+  
+  .option-card::part(native) {
+    min-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Altura MUCHO más reducida */
+    max-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Limitar altura máxima */
+    padding: clamp(8px, 1.5svh, 12px) clamp(12px, 3vw, 18px) !important; /* 🆕 Padding vertical reducido */
+    gap: clamp(8px, 2vw, 12px) !important; /* Reducir gap interno */
+  }
+  
+  .option-card .icono {
+    width: clamp(28px, 5vw, 36px) !important; /* 🆕 Iconos más pequeños */
+    height: clamp(28px, 5vw, 36px) !important;
+  }
+  
+  .option-card .btn-text {
+    font-size: clamp(0.8rem, 1.8vw, 0.95rem) !important; /* 🆕 Texto más pequeño */
+    line-height: 1.15 !important; /* 🆕 Line-height más compacto */
+    font-weight: 700 !important; /* Mantener negrita pero más compacto */
+  }
+}
+
 /* Variante “primaria” si querés resaltar alguna */
 .option-card.primary{
   --background: var(--brand-primary);
@@ -296,14 +328,36 @@ ion-button.option-card::part(native){
   gap: clamp(14px, 3vw, 20px);
 }
 
+/* 🆕 Override cuando hay 3 botones (incluyendo encuesta) - AGRESIVO */
+.action-stack:has(ion-button.option-card.var4) ion-button.option-card::part(native) {
+  min-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Altura mucho más reducida */
+  max-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Limitar altura máxima */
+  padding: clamp(8px, 1.5svh, 12px) clamp(12px, 3vw, 18px) !important; /* 🆕 Padding vertical reducido */
+  gap: clamp(8px, 2vw, 12px) !important; /* Gap interno reducido */
+}
+
 .option-card .btn-text{
   font-weight: 800;
   font-size: clamp(1.05rem, 2.4vw, 1.22rem);
 }
+
+/* 🆕 Override cuando hay 3 botones - Texto más compacto */
+.action-stack:has(ion-button.option-card.var4) .option-card .btn-text {
+  font-size: clamp(0.8rem, 1.8vw, 0.95rem) !important; /* 🆕 Texto más pequeño */
+  line-height: 1.15 !important; /* 🆕 Line-height más compacto */
+  font-weight: 700 !important; /* Mantener negrita */
+}
+
 .option-card .icono{
   width: clamp(42px, 8vw, 54px);
   height: clamp(42px, 8vw, 54px);
   filter: drop-shadow(0 2px 0 rgba(0,0,0,.18));
+}
+
+/* 🆕 Override cuando hay 3 botones - Iconos más pequeños */
+.action-stack:has(ion-button.option-card.var4) .option-card .icono {
+  width: clamp(28px, 5vw, 36px) !important; /* 🆕 Iconos más pequeños */
+  height: clamp(28px, 5vw, 36px) !important;
 }
 
 ion-button.option-card:hover::part(native){ filter: brightness(1.03); }
@@ -323,12 +377,41 @@ ion-button.option-card.var4[disabled]::part(native) {
 /* 2) Bajar el card de estado del pedido */
 .pedido-card{
   margin-top: clamp(15px, 8svh, 40px);   /* ↓ separa del header */
-  margin-bottom: 30px ;
+  margin-bottom: clamp(16px, 3svh, 24px) ; /* 🆕 Reducir margen inferior cuando hay 3 botones */
+}
+
+/* 🆕 Reducir margen del card cuando hay 3 botones */
+.client-wrap:has(.action-stack:has(ion-button.option-card.var4)) .pedido-card {
+  margin-bottom: clamp(12px, 2svh, 18px) !important; /* 🆕 Margen inferior reducido */
 }
 
 /* (opcional) un poquito más de aire entre botones */
 .action-stack{ 
   gap: clamp(16px, 3svh, 24px); 
+}
+
+/* 🆕 Ajuste adicional: cuando hay 3 botones, reducir al máximo el gap y altura */
+.action-stack:has(ion-button.option-card.var4) {
+  gap: clamp(8px, 1.5svh, 12px) !important; /* 🆕 Gap mínimo */
+  margin-top: clamp(8px, 1.5svh, 12px) !important; /* 🆕 Margen superior reducido */
+  
+  ion-button.option-card::part(native) {
+    min-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Altura mucho más reducida */
+    max-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Limitar altura máxima */
+    padding: clamp(8px, 1.5svh, 12px) clamp(12px, 3vw, 18px) !important; /* 🆕 Padding vertical reducido */
+    gap: clamp(8px, 2vw, 12px) !important; /* Gap interno reducido */
+  }
+  
+  .option-card .icono {
+    width: clamp(28px, 5vw, 36px) !important; /* 🆕 Iconos más pequeños */
+    height: clamp(28px, 5vw, 36px) !important;
+  }
+  
+  .option-card .btn-text {
+    font-size: clamp(0.8rem, 1.8vw, 0.95rem) !important; /* 🆕 Texto más pequeño */
+    line-height: 1.15 !important; /* 🆕 Line-height más compacto */
+    font-weight: 700 !important; /* Mantener negrita */
+  }
 }
 
 /* Eliminamos estilos de post-entrega-options ya que el botón está dentro de action-stack */
@@ -361,4 +444,35 @@ ion-button.option-card.var4[disabled]::part(native) {
   ion-note {
     color: var(--ion-color-success-shade);
   }
+}
+
+/* 🆕 Estilos para información de delivery */
+.delivery-info {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(123, 47, 47, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid var(--ion-color-primary);
+}
+
+.delivery-direccion,
+.delivery-repartidor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  
+  ion-icon {
+    color: var(--ion-color-primary);
+    font-size: 18px;
+  }
+  
+  strong {
+    color: var(--ion-color-dark);
+  }
+}
+
+.delivery-repartidor {
+  margin-bottom: 0;
 }

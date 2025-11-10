@@ -1,0 +1,145 @@
+<ion-header class="mz-header">
+  <ion-toolbar>
+    <div class="nav-pill title-large">PEDIDOS DE REPARTIDOR | {{ (email | async) || '—' }}</div>
+  </ion-toolbar>
+
+  <!-- tira con fondo sólido/blur -->
+  <div class="seg-strip">
+    <ion-segment
+      [value]="tab" (ionChange)="onTabChange($event)" mode="ios" class="top-segment">
+      <ion-segment-button value="pendientes">
+        <ion-label>PENDIENTES</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="listos">
+        <ion-label>LISTOS PARA ENTREGAR</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+</ion-header>
+
+<ion-content class="mz-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  
+  <div class="wrap" [ngSwitch]="tab">
+
+    <!-- ====== TAB PENDIENTES ====== -->
+    <ng-container *ngSwitchCase="'pendientes'">
+      <!-- Cargando -->
+      <div *ngIf="cargandoPendientes" class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>CARGANDO PEDIDOS DE REPARTIDOR PENDIENTES...</p>
+      </div>
+
+      <!-- Sin pedidos pendientes -->
+      <div *ngIf="!cargandoPendientes && pedidosPendientes.length === 0" class="empty-message">
+        <ion-icon name="checkmark-circle-outline" class="empty-icon"></ion-icon>
+        <div class="empty-title">¡NO HAY PEDIDOS DE REPARTIDOR PENDIENTES!</div>
+        <div class="empty-subtitle">NO HAY PEDIDOS DE REPARTIDOR ESPERANDO CONFIRMACIÓN</div>
+        <div class="empty-description">TODOS LOS PEDIDOS DE REPARTIDOR ESTÁN PROCESADOS CORRECTAMENTE</div>
+      </div>
+
+      <!-- Lista de pedidos pendientes -->
+      <ion-card class="pedido pendiente" *ngFor="let p of pedidosPendientes">
+        <ion-card-header>
+          <ion-card-title>REPARTIDOR #{{ p.id }}</ion-card-title>
+          <ion-card-subtitle>{{ p.cantidad_items }} PRODUCTOS</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="info">
+            <div>CLIENTE: <strong>{{ p.cliente_email }}</strong></div>
+            <div>FECHA: <strong>{{ p.created_at | date:'dd/MM/yy HH:mm:ss' }}</strong></div>
+            <div>TOTAL: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
+            <div>TIEMPO ESTIMADO: <strong>{{ p.tiempo_estimado }} MINUTOS</strong></div>
+            <div *ngIf="p.direccion_entrega" class="direccion">
+              <ion-icon name="location-outline"></ion-icon>
+              <strong>DIRECCIÓN:</strong> {{ p.direccion_entrega }}
+            </div>
+          </div>
+
+          <!-- Botones para pedido pendiente -->
+          <div class="button-group">
+            <ion-button 
+              class="btn-confirmar" 
+              expand="block" 
+              fill="solid"
+              color="success"
+              [disabled]="confirmandoId === p.id"
+              (click)="confirmarPedidoDelivery(p)">
+              <ion-spinner *ngIf="confirmandoId === p.id" slot="start"></ion-spinner>
+              <ion-icon *ngIf="confirmandoId !== p.id" name="checkmark-circle-outline" slot="start"></ion-icon>
+              {{ confirmandoId === p.id ? 'CONFIRMANDO...' : 'CONFIRMAR PEDIDO' }}
+            </ion-button>
+
+            <ion-button 
+              class="btn-rechazar" 
+              expand="block" 
+              fill="outline"
+              color="danger"
+              [disabled]="rechazandoId === p.id"
+              (click)="rechazarPedidoDelivery(p)">
+              <ion-spinner *ngIf="rechazandoId === p.id" slot="start"></ion-spinner>
+              <ion-icon *ngIf="rechazandoId !== p.id" name="close-circle-outline" slot="start"></ion-icon>
+              {{ rechazandoId === p.id ? 'RECHAZANDO...' : 'RECHAZAR PEDIDO' }}
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+
+    <!-- ====== TAB LISTOS PARA ENTREGAR ====== -->
+    <ng-container *ngSwitchCase="'listos'">
+      <!-- Cargando -->
+      <div *ngIf="cargandoListos" class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>CARGANDO PEDIDOS LISTOS PARA ENTREGAR...</p>
+      </div>
+
+      <!-- Sin pedidos listos -->
+      <div *ngIf="!cargandoListos && pedidosListos.length === 0" class="empty-message">
+        <ion-icon name="bicycle-outline" class="empty-icon"></ion-icon>
+        <div class="empty-title">¡NO HAY PEDIDOS LISTOS!</div>
+        <div class="empty-subtitle">NO HAY PEDIDOS DE REPARTIDOR LISTOS PARA ENTREGAR</div>
+        <div class="empty-description">LOS PEDIDOS ESTARÁN AQUÍ CUANDO ESTÉN LISTOS</div>
+      </div>
+
+      <!-- Lista de pedidos listos -->
+      <ion-card class="pedido listo" *ngFor="let p of pedidosListos">
+        <ion-card-header>
+          <ion-card-title>REPARTIDOR #{{ p.id }}</ion-card-title>
+          <ion-card-subtitle>{{ p.cantidad_items }} PRODUCTOS</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="info">
+            <div>CLIENTE: <strong>{{ p.cliente_email }}</strong></div>
+            <div>FECHA: <strong>{{ p.created_at | date:'dd/MM/yy HH:mm:ss' }}</strong></div>
+            <div>TOTAL: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
+            <div>TIEMPO ESTIMADO: <strong>{{ p.tiempo_estimado }} MINUTOS</strong></div>
+            <div *ngIf="p.direccion_entrega" class="direccion">
+              <ion-icon name="location-outline"></ion-icon>
+              <strong>DIRECCIÓN:</strong> {{ p.direccion_entrega }}
+            </div>
+          </div>
+
+          <!-- Botón para asignar a delivery -->
+          <ion-button 
+            class="btn-asignar" 
+            expand="block" 
+            fill="solid"
+            color="primary"
+            [disabled]="asignandoId === p.id"
+            (click)="asignarPedidoADelivery(p)">
+            <ion-spinner *ngIf="asignandoId === p.id" slot="start"></ion-spinner>
+            <ion-icon *ngIf="asignandoId !== p.id" name="bicycle-outline" slot="start"></ion-icon>
+            {{ asignandoId === p.id ? 'ASIGNANDO...' : 'ASIGNAR A REPARTIDOR' }}
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+
+  </div>
+</ion-content>
+

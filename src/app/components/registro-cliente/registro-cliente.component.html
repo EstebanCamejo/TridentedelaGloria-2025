@@ -36,7 +36,7 @@
              [(ngModel)]="apellido" #apellidoModel="ngModel"
              required placeholder="Apellido"/>
       <small *ngIf="showError(apellidoModel, registerForm)" class="msg">
-        El apellido es obligatorio.
+        EL APELLIDO ES OBLIGATORIO
       </small>
     </div>
 
@@ -47,7 +47,7 @@
              [(ngModel)]="username" #usernameModel="ngModel"
              required placeholder="Nombre"/>
       <small *ngIf="showError(usernameModel, registerForm)" class="msg">
-        El nombre es obligatorio.
+        EL NOMBRE ES OBLIGATORIO
       </small>
     </div>
 
@@ -59,7 +59,7 @@
              required inputmode="numeric" pattern="^[0-9]{7,8}$" maxlength="8"
              placeholder="Sólo números (7–8 dígitos)"/>
       <small *ngIf="showError(dniModel, registerForm)" class="msg">
-        Ingresá un DNI válido (7–8 dígitos).
+        INGRESÁ UN DNI VÁLIDO (7-8 DÍGITOS)
       </small>
     </div>
 
@@ -70,7 +70,7 @@
              [(ngModel)]="email" #emailModel="ngModel"
              required email placeholder="correo@ejemplo.com"/>
       <small *ngIf="showError(emailModel, registerForm)" class="msg">
-        Ingresá un correo válido.
+        INGRESÁ UN CORREO VÁLIDO
       </small>
     </div>
 
@@ -81,7 +81,7 @@
              [(ngModel)]="password" #passwordModel="ngModel"
              required minlength="8" placeholder="Mínimo 8 caracteres"/>
       <small *ngIf="showError(passwordModel, registerForm)" class="msg">
-        La contraseña debe tener al menos 8 caracteres.
+        LA CONTRASEÑA DEBE TENER AL MENOS 8 CARACTERES
       </small>
     </div>
 
@@ -92,16 +92,16 @@
              [(ngModel)]="confirm" #confirmModel="ngModel"
              required minlength="8" placeholder="Vuelva a escribir la contraseña"/>
       <small *ngIf="showError(confirmModel, registerForm)" class="msg">
-        Repetí la contraseña (mínimo 8 caracteres).
+        REPETÍ LA CONTRASEÑA (MÍNIMO 8 CARACTERES)
       </small>
       <small *ngIf="passwordsMismatch && (registerForm.submitted || confirmModel.touched)" class="msg strong">
-        Las contraseñas no coinciden.
+        LAS CONTRASEÑAS NO COINCIDEN
       </small>
     </div>
 
     <!-- Botón enviar -->
     <button type="submit" class="buttonLogin">
-      {{ loading ? 'Registrando…' : 'Registrarse' }}
+      {{ loading ? 'REGISTRANDO…' : 'REGISTRARSE' }}
     </button>
 
     <!-- Error general -->

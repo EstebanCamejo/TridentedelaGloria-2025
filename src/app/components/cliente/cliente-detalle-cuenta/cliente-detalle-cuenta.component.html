@@ -1,19 +1,22 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Detalle de Cuenta</ion-title>
+    <ion-title>DETALLE DE CUENTA</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-loading [isOpen]="loading" message="Cargando cuenta..."></ion-loading>
+  <ion-loading [isOpen]="loading" message="CARGANDO CUENTA..."></ion-loading>
 
   <div *ngIf="!loading && cuenta" class="cuenta-container">
     
-    <!-- Información de la mesa -->
+    <!-- Información de la mesa o repartidor -->
     <ion-card class="mesa-info">
       <ion-card-header>
-        <ion-card-title class="mesa-title">Mesa {{ cuenta.numero_mesa }}</ion-card-title>
-        <ion-card-subtitle class="mesa-subtitle">Detalle de cuenta</ion-card-subtitle>
+        <ion-card-title class="mesa-title">
+          <span *ngIf="esDelivery">REPARTIDOR #{{ cuenta.pedido_delivery_id }}</span>
+          <span *ngIf="!esDelivery">MESA {{ cuenta.numero_mesa }}</span>
+        </ion-card-title>
+        <ion-card-subtitle class="mesa-subtitle">DETALLE DE CUENTA</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
         <ion-button 
@@ -24,7 +27,7 @@
           (click)="realizarPago()"
           class="btn-pagar">
           <ion-icon slot="start" name="card-outline"></ion-icon>
-          Realizar Pago
+          REALIZAR PAGO
         </ion-button>
       </ion-card-content>
     </ion-card>
@@ -32,7 +35,7 @@
     <!-- Detalle de pedidos -->
     <ion-card class="pedidos-card">
       <ion-card-header>
-        <ion-card-title class="section-title">Pedidos Realizados</ion-card-title>
+        <ion-card-title class="section-title">PEDIDOS REALIZADOS</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <div class="pedidos-list">
@@ -52,14 +55,14 @@
     <!-- Descuentos de juegos -->
     <ion-card *ngIf="cuenta.descuentos.length > 0" class="descuentos-card">
       <ion-card-header>
-        <ion-card-title class="section-title">Descuentos por Juegos</ion-card-title>
+        <ion-card-title class="section-title">DESCUENTOS POR JUEGOS</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <div class="descuentos-list">
           <div *ngFor="let descuento of cuenta.descuentos" class="descuento-item">
             <div class="descuento-info">
-              <h3 class="descuento-juego">{{ descuento.juego }}</h3>
-              <p class="descuento-detalle">Descuento: {{ descuento.descuento_pct }}%</p>
+              <h3 class="descuento-juego">{{ descuento.juego.toUpperCase() }}</h3>
+              <p class="descuento-detalle">DESCUENTO: {{ descuento.descuento_pct }}%</p>
             </div>
             <div class="descuento-monto">
               -${{ descuento.monto_descuento | number:'1.2-2' }}
@@ -72,25 +75,25 @@
     <!-- Sección de propinas -->
     <ion-card class="propina-card">
       <ion-card-header>
-        <ion-card-title class="section-title">Propina</ion-card-title>
+        <ion-card-title class="section-title">PROPINA</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <div class="propina-info">
           <div *ngIf="propinaSeleccionada === 0" class="propina-placeholder">
             <ion-icon name="qr-code-outline" class="placeholder-icon"></ion-icon>
-            <p>Escanea el QR de propina para seleccionar tu nivel de satisfacción</p>
+            <p>ESCANEÁ EL QR DE PROPINA PARA SELECCIONAR TU NIVEL DE SATISFACCIÓN</p>
           </div>
           <div *ngIf="propinaSeleccionada > 0" class="propina-seleccionada">
             <div class="propina-detail">
-              <span class="propina-label">Nivel de satisfacción:</span>
+              <span class="propina-label">NIVEL DE SATISFACCIÓN:</span>
               <span class="propina-value">{{ getPropinaLabel(propinaSeleccionada) }}</span>
             </div>
             <div class="propina-detail">
-              <span class="propina-label">Porcentaje:</span>
+              <span class="propina-label">PORCENTAJE:</span>
               <span class="propina-value">{{ propinaSeleccionada }}%</span>
             </div>
             <div class="propina-detail">
-              <span class="propina-label">Monto:</span>
+              <span class="propina-label">MONTO:</span>
               <span class="propina-value">${{ propinaMonto | number:'1.2-2' }}</span>
             </div>
           </div>
@@ -102,7 +105,7 @@
           (click)="escanearQRPropina()"
           class="btn-qr-propina">
           <ion-icon slot="start" name="qr-code-outline"></ion-icon>
-          {{ propinaSeleccionada > 0 ? 'Cambiar Propina' : 'Escanear QR Propina' }}
+          {{ propinaSeleccionada > 0 ? 'CAMBIAR PROPINA' : 'ESCANEAR QR PROPINA' }}
         </ion-button>
       </ion-card-content>
     </ion-card>
@@ -110,22 +113,22 @@
     <!-- Resumen de totales -->
     <ion-card class="totales-card">
       <ion-card-header>
-        <ion-card-title class="section-title">Resumen de Totales</ion-card-title>
+        <ion-card-title class="section-title">RESUMEN DE TOTALES</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <div class="totales-list">
           <div class="total-line subtotal">
-            <span class="total-label">Subtotal:</span>
+            <span class="total-label">SUBTOTAL:</span>
             <span class="total-value">${{ cuenta.subtotal | number:'1.2-2' }}</span>
           </div>
           
           <div *ngIf="cuenta.descuentos.length > 0" class="total-line descuento">
-            <span class="total-label">Descuentos:</span>
+            <span class="total-label">DESCUENTOS:</span>
             <span class="total-value">-${{ getTotalDescuentos() | number:'1.2-2' }}</span>
           </div>
           
           <div *ngIf="propinaMonto > 0" class="total-line propina">
-            <span class="total-label">Propina ({{ propinaSeleccionada }}%):</span>
+            <span class="total-label">PROPINA ({{ propinaSeleccionada }}%):</span>
             <span class="total-value">${{ propinaMonto | number:'1.2-2' }}</span>
           </div>
           
@@ -145,7 +148,7 @@
         (click)="volver()"
         class="btn-volver">
         <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
-        Volver
+        VOLVER
       </ion-button>
     </div>
 

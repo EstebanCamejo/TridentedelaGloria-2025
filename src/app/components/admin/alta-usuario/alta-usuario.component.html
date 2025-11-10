@@ -146,16 +146,16 @@
   <form class="register-form" #f="ngForm" (ngSubmit)="onSubmit(f)" novalidate>
     <!-- Apellido -->
     <div class="form-group">
-      <label class="subTittle" for="apellido">Apellido</label>
-      <input id="apellido" name="apellido" type="text" [(ngModel)]="apellido" #apellidoModel="ngModel" required placeholder="Apellido" />
-      <small *ngIf="showError(apellidoModel, f)" class="error">El apellido es obligatorio.</small>
+      <label class="subTittle" for="apellido">APELLIDO</label>
+      <input id="apellido" name="apellido" type="text" [(ngModel)]="apellido" #apellidoModel="ngModel" required placeholder="APELLIDO" />
+      <small *ngIf="showError(apellidoModel, f)" class="error">EL APELLIDO ES OBLIGATORIO</small>
     </div>
 
     <!-- Nombre -->
     <div class="form-group">
-      <label class="subTittle" for="nombre">Nombre</label>
-      <input id="nombre" name="nombre" type="text" [(ngModel)]="nombre" #nombreModel="ngModel" required placeholder="Nombre" />
-      <small *ngIf="showError(nombreModel, f)" class="error">El nombre es obligatorio.</small>
+      <label class="subTittle" for="nombre">NOMBRE</label>
+      <input id="nombre" name="nombre" type="text" [(ngModel)]="nombre" #nombreModel="ngModel" required placeholder="NOMBRE" />
+      <small *ngIf="showError(nombreModel, f)" class="error">EL NOMBRE ES OBLIGATORIO</small>
     </div>
 
     <!-- DNI -->
@@ -163,8 +163,8 @@
       <label class="subTittle" for="dni">DNI</label>
       <input id="dni" name="dni" type="text" [(ngModel)]="dni" #dniModel="ngModel"
              required inputmode="numeric" pattern="^[0-9]{7,8}$" maxlength="8"
-             placeholder="Sólo números (7–8 dígitos)" />
-      <small *ngIf="showError(dniModel, f)" class="error">Ingresá un DNI válido (7–8 dígitos).</small>
+             placeholder="SOLO NÚMEROS (7-8 DÍGITOS)" />
+      <small *ngIf="showError(dniModel, f)" class="error">INGRESÁ UN DNI VÁLIDO (7-8 DÍGITOS)</small>
     </div>
 
     <!-- CUIL -->
@@ -172,51 +172,51 @@
       <label class="subTittle" for="cuil">CUIL</label>
       <input id="cuil" name="cuil" type="text" [(ngModel)]="cuil" #cuilModel="ngModel"
              required inputmode="numeric" pattern="^[0-9]{11}$" maxlength="11"
-             placeholder="11 dígitos (con verificador)" />
-      <small *ngIf="showError(cuilModel, f)" class="error">Ingresá un CUIL de 11 dígitos.</small>
-      <small *ngIf="f.submitted && cuilModel.valid && !cuilValido" class="error">CUIL inválido (dígito verificador incorrecto).</small>
+             placeholder="11 DÍGITOS (CON VERIFICADOR)" />
+      <small *ngIf="showError(cuilModel, f)" class="error">INGRESÁ UN CUIL DE 11 DÍGITOS</small>
+      <small *ngIf="f.submitted && cuilModel.valid && !cuilValido" class="error">CUIL INVÁLIDO (DÍGITO VERIFICADOR INCORRECTO)</small>
     </div>
 
     <!-- Email -->
     <div class="form-group">
-      <label class="subTittle" for="email">Correo</label>
-      <input id="email" name="email" type="email" [(ngModel)]="email" #emailModel="ngModel" required email placeholder="correo@ejemplo.com" />
-      <small *ngIf="showError(emailModel, f)" class="error">Ingresá un correo válido.</small>
+      <label class="subTittle" for="email">CORREO</label>
+      <input id="email" name="email" type="email" [(ngModel)]="email" #emailModel="ngModel" required email placeholder="CORREO@EJEMPLO.COM" />
+      <small *ngIf="showError(emailModel, f)" class="error">INGRESÁ UN CORREO VÁLIDO</small>
     </div>
 
     <!-- Password -->
     <div class="form-group">
-      <label class="subTittle" for="password">Contraseña</label>
+      <label class="subTittle" for="password">CONTRASEÑA</label>
       <input id="password" name="password" type="password" [(ngModel)]="password" #passwordModel="ngModel"
-             required minlength="8" placeholder="Mínimo 8 caracteres" />
-      <small *ngIf="showError(passwordModel, f)" class="error">La contraseña debe tener al menos 8 caracteres.</small>
+             required minlength="8" placeholder="MÍNIMO 8 CARACTERES" />
+      <small *ngIf="showError(passwordModel, f)" class="error">LA CONTRASEÑA DEBE TENER AL MENOS 8 CARACTERES</small>
     </div>
 
     <!-- Confirm -->
     <div class="form-group">
-      <label class="subTittle" for="confirm">Repetir contraseña</label>
+      <label class="subTittle" for="confirm">REPETIR CONTRASEÑA</label>
       <input id="confirm" name="confirm" type="password" [(ngModel)]="confirm" #confirmModel="ngModel"
-             required minlength="8" placeholder="Vuelva a escribir la contraseña" />
-      <small *ngIf="showError(confirmModel, f)" class="error">Repetí la contraseña.</small>
-      <small *ngIf="passwordsMismatch && (f.submitted || confirmModel.touched)" class="error">Las contraseñas no coinciden.</small>
+             required minlength="8" placeholder="VOLVÉ A ESCRIBIR LA CONTRASEÑA" />
+      <small *ngIf="showError(confirmModel, f)" class="error">REPETÍ LA CONTRASEÑA</small>
+      <small *ngIf="passwordsMismatch && (f.submitted || confirmModel.touched)" class="error">LAS CONTRASEÑAS NO COINCIDEN</small>
     </div>
 
     <!-- Perfil -->
     <div class="form-group">
-      <label class="subTittle" for="perfil">Perfil</label>
+      <label class="subTittle" for="perfil">PERFIL</label>
       <select id="perfil" name="perfil" [(ngModel)]="perfil" #perfilModel="ngModel" required>
-        <option [ngValue]="null" disabled>Seleccioná un perfil</option>
-        <option value="maitre">Maître</option>
-        <option value="mozo">Mozo</option>
-        <option value="cocinero">Cocinero</option>
-        <option value="bartender">Bartender</option>
+        <option [ngValue]="null" disabled>SELECCIONÁ UN PERFIL</option>
+        <option value="maitre">MAÎTRE</option>
+        <option value="mozo">MOZO</option>
+        <option value="cocinero">COCINERO</option>
+        <option value="bartender">BARTENDER</option>
       </select>
-      <small *ngIf="showError(perfilModel, f)" class="error">Seleccioná un perfil.</small>
+      <small *ngIf="showError(perfilModel, f)" class="error">SELECCIONÁ UN PERFIL</small>
     </div>
 
     <!-- Botón enviar (único dentro del form) -->
     <button class="buttonLogin" type="submit" [disabled]="loading">
-      {{ loading ? 'Validando…' : 'Crear empleado' }}
+      {{ loading ? 'VALIDANDO…' : 'CREAR EMPLEADO' }}
     </button>
 
     <!-- Error general -->

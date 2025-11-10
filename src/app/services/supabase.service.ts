@@ -898,9 +898,16 @@ export class SupabaseService {
 
   /**
    * Verifica si ya se aplicó un descuento de juegos a un pedido
+   * Verifica tanto en pedidos_descuentos como en la tabla pedidos para máxima confiabilidad
+   */
+  /**
+   * Verifica si ya se aplicó un descuento de juegos a un pedido
+   * USA EL MISMO FLUJO QUE MESAS: Solo verifica en la tabla pedidos (campos legacy)
    */
   async yaSeAplicoDescuento(pedidoId: number): Promise<boolean> {
-    // CORRECCIÓN: Usar las columnas correctas que existen en la tabla pedidos
+    console.log('[SupabaseService] 🔍 Verificando si ya se aplicó descuento para pedido:', pedidoId);
+    
+    // FLUJO LEGACY (igual que mesas): Solo verificar en tabla pedidos
     const { data, error } = await this.client
       .from('pedidos')
       .select('descuento_pct, juego_premio_reclamado')
@@ -908,12 +915,27 @@ export class SupabaseService {
       .single();
     
     if (error) {
-      console.error('Error al verificar descuento aplicado:', error);
+      console.error('[SupabaseService] ❌ Error al verificar descuento aplicado:', error);
+      console.error('[SupabaseService] Error completo:', JSON.stringify(error, null, 2));
       return false;
     }
     
+    console.log('[SupabaseService] 📊 Datos del pedido:', {
+      pedidoId,
+      descuento_pct: data?.descuento_pct,
+      juego_premio_reclamado: data?.juego_premio_reclamado
+    });
+    
     // Verificar si hay descuento aplicado o juego premio reclamado
-    return !!(data?.descuento_pct && data.descuento_pct > 0) || !!data?.juego_premio_reclamado;
+    const tieneDescuento = !!(data?.descuento_pct && data.descuento_pct > 0) || !!data?.juego_premio_reclamado;
+    
+    if (tieneDescuento) {
+      console.log('[SupabaseService] ✅ Descuento encontrado en pedidos para pedido', pedidoId);
+    } else {
+      console.log('[SupabaseService] ℹ️ No hay descuento aplicado para pedido', pedidoId);
+    }
+    
+    return tieneDescuento;
   }
 
   /**

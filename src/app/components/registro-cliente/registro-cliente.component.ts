@@ -4,6 +4,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { SupabaseService } from 'src/app/services/supabase.service';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Device } from '@capacitor/device';
 import { AppLauncher } from '@capacitor/app-launcher';
@@ -45,7 +46,8 @@ photoFile: File | null = null;        // archivo listo para subir
   constructor(
     private auth: SupabaseService,
     private router: Router,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private spinner: SpinnerService
   ) {
      addIcons({ camera, barcodeOutline });
   }
@@ -58,12 +60,12 @@ photoFile: File | null = null;        // archivo listo para subir
     const msg = (error?.message || '').toLowerCase();
     const status = error?.status;
     if (msg.includes('already registered') ||   msg.includes('already exists') ||
-    msg.includes('email already') || msg.includes('exists')) return 'Ya existe una cuenta con este correo.';
-    if (msg.includes('invalid email')) return 'El correo ingresado no es válido.';
-    if (msg.includes('password') && (msg.includes('short') || msg.includes('length') || msg.includes('weak'))) return 'La contraseña no cumple los requisitos mínimos.';
-    if (status === 429 || msg.includes('rate limit')) return 'Demasiados intentos. Probá nuevamente en unos minutos.';
-    if (status === 0 || msg.includes('network') || msg.includes('fetch')) return 'Problema de conexión. Verificá tu internet e intentá otra vez.';
-    return 'No pudimos completar el registro. Intentá de nuevo.';
+    msg.includes('email already') || msg.includes('exists')) return 'YA EXISTE UNA CUENTA CON ESTE CORREO';
+    if (msg.includes('invalid email')) return 'EL CORREO INGRESADO NO ES VÁLIDO';
+    if (msg.includes('password') && (msg.includes('short') || msg.includes('length') || msg.includes('weak'))) return 'LA CONTRASEÑA NO CUMPLE LOS REQUISITOS MÍNIMOS';
+    if (status === 429 || msg.includes('rate limit')) return 'DEMASIADOS INTENTOS. PROBÁ NUEVAMENTE EN UNOS MINUTOS';
+    if (status === 0 || msg.includes('network') || msg.includes('fetch')) return 'PROBLEMA DE CONEXIÓN. VERIFICÁ TU INTERNET E INTENTÁ OTRA VEZ';
+    return 'NO PUDIMOS COMPLETAR EL REGISTRO. INTENTÁ DE NUEVO';
   }
   private isNative(): boolean {
   return Capacitor.isNativePlatform();
@@ -103,7 +105,7 @@ private async ensureScanPermission(): Promise<boolean> {
     perms = await BarcodeScanner.requestPermissions();
   }
   if (perms.camera !== 'granted') {
-    this.toastError('Habilitá la cámara para escanear el DNI.');
+    this.toastError('HABILITÁ LA CÁMARA PARA ESCANEAR EL DNI');
     await this.openSettingsSafe();
     return false;
   }
@@ -121,7 +123,7 @@ private async ensureCameraPermission(): Promise<boolean> {
     perms = await Camera.requestPermissions({ permissions: ['camera', 'photos'] });
   }
   if (perms.camera !== 'granted') {
-    this.toastError('Habilitá la cámara para tomar la foto.');
+    this.toastError('HABILITÁ LA CÁMARA PARA TOMAR LA FOTO');
     await this.openSettingsSafe();
     return false;
   }
@@ -130,10 +132,10 @@ private async ensureCameraPermission(): Promise<boolean> {
 
 
   private toastOk(msg: string) {
-    this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
+    this.toastr.success(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
   }
   private toastError(msg: string) {
-    this.toastr.error(msg, 'Error', { positionClass: 'toast-center', closeButton: true, progressBar: true, timeOut: 4500 });
+    this.toastr.error(msg.toUpperCase(), '', { positionClass: 'toast-center', closeButton: true, progressBar: true, timeOut: 4500 });
   }
   private markAllAsTouched(form: NgForm) {
     Object.values(form.controls).forEach(c => c.markAsTouched());
@@ -149,32 +151,32 @@ private async ensureCameraPermission(): Promise<boolean> {
 
 // validaciones básicas de formulario
     if (registerForm.invalid) {
-      this.toastError('Por favor completá todos los campos correctamente.');
+      this.toastError('POR FAVOR COMPLETÁ TODOS LOS CAMPOS CORRECTAMENTE');
       return;
     }
 
     // validar coincidencia de contraseñas
     if (this.password !== this.confirm) {
       this.passwordsMismatch = true;
-      this.toastError('Las contraseñas no coinciden.');
+      this.toastError('LAS CONTRASEÑAS NO COINCIDEN');
       return;
     }
 
     // validar DNI (por si no tomó el pattern)
     if (!/^[0-9]{7,8}$/.test(this.dni)) {
-      this.toastError('Ingresá un DNI válido (7–8 dígitos).');
+      this.toastError('INGRESÁ UN DNI VÁLIDO (7-8 DÍGITOS)');
       return;
     }
     if (!this.photoFile) {
   // si querés que sea obligatorio
-  this.toastError('Subí una foto de perfil para continuar.');
+  this.toastError('SUBÍ UNA FOTO DE PERFIL PARA CONTINUAR');
   return;
 }
 
 // evitar doble envío
 if (this.loading) return;
 this.loading = true;
-this.toastOk('Formulario válido. Registrando...');
+this.spinner.show({ immediate: true });
 
 // 👇 FLUJO COMPLETO: signUp + subir foto + insert en clientes_registrados
 // this.auth.registrarClienteFlow(
@@ -261,7 +263,7 @@ this.auth.registrarClienteFlow(
   this.photoFile
 )
 .then(() => {
-  this.toastOk('Tu cuenta fue creada y está en revisión. Revisá tu correo.');
+  this.toastOk('TU CUENTA FUE CREADA Y ESTÁ EN REVISIÓN. REVISÁ TU CORREO');
   // limpiar
   this.username = '';
   this.apellido = '';
@@ -287,7 +289,10 @@ this.auth.registrarClienteFlow(
   this.errorMsg = msg;
   this.toastError(msg);
 })
-.finally(() => { this.loading = false; });
+.finally(() => { 
+  this.loading = false;
+  this.spinner.hide();
+});
 
 
   
@@ -347,21 +352,30 @@ onFileSelected(ev: Event) {
     console.log('[registro-cliente] 📸 Iniciando escaneo DNI...');
     
     if (!this.isNative()) {
-      this.toastError('El escaneo requiere un dispositivo móvil.');
+      this.toastError('EL ESCANEO REQUIERE UN DISPOSITIVO MÓVIL');
       return;
     }
+
+    this.spinner.show({ immediate: true });
 
     // 🎬 NUEVO: Preparar sesión ANTES de abrir la cámara
     await this.auth.prepareForCameraUse();
 
     // 👉 pide permiso si hace falta
     const ok = await this.ensureScanPermission();
-    if (!ok) return;
+    if (!ok) {
+      this.spinner.hide();
+      return;
+    }
+
+    this.spinner.hide();
 
     // 👉 abre escáner ML Kit
     const { barcodes } = await BarcodeScanner.scan({
       formats: [BarcodeFormat.Pdf417], // DNI argentino (reverso)
     });
+
+    this.spinner.show({ immediate: true });
 
     console.log('[registro-cliente] 🔄 Cámara cerrada, restaurando sesión...');
     
@@ -373,7 +387,8 @@ onFileSelected(ev: Event) {
     }
 
     if (!barcodes?.length) {
-      this.toastError('No se detectó ningún código.');
+      this.spinner.hide();
+      this.toastError('NO SE DETECTÓ NINGÚN CÓDIGO');
       return;
     }
 
@@ -384,10 +399,12 @@ onFileSelected(ev: Event) {
     if (parsed.firstName) this.username = parsed.firstName;
     if (parsed.dni)       this.dni = parsed.dni;
 
-    this.toastOk('Datos del DNI cargados.');
+    this.spinner.hide();
+    this.toastOk('DATOS DEL DNI CARGADOS');
   } catch (e) {
     console.error('Escaneo DNI error:', e);
-    this.toastError('No se pudo escanear el DNI.');
+    this.spinner.hide();
+    this.toastError('NO SE PUDO ESCANEAR EL DNI');
   }
 }
 

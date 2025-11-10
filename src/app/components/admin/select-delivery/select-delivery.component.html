@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>SELECCIONAR REPARTIDOR</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancelar()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="cargando" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>CARGANDO USUARIOS REPARTIDOR...</p>
+  </div>
+
+  <div *ngIf="!cargando && deliveryUsuarios.length === 0" class="empty-container">
+    <ion-icon name="bicycle-outline" class="empty-icon"></ion-icon>
+    <p class="empty-message">NO HAY USUARIOS REPARTIDOR DISPONIBLES</p>
+  </div>
+
+  <ion-list *ngIf="!cargando && deliveryUsuarios.length > 0">
+    <ion-item 
+      *ngFor="let usuario of deliveryUsuarios"
+      [class.selected]="seleccionadoId === usuario.auth_id"
+      button
+      (click)="seleccionarDelivery(usuario)">
+      <ion-icon name="bicycle-outline" slot="start" [color]="seleccionadoId === usuario.auth_id ? 'primary' : 'medium'"></ion-icon>
+      <ion-label>
+        <h2>{{ getNombreCompleto(usuario) }}</h2>
+        <p>{{ usuario.email }}</p>
+      </ion-label>
+      <ion-icon 
+        *ngIf="seleccionadoId === usuario.auth_id"
+        name="checkmark-outline" 
+        slot="end" 
+        color="primary">
+      </ion-icon>
+    </ion-item>
+  </ion-list>
+
+  <div class="button-container" *ngIf="!cargando && deliveryUsuarios.length > 0">
+    <ion-button 
+      expand="block" 
+      color="primary"
+      [disabled]="!seleccionadoId"
+      (click)="confirmar()">
+      <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+      CONFIRMAR SELECCIÓN
+    </ion-button>
+  </div>
+</ion-content>
+

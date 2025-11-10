@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel,
+  IonHeader, IonToolbar, IonTitle, IonContent,
   IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonCardSubtitle, IonList, IonIcon, IonLoading, IonBadge, IonRefresher, IonRefresherContent
+  IonCardSubtitle, IonIcon, IonLoading, IonRefresher, IonRefresherContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkCircleOutline, timeOutline, receiptOutline } from 'ionicons/icons';
 import { ToastrService } from 'ngx-toastr';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { MozoRealtimeService } from 'src/app/services/mozo-realtime.service';
 import { environment } from 'src/environments/environment';
@@ -42,9 +43,9 @@ interface PagoPendiente {
   imports: [
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonItem, IonLabel, IonButton, IonCard, IonCardContent,
-    IonCardHeader, IonCardTitle, IonCardSubtitle, IonList, IonIcon, IonLoading,
-    IonBadge, IonRefresher, IonRefresherContent
+    IonButton, IonCard, IonCardContent,
+    IonCardHeader, IonCardTitle, IonCardSubtitle, IonIcon, IonLoading,
+    IonRefresher, IonRefresherContent
   ]
 })
 export class ConfirmarPagoComponent implements OnInit, OnDestroy {
@@ -55,6 +56,7 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
   constructor(
     private supa: SupabaseService,
     private toast: ToastrService,
+    private spinner: SpinnerService,
     private router: Router,
     private mozoRt: MozoRealtimeService
   ) {
@@ -73,6 +75,7 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
   async cargarPagosPendientes() {
     try {
       this.loading = true;
+      this.spinner.show({ immediate: true });
       
       // Obtener pedidos con estado 'pendiente confirmacion pago' que esperan confirmación
       const { data: pedidos, error } = await this.supa.client
@@ -174,15 +177,20 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
 
     } catch (error: any) {
       console.error('Error al cargar pagos pendientes:', error);
-      this.toast.error('Error al cargar pagos pendientes');
+      this.toast.error('ERROR AL CARGAR PAGOS PENDIENTES', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.loading = false;
+      this.spinner.hide();
     }
   }
 
   async confirmarPago(pago: PagoPendiente) {
     try {
       this.confirmandoPago[pago.id] = true;
+      this.spinner.show({ immediate: true, minMs: 1000 });
 
       // 🚩 ACTIVAR BANDERA: Bloquear notificaciones del mozo durante la confirmación
       this.mozoRt.setMozoConfirmandoPago(true);
@@ -225,7 +233,10 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
       // Remover de la lista
       this.pagosPendientes = this.pagosPendientes.filter(p => p.id !== pago.id);
 
-      this.toast.success(`Pago confirmado para Mesa ${pago.numero_mesa}. Mesa liberada.`);
+      this.toast.success(`PAGO CONFIRMADO PARA MESA ${pago.numero_mesa}. MESA LIBERADA.`, '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
 
       // 4. Enviar notificaciones push
       await this.enviarNotificacionesPago(pago);
@@ -235,9 +246,13 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
 
     } catch (error: any) {
       console.error('Error al confirmar pago:', error);
-      this.toast.error('Error al confirmar el pago');
+      this.toast.error('ERROR AL CONFIRMAR EL PAGO', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.confirmandoPago[pago.id] = false;
+      this.spinner.hide();
       
       // 🚩 DESACTIVAR BANDERA: Reactivar notificaciones del mozo después de un delay
       setTimeout(() => {
@@ -366,7 +381,10 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
       
       if (sessionError || !sessionData?.session) {
         console.error('[ConfirmarPagoComponent] No hay sesión activa:', sessionError);
-        this.toast.warning('Pago confirmado, pero no se pudo generar la factura (sesión expirada)');
+        this.toast.warning('PAGO CONFIRMADO, PERO NO SE PUDO GENERAR LA FACTURA (SESIÓN EXPIRADA)', '', {
+          positionClass: 'toast-center',
+          timeOut: 4000
+        });
         return;
       }
 
@@ -383,31 +401,43 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
 
       if (error || (data && (data as any).error)) {
         console.error('[ConfirmarPagoComponent] Error al generar factura:', error || (data as any).error);
-        this.toast.warning('Pago confirmado, pero hubo un problema al generar la factura');
+        this.toast.warning('PAGO CONFIRMADO, PERO HUBO UN PROBLEMA AL GENERAR LA FACTURA', '', {
+          positionClass: 'toast-center',
+          timeOut: 4000
+        });
         return;
       }
 
       console.log('[ConfirmarPagoComponent] ✅ Factura generada exitosamente:', data);
       
       if (data?.cliente_anonimo) {
-        this.toast.success('Pago confirmado. Se envió notificación con enlace de descarga de factura');
+        this.toast.success('PAGO CONFIRMADO. SE ENVIÓ NOTIFICACIÓN CON ENLACE DE DESCARGA DE FACTURA', '', {
+          positionClass: 'toast-center',
+          timeOut: 4000
+        });
       } else {
-        this.toast.success('Pago confirmado. Se envió la factura por email');
+        this.toast.success('PAGO CONFIRMADO. SE ENVIÓ LA FACTURA POR CORREO', '', {
+          positionClass: 'toast-center',
+          timeOut: 4000
+        });
       }
 
     } catch (error) {
       console.error('[ConfirmarPagoComponent] Error al generar factura:', error);
-      this.toast.warning('Pago confirmado, pero hubo un problema al generar la factura');
+      this.toast.warning('PAGO CONFIRMADO, PERO HUBO UN PROBLEMA AL GENERAR LA FACTURA', '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
     }
   }
 
   getPropinaLabel(porcentaje: number): string {
     switch (porcentaje) {
-      case 20: return 'Excelente';
-      case 15: return 'Muy Bueno';
-      case 10: return 'Bueno';
-      case 5: return 'Regular';
-      case 0: return 'Malo';
+      case 20: return 'EXCELENTE';
+      case 15: return 'MUY BUENO';
+      case 10: return 'BUENO';
+      case 5: return 'REGULAR';
+      case 0: return 'MALO';
       default: return `${porcentaje}%`;
     }
   }

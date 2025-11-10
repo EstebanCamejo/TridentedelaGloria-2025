@@ -7,5 +7,6 @@ export enum TipoUsuario {
     bartender = 'bartender',
     clienteReg = 'clienteReg',   // cliente registrado
     clienteAnon = 'clienteAnon', // cliente anónimo
+    delivery = 'delivery',        // usuario delivery
   }
   

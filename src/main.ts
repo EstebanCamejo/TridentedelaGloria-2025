@@ -30,10 +30,12 @@ bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideToastr({
-      positionClass: 'toast-top-center',
+      positionClass: 'toast-center',
       timeOut: 3000,
       preventDuplicates: true,
       closeButton: true,
+      enableHtml: false,
+      tapToDismiss: true,
     }),
     provideAnimations(),
     provideIonicAngular(),

@@ -6,44 +6,75 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="client-content" [scrollY]="true">
+<ion-content #ionContent class="client-content" [scrollY]="true">
   <div class="client-wrap">
 
     <!-- Resumen del pedido (solo visual) -->
     <ion-card class="pedido-card">
       <ion-card-content>
         <div class="estado-pill">
-          <span class="estado-label">Estado del pedido:</span>
-          <strong class="estado-value">{{ estado }}</strong>
+          <span class="estado-label">ESTADO DEL PEDIDO:</span>
+          <strong class="estado-value">
+            <span *ngIf="esDelivery">{{ estadoDeliveryTexto || estado.toUpperCase() }}</span>
+            <span *ngIf="!esDelivery">{{ estado.toUpperCase() }}</span>
+          </strong>
+        </div>
+
+        <!-- 🆕 Información de repartidor (solo si es repartidor) -->
+        <div *ngIf="esDelivery" class="delivery-info">
+          <div *ngIf="direccionEntrega" class="delivery-direccion">
+            <ion-icon name="location-outline"></ion-icon>
+            <strong>DIRECCIÓN DE ENTREGA:</strong> {{ direccionEntrega }}
+          </div>
+          
+          <div *ngIf="repartidorInfo" class="delivery-repartidor">
+            <ion-icon name="bicycle-outline"></ion-icon>
+            <strong>REPARTIDOR:</strong> 
+            {{ (repartidorInfo.nombres || '') + ' ' + (repartidorInfo.apellidos || '') || repartidorInfo.email || 'ASIGNADO' }}
+          </div>
         </div>
 
         <div class="totales">
           <div class="total">
-            <span class="total-label">Total:</span>
+            <span class="total-label">TOTAL:</span>
             <span class="total-value">${{ total }}</span>
           </div>
           <div class="demora">
-            <span class="demora-label">Demora estimada:</span>
-            <span class="demora-value">{{ tiempo }}min.</span>
+            <span class="demora-label">DEMORA ESTIMADA:</span>
+            <span class="demora-value">{{ tiempo }} MINUTOS</span>
           </div>
         </div>
 
         <!-- Botones según estado del pedido -->
         <div *ngIf="estado === 'pendiente aceptación'" class="aceptacion-buttons">
-          <h3>¿El pedido está correcto?</h3>
+          <h3>¿EL PEDIDO ESTÁ CORRECTO?</h3>
           <div class="button-group">
             <ion-button expand="block" class="btn-aceptar" (click)="aceptarPedido()">
-              ✅ Aceptar Pedido
+              ✅ ACEPTAR PEDIDO
             </ion-button>
             <!-- <ion-button expand="block" class="btn-rechazar" (click)="rechazarPedido()">
-              ❌ Rechazar Pedido
+              ❌ RECHAZAR PEDIDO
             </ion-button> -->
           </div>
         </div>
 
-        <!-- Botón para pedir cuenta (solo cuando está entregado) -->
-        <ion-button *ngIf="estado === 'entregado'" expand="block" class="cta" (click)="pedirCuenta()">
-          Pedir la cuenta
+        <!-- Botón para confirmar recepción (solo para repartidor entregado, antes de pedir cuenta) -->
+        <ion-button 
+          *ngIf="esDelivery && estado === 'entregado' && !recepcionConfirmada" 
+          expand="block" 
+          class="cta" 
+          color="success"
+          (click)="confirmarRecepcionDelivery()">
+          ✅ CONFIRMAR RECEPCIÓN DEL PEDIDO
+        </ion-button>
+
+        <!-- Botón para pedir cuenta (cuando está entregado, para mesa siempre, para repartidor solo después de confirmar recepción) -->
+        <ion-button 
+          *ngIf="estado === 'entregado' && (!esDelivery || recepcionConfirmada)" 
+          expand="block" 
+          class="cta" 
+          (click)="pedirCuenta()">
+          PEDIR LA CUENTA
         </ion-button>
       </ion-card-content>
     </ion-card>
@@ -59,7 +90,7 @@
   expand="block"
   (click)="irARealizarPedido()">
   <img src="../../../assets/plato.png" class="icono" alt="">
-  <span class="btn-text">Ver Menú y Pedir</span>
+  <span class="btn-text">VER MENÚ Y PEDIR</span>
 </ion-button>
 
 <!-- Botón para editar pedido rechazado por mozo -->
@@ -69,40 +100,52 @@
   expand="block"
   (click)="editarPedidoRechazado()">
   <img src="../../../assets/plato.png" class="icono" alt="">
-  <span class="btn-text">Editar Pedido</span>
+  <span class="btn-text">EDITAR PEDIDO</span>
 </ion-button>
 
-  <ion-button class="option-card var2" expand="block"
-      (click)="irAChat()">
+      <ion-button 
+      class="option-card var2" 
+      expand="block"
+      (click)="irAChat()"
+      [disabled]="estado === 'pendiente' || estado === 'rechazado por admin' || (esDelivery && !repartidorInfo)">
     <img src="../../../assets/chat.png" class="icono" alt="">
-    <span class="btn-text">Consultas a los mozos</span>
+    <span class="btn-text">{{ esDelivery ? 'CONSULTAS AL REPARTIDOR' : 'CONSULTAS A LOS MOZOS' }}</span>
   </ion-button>
 
 <ion-button 
   class="option-card var3" 
   expand="block" 
   routerLink="/cliente/cliente-juegos"
-  [disabled]="esClienteAnonimo">
+  [disabled]="esClienteAnonimo || estado === 'pendiente' || estado === 'rechazado por admin'">
   <img src="../../../assets/dado.png" class="icono" alt="">
-  <span class="btn-text">Juegos</span>
+  <span class="btn-text">JUEGOS</span>
 </ion-button>
 
-<!-- Botón de encuesta: siempre visible cuando está entregado, deshabilitado si ya completó o es anónimo -->
+<!-- Botón de encuesta: siempre visible cuando está entregado, deshabilitado si ya completó, es anónimo, o repartidor no confirmó recepción -->
 <ion-button 
   *ngIf="estado === 'entregado'"
+  #botonEncuesta
   class="option-card var4" 
   expand="block" 
   (click)="irAEncuestas()"
-  [disabled]="yaCompletoEncuesta || esClienteAnonimo">
+  [disabled]="yaCompletoEncuesta || esClienteAnonimo || (esDelivery && !recepcionConfirmada)">
   <img src="../../../assets/encuesta.png" class="icono" alt="">
-  <span class="btn-text">Completar Encuesta</span>
+  <span class="btn-text">COMPLETAR ENCUESTA</span>
 </ion-button>
 
 <!-- Mensaje para clientes anónimos sobre juegos -->
 <div *ngIf="esClienteAnonimo" class="anonimo-message">
   <ion-note color="medium">
     <ion-icon name="information-circle-outline"></ion-icon>
-    Los juegos están disponibles solo para clientes registrados
+    LOS JUEGOS ESTÁN DISPONIBLES SOLO PARA CLIENTES REGISTRADOS
+  </ion-note>
+</div>
+
+<!-- Mensaje para repartidor que aún no confirmó recepción -->
+<div *ngIf="esDelivery && estado === 'entregado' && !recepcionConfirmada" class="anonimo-message">
+  <ion-note color="warning">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    CONFIRMÁ LA RECEPCIÓN DEL PEDIDO PARA ACCEDER A JUEGOS Y ENCUESTA
   </ion-note>
 </div>
 
@@ -112,7 +155,7 @@
   <div *ngIf="esClienteAnonimo && !yaCompletoEncuesta" class="anonimo-message">
     <ion-note color="medium">
       <ion-icon name="information-circle-outline"></ion-icon>
-      Las encuestas están disponibles solo para clientes registrados
+      LAS ENCUESTAS ESTÁN DISPONIBLES SOLO PARA CLIENTES REGISTRADOS
     </ion-note>
   </div>
 
@@ -120,7 +163,7 @@
   <div *ngIf="yaCompletoEncuesta" class="anonimo-message encuesta-completada">
     <ion-note color="medium">
       <ion-icon name="checkmark-circle-outline"></ion-icon>
-      Ya completaste la encuesta para esta estadía
+      YA COMPLETASTE LA ENCUESTA PARA ESTA ESTADÍA
     </ion-note>
   </div>
 </div>

@@ -9,6 +9,12 @@ export type ResultadosEncuesta = {
   servicios_extra: ChartItem[];
 };
 
+// 🆕 Tipo para resultados combinados (mesa + delivery separados)
+export type ResultadosEncuestasCombinadas = {
+  mesa: ResultadosEncuesta;
+  delivery: ResultadosEncuesta;
+};
+
 // CAMBIO: claves estrictas para evitar TS4111
 type ClaveAgg = 'limpieza' | 'aspecto_valorado' | 'servicios_extra';
 
@@ -18,6 +24,7 @@ export type EnviarEncuestaPayload = {
   lista_espera_id?: string | null;     // si ya la tenemos disponible
   mesas_id?: string | null;            // si ya la tenemos disponible
   user_id?: string | null;             // opcional
+  pedido_id?: number | null;           // 🆕 ID del pedido (para delivery)
   calificacion_limpieza: 1|2|3|4|5;
   aspecto_valorado: string;            // ej: 'calidad_comida', 'atencion', etc.
   servicios_adicionales?: string[];    // ej: ['wifi','juegos','menu_sin_tacc']
@@ -42,12 +49,64 @@ export class EncuestasService {
   // =========================
   // LECTURA (gráficos)
   // =========================
+  /**
+   * Obtiene resultados de una encuesta específica
+   */
   async getResultados(
-    encuestaId = '00000000-0000-0000-0000-000000000001'
-  ): Promise<ResultadosEncuesta> {
-    return this.useMock
-      ? this.getResultadosMock()
-      : this.getResultadosDesdeSupabase(encuestaId);
+    encuestaId?: string // Opcional, si no se proporciona obtiene ambas separadas
+  ): Promise<ResultadosEncuesta | ResultadosEncuestasCombinadas> {
+    if (this.useMock) {
+      return this.getResultadosMock();
+    }
+    
+    // 🆕 Si no se especifica encuestaId, obtener ambas separadas (mesa + delivery)
+    if (!encuestaId) {
+      return await this.getResultadosSeparados();
+    }
+    
+    // Si se especifica una encuesta específica, usar el método original
+    return await this.getResultadosDesdeSupabase(encuestaId);
+  }
+  
+  /**
+   * 🆕 Obtiene resultados de encuestas de mesa y delivery SEPARADOS (no mezclados)
+   * Primero mesa, luego delivery
+   */
+  private async getResultadosSeparados(): Promise<ResultadosEncuestasCombinadas> {
+    console.log('[EncuestasService] 🔄 Obteniendo resultados separados (mesa + delivery)...');
+    
+    const encuestaMesaId = '00000000-0000-0000-0000-000000000001';
+    const encuestaDeliveryId = '00000000-0000-0000-0000-000000000002';
+    
+    try {
+      // Obtener resultados de ambas encuestas en paralelo
+      const [resultadosMesa, resultadosDelivery] = await Promise.all([
+        this.getResultadosDesdeSupabase(encuestaMesaId),
+        this.getResultadosDesdeSupabase(encuestaDeliveryId)
+      ]);
+      
+      console.log('[EncuestasService] 📊 Resultados mesa:', resultadosMesa);
+      console.log('[EncuestasService] 📊 Resultados delivery:', resultadosDelivery);
+      
+      // 🆕 Devolver separados, NO mezclados
+      return {
+        mesa: resultadosMesa,
+        delivery: resultadosDelivery
+      };
+    } catch (error) {
+      console.error('[EncuestasService] ❌ Error al obtener resultados separados:', error);
+      // Si falla, intentar solo con encuesta de mesa como fallback
+      console.log('[EncuestasService] ⚠️ Fallback: obteniendo solo encuesta de mesa...');
+      const resultadosMesa = await this.getResultadosDesdeSupabase(encuestaMesaId);
+      return {
+        mesa: resultadosMesa,
+        delivery: {
+          limpieza: [],
+          aspecto_valorado: [],
+          servicios_extra: []
+        }
+      };
+    }
   }
 
   private async getResultadosMock(): Promise<ResultadosEncuesta> {
@@ -75,7 +134,16 @@ export class EncuestasService {
     console.log('[EncuestasService] 🔄 Obteniendo resultados...');
     console.log('[EncuestasService] encuesta_id:', encuestaId);
     
-    // Agregar timeout de 5 segundos para evitar espera infinita
+    const esDelivery = encuestaId === '00000000-0000-0000-0000-000000000002';
+    
+    // 🆕 Si es encuesta de delivery, consultar directamente encuesta_respuesta con pedido_id
+    // porque v_encuesta_agg probablemente solo incluye encuestas de mesa (lista_espera_id)
+    if (esDelivery) {
+      console.log('[EncuestasService] 🔍 Es encuesta de delivery, consultando directamente encuesta_respuesta...');
+      return await this.getResultadosDeliveryDirecto(encuestaId);
+    }
+    
+    // Para encuestas de mesa, usar la vista v_encuesta_agg
     const consultaPromise = this.supa.client
       .from('v_encuesta_agg')
       .select('clave, etiqueta, cantidad')
@@ -115,6 +183,111 @@ export class EncuestasService {
       servicios_extra: byClave.servicios_extra,
     };
   }
+  
+  /**
+   * 🆕 Obtiene resultados de encuestas de delivery consultando directamente encuesta_respuesta
+   * porque v_encuesta_agg probablemente solo incluye encuestas de mesa
+   */
+  private async getResultadosDeliveryDirecto(encuestaId: string): Promise<ResultadosEncuesta> {
+    console.log('[EncuestasService] 🔍 Consultando encuesta_respuesta directamente para delivery...');
+    
+    try {
+      // Obtener todas las respuestas de encuestas de delivery
+      // 🆕 NOTA: La columna en la BD es "servicios_adicionales", no "servicios_extra"
+      const { data: respuestas, error } = await this.supa.client
+        .from('encuesta_respuesta')
+        .select('calificacion_limpieza, aspecto_valorado, servicios_adicionales')
+        .eq('encuesta_id', encuestaId)
+        .not('pedido_id', 'is', null); // Solo respuestas con pedido_id (delivery)
+      
+      if (error) {
+        console.error('[EncuestasService] ❌ Error al consultar encuesta_respuesta:', error);
+        throw error;
+      }
+      
+      console.log('[EncuestasService] 📊 Respuestas de delivery encontradas:', respuestas?.length || 0);
+      
+      const byClave: Record<ClaveAgg, ChartItem[]> = {
+        limpieza: [],
+        aspecto_valorado: [],
+        servicios_extra: [],
+      };
+      
+      // Agregar limpieza (1-5)
+      const limpiezaCounts: Record<string, number> = {};
+      respuestas?.forEach(r => {
+        if (r.calificacion_limpieza) {
+          const key = String(r.calificacion_limpieza);
+          limpiezaCounts[key] = (limpiezaCounts[key] || 0) + 1;
+        }
+      });
+      for (const [name, value] of Object.entries(limpiezaCounts)) {
+        byClave.limpieza.push({ name, value });
+      }
+      byClave.limpieza.sort((a, b) => Number(a.name) - Number(b.name));
+      
+      // Agregar aspecto_valorado
+      const aspectoCounts: Record<string, number> = {};
+      respuestas?.forEach(r => {
+        if (r.aspecto_valorado) {
+          const key = String(r.aspecto_valorado);
+          aspectoCounts[key] = (aspectoCounts[key] || 0) + 1;
+        }
+      });
+      for (const [name, value] of Object.entries(aspectoCounts)) {
+        byClave.aspecto_valorado.push({ name, value });
+      }
+      
+      // Agregar servicios_adicionales (array de strings)
+      // 🆕 NOTA: La columna en la BD es "servicios_adicionales", no "servicios_extra"
+      const serviciosCounts: Record<string, number> = {};
+      respuestas?.forEach(r => {
+        // Usar servicios_adicionales (nombre real en BD) o servicios_extra (alias)
+        let servicios = (r as any).servicios_adicionales || (r as any).servicios_extra;
+        
+        // Si servicios es un string JSON, parsearlo
+        if (typeof servicios === 'string') {
+          try {
+            servicios = JSON.parse(servicios);
+          } catch (e) {
+            console.warn('[EncuestasService] ⚠️ Error al parsear servicios_adicionales como JSON:', servicios);
+            servicios = null;
+          }
+        }
+        
+        if (servicios && Array.isArray(servicios)) {
+          servicios.forEach((servicio: string) => {
+            if (servicio) {
+              serviciosCounts[servicio] = (serviciosCounts[servicio] || 0) + 1;
+            }
+          });
+        }
+      });
+      for (const [name, value] of Object.entries(serviciosCounts)) {
+        byClave.servicios_extra.push({ name, value });
+      }
+      
+      console.log('[EncuestasService] 📊 Resultados procesados:', {
+        limpieza: byClave.limpieza.length,
+        aspecto_valorado: byClave.aspecto_valorado.length,
+        servicios_extra: byClave.servicios_extra.length
+      });
+      
+      return {
+        limpieza: byClave.limpieza,
+        aspecto_valorado: byClave.aspecto_valorado,
+        servicios_extra: byClave.servicios_extra,
+      };
+    } catch (error) {
+      console.error('[EncuestasService] ❌ Error al obtener resultados de delivery:', error);
+      // Si falla, devolver vacío
+      return {
+        limpieza: [],
+        aspecto_valorado: [],
+        servicios_extra: [],
+      };
+    }
+  }
 
   // =========================
   // ESCRITURA (enviar respuesta)
@@ -135,34 +308,47 @@ export class EncuestasService {
 
     console.log('[DEBUG ENCUESTA] Validaciones básicas OK');
 
-    // VALIDACIÓN: Verificar que puede completar encuesta (mesa asignada)
-    console.log('[DEBUG ENCUESTA] Verificando si puede completar encuesta...');
-    const puedeCompletar = await this.supa.puedeCompletarEncuesta();
-    console.log('[DEBUG ENCUESTA] Puede completar encuesta:', puedeCompletar);
-    if (!puedeCompletar) {
-      console.log('[DEBUG ENCUESTA] ❌ No puede completar - mesa no asignada');
-      throw new Error('Solo puedes completar la encuesta mientras tienes mesa asignada.');
-    }
+    // 🆕 Detectar si es encuesta de delivery por el encuesta_id
+    const esDelivery = p.encuesta_id === '00000000-0000-0000-0000-000000000002';
+    
+    // 🆕 Variable lista_espera_id (solo para mesa)
+    let lista_espera_id: string | null = null;
 
-    // NUEVA VALIDACIÓN: Verificar que no haya completado ya una encuesta
-    console.log('[DEBUG ENCUESTA] Verificando si ya completó encuesta...');
-    const yaCompleto = await this.supa.yaCompletoEncuesta();
-    console.log('[DEBUG ENCUESTA] Ya completó encuesta:', yaCompleto);
-    if (yaCompleto) {
-      console.log('[DEBUG ENCUESTA] ❌ Ya completó encuesta');
-      throw new Error('Ya completaste la encuesta para esta estadía.');
-    }
+    if (esDelivery) {
+      // Para delivery, no necesitamos validar mesa asignada
+      // Solo verificamos que el pedido esté entregado (validación hecha en componente)
+      console.log('[DEBUG ENCUESTA] 🚚 Encuesta de delivery detectada, saltando validación de mesa');
+      lista_espera_id = null; // No hay lista_espera para delivery
+    } else {
+      // VALIDACIÓN: Verificar que puede completar encuesta (mesa asignada)
+      console.log('[DEBUG ENCUESTA] Verificando si puede completar encuesta...');
+      const puedeCompletar = await this.supa.puedeCompletarEncuesta();
+      console.log('[DEBUG ENCUESTA] Puede completar encuesta:', puedeCompletar);
+      if (!puedeCompletar) {
+        console.log('[DEBUG ENCUESTA] ❌ No puede completar - mesa no asignada');
+        throw new Error('Solo puedes completar la encuesta mientras tienes mesa asignada.');
+      }
 
-    // Obtener el lista_espera_id automáticamente si no se proporcionó
-    let lista_espera_id = p.lista_espera_id;
-    console.log('[DEBUG ENCUESTA] Lista espera ID inicial:', lista_espera_id);
-    if (!lista_espera_id) {
-      console.log('[DEBUG ENCUESTA] Obteniendo waitStatus automáticamente...');
-      const waitStatus = await this.supa.getWaitStatusDetail();
-      console.log('[DEBUG ENCUESTA] WaitStatus obtenido:', waitStatus);
-      if (waitStatus?.id) {
-        lista_espera_id = String(waitStatus.id);
-        console.log('[DEBUG ENCUESTA] Lista espera ID obtenido:', lista_espera_id);
+      // NUEVA VALIDACIÓN: Verificar que no haya completado ya una encuesta
+      console.log('[DEBUG ENCUESTA] Verificando si ya completó encuesta...');
+      const yaCompleto = await this.supa.yaCompletoEncuesta();
+      console.log('[DEBUG ENCUESTA] Ya completó encuesta:', yaCompleto);
+      if (yaCompleto) {
+        console.log('[DEBUG ENCUESTA] ❌ Ya completó encuesta');
+        throw new Error('Ya completaste la encuesta para esta estadía.');
+      }
+
+      // Obtener el lista_espera_id automáticamente si no se proporcionó
+      lista_espera_id = p.lista_espera_id || null;
+      console.log('[DEBUG ENCUESTA] Lista espera ID inicial:', lista_espera_id);
+      if (!lista_espera_id) {
+        console.log('[DEBUG ENCUESTA] Obteniendo waitStatus automáticamente...');
+        const waitStatus = await this.supa.getWaitStatusDetail();
+        console.log('[DEBUG ENCUESTA] WaitStatus obtenido:', waitStatus);
+        if (waitStatus?.id) {
+          lista_espera_id = String(waitStatus.id);
+          console.log('[DEBUG ENCUESTA] Lista espera ID obtenido:', lista_espera_id);
+        }
       }
     }
 
@@ -178,8 +364,9 @@ export class EncuestasService {
     }
 
     // 2) INSERT
-    // CORRECCIÓN: Convertir lista_espera_id a UUID válido
-    const listaEsperaUuid = lista_espera_id ? `00000000-0000-0000-0000-${String(lista_espera_id).padStart(12, '0')}` : null;
+    // CORRECCIÓN: Convertir lista_espera_id a UUID válido (solo si no es delivery)
+    const listaEsperaUuid = (esDelivery || !lista_espera_id) ? null : 
+      `00000000-0000-0000-0000-${String(lista_espera_id).padStart(12, '0')}`;
     console.log('[DEBUG ENCUESTA] Lista espera ID convertido a UUID:', listaEsperaUuid);
     
     const insertData: any = {
@@ -187,6 +374,7 @@ export class EncuestasService {
       lista_espera_id: listaEsperaUuid,
       mesas_id: p.mesas_id ?? null,
       user_id: p.user_id ?? null,
+      pedido_id: p.pedido_id ?? null, // 🆕 Campo pedido_id para delivery
       calificacion_limpieza: p.calificacion_limpieza,
       aspecto_valorado: p.aspecto_valorado,
       servicios_adicionales: p.servicios_adicionales ?? [],
@@ -247,6 +435,42 @@ export class EncuestasService {
    */
   async yaCompletoEncuesta(): Promise<boolean> {
     return await this.supa.yaCompletoEncuesta();
+  }
+
+  /**
+   * 🆕 Verifica si el cliente ya completó una encuesta para un pedido delivery específico
+   */
+  async yaCompletoEncuestaDelivery(pedidoId: number): Promise<boolean> {
+    try {
+      console.log('[EncuestasService] Verificando si ya completó encuesta delivery para pedido:', pedidoId);
+      
+      const encuestaDeliveryId = '00000000-0000-0000-0000-000000000002';
+      
+      // 🆕 Buscar encuesta directamente por pedido_id (más preciso)
+      const { data, error } = await this.supa.client
+        .from('encuesta_respuesta')
+        .select('id')
+        .eq('encuesta_id', encuestaDeliveryId)
+        .eq('pedido_id', pedidoId);
+
+      if (error) {
+        console.error('[EncuestasService] Error al verificar encuesta delivery:', error);
+        return false;
+      }
+
+      const yaCompleto = data && data.length > 0;
+      
+      if (yaCompleto) {
+        console.log('[EncuestasService] ✅ Ya completó encuesta delivery para pedido:', pedidoId);
+      } else {
+        console.log('[EncuestasService] No se encontró encuesta delivery completada para pedido:', pedidoId);
+      }
+      
+      return yaCompleto;
+    } catch (error) {
+      console.error('[EncuestasService] Error al verificar encuesta delivery:', error);
+      return false;
+    }
   }
 
   

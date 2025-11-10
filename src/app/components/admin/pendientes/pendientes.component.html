@@ -61,11 +61,11 @@
   <ng-template #estado>
     <div class="estado-ctr">
       <ng-container *ngIf="loading; else vacio">
-        <p>Cargando pendientes…</p>
+        <p>CARGANDO PENDIENTES…</p>
       </ng-container>
       <ng-template #vacio>
-        <p>No hay clientes en espera.</p>
-        <ion-button size="small" (click)="load()">Refrescar</ion-button>
+        <p>NO HAY CLIENTES EN ESPERA</p>
+        <ion-button size="small" (click)="load()">REFRESCAR</ion-button>
       </ng-template>
     </div>
   </ng-template>
@@ -154,11 +154,11 @@
   <ng-template #estado>
     <div class="estado-ctr">
       <ng-container *ngIf="loading; else vacio">
-        <p>Cargando pendientes…</p>
+        <p>CARGANDO PENDIENTES…</p>
       </ng-container>
       <ng-template #vacio>
-        <p>No hay clientes en espera.</p>
-        <ion-button size="small" (click)="load()">Refrescar</ion-button>
+        <p>NO HAY CLIENTES EN ESPERA</p>
+        <ion-button size="small" (click)="load()">REFRESCAR</ion-button>
       </ng-template>
     </div>
   </ng-template>
@@ -166,7 +166,7 @@
 
 <ion-header>
   <ion-toolbar style="--background:#5d2222; --color:#fff">
-    <ion-title>Clientes pendientes</ion-title>
+    <ion-title>CLIENTES PENDIENTES</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -175,9 +175,9 @@
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content
       pullingIcon="refresh"
-      pullingText="Deslizá para actualizar"
+      pullingText="DESLIZÁ PARA ACTUALIZAR"
       refreshingSpinner="lines"
-      refreshingText="Actualizando...">
+      refreshingText="ACTUALIZANDO...">
     </ion-refresher-content>
   </ion-refresher>
 
@@ -185,8 +185,8 @@
 <ion-searchbar
   class="pend-search search--maroon"   
   mode="md"                          
-  placeholder="Buscar por nombre o email"
-  (ionInput)="search($event.detail?.value || '')"
+  placeholder="BUSCAR POR NOMBRE O CORREO"
+  (ionInput)="search($event.detail.value || '')"
   debounce="300">
 </ion-searchbar>
   <!-- Lista -->
@@ -200,7 +200,7 @@
   <h2 class="name">{{ it.nombres }} {{ it.apellidos }}</h2>
   <p class="email">{{ it.email }}</p>
   <div class="meta">
-    <ion-badge color="medium">pendiente</ion-badge>
+    <ion-badge color="medium">PENDIENTE</ion-badge>
     <br>
     <small>{{ it.created_at | date:'short' }}</small>
   </div>
@@ -281,11 +281,11 @@
   <ng-template #estado>
     <div class="estado-ctr">
       <ng-container *ngIf="loading; else vacio">
-        <p>Cargando pendientes…</p>
+        <p>CARGANDO PENDIENTES…</p>
       </ng-container>
       <ng-template #vacio>
-        <p>No hay clientes en espera.</p>
-        <ion-button size="small" (click)="load()">Refrescar</ion-button>
+        <p>NO HAY CLIENTES EN ESPERA</p>
+        <ion-button size="small" (click)="load()">REFRESCAR</ion-button>
       </ng-template>
     </div>
   </ng-template>

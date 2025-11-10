@@ -2,7 +2,7 @@
   <ion-toolbar>
     <ion-buttons slot="start">
     </ion-buttons>
-    <ion-title>Hacer Reserva</ion-title>
+    <ion-title>HACER RESERVA</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -12,19 +12,19 @@
     <!-- Sección: Mis Reservas Activas -->
     <ion-card class="reservas-activas-card" *ngIf="cargandoReservas">
       <ion-card-header>
-        <ion-card-title>Mis Reservas Activas</ion-card-title>
+        <ion-card-title>MIS RESERVAS ACTIVAS</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <div class="loading-reservas">
           <ion-spinner name="crescent"></ion-spinner>
-          <p>Cargando tus reservas...</p>
+          <p>CARGANDO TUS RESERVAS...</p>
         </div>
       </ion-card-content>
     </ion-card>
 
     <ion-card class="reservas-activas-card" *ngIf="!cargandoReservas && reservasActivas.length > 0">
       <ion-card-header>
-        <ion-card-title>Mis Reservas Activas</ion-card-title>
+        <ion-card-title>MIS RESERVAS ACTIVAS</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <ion-list>
@@ -35,10 +35,10 @@
                 <ion-icon name="time-outline"></ion-icon>
                 {{ reserva.hora }} | 
                 <ion-icon name="people-outline"></ion-icon>
-                {{ reserva.cantidad_comensales }} persona{{ reserva.cantidad_comensales > 1 ? 's' : '' }}
+                {{ reserva.cantidad_comensales }} PERSONA{{ reserva.cantidad_comensales > 1 ? 'S' : '' }}
               </p>
               <p *ngIf="reserva.nota">
-                <strong>Nota:</strong> {{ reserva.nota }}
+                <strong>NOTA:</strong> {{ reserva.nota }}
               </p>
               <p>
                 <ion-badge [color]="obtenerColorEstado(reserva.estado)">
@@ -63,7 +63,7 @@
     <!-- Formulario de Nueva Reserva -->
     <ion-card class="formulario-card">
       <ion-card-header>
-        <ion-card-title>🗓️ Nueva Reserva</ion-card-title>
+        <ion-card-title>🗓️ NUEVA RESERVA</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <form (ngSubmit)="crearReserva()" class="reserva-form">
@@ -72,7 +72,7 @@
           <div class="form-group">
             <ion-label class="form-label">
               <ion-icon name="calendar-outline"></ion-icon>
-              Fecha de la reserva
+              FECHA DE LA RESERVA
             </ion-label>
             <ion-datetime
               [(ngModel)]="fecha"
@@ -82,10 +82,10 @@
               presentation="date"
               [showDefaultButtons]="true"
               [showClearButton]="false"
-              [doneText]="'Listo'"
-              [cancelText]="'Cancelar'"
+              [doneText]="'LISTO'"
+              [cancelText]="'CANCELAR'"
               class="form-datetime"
-              placeholder="Toca para seleccionar fecha">
+              placeholder="TOCÁ PARA SELECCIONAR FECHA">
             </ion-datetime>
           </div>
 
@@ -93,14 +93,14 @@
           <div class="form-group">
             <ion-label class="form-label">
               <ion-icon name="time-outline"></ion-icon>
-              Hora de la reserva
+              HORA DE LA RESERVA
             </ion-label>
             <ion-select
               [(ngModel)]="hora"
               name="hora"
               required
               class="form-select"
-              placeholder="Selecciona una hora"
+              placeholder="SELECCIONÁ UNA HORA"
               interface="popover">
               <ion-select-option *ngFor="let horaOption of horasDisponibles" [value]="horaOption.value">
                 {{ horaOption.label }}
@@ -112,7 +112,7 @@
           <div class="form-group">
             <ion-label class="form-label">
               <ion-icon name="people-outline"></ion-icon>
-              Cantidad de comensales
+              CANTIDAD DE COMENSALES
             </ion-label>
             <ion-input
               type="number"
@@ -122,7 +122,7 @@
               max="20"
               required
               class="form-input"
-              placeholder="Ej: 2">
+              placeholder="EJ: 2">
             </ion-input>
           </div>
 
@@ -130,14 +130,14 @@
           <div class="form-group">
             <ion-label class="form-label">
               <ion-icon name="document-text-outline"></ion-icon>
-              Nota adicional (opcional)
+              NOTA ADICIONAL (OPCIONAL)
             </ion-label>
             <ion-textarea
               [(ngModel)]="nota"
               name="nota"
               rows="3"
               class="form-textarea"
-              placeholder="Ej: Preferencia de ubicación, alergias, celebración especial, etc.">
+              placeholder="EJ: PREFERENCIA DE UBICACIÓN, ALERGIAS, CELEBRACIÓN ESPECIAL, ETC.">
             </ion-textarea>
           </div>
 
@@ -148,7 +148,7 @@
               type="submit"
               [disabled]="!fecha || !hora || !cantidadComensales"
               class="btn-crear-reserva">
-              ✨ Crear Reserva
+              ✨ CREAR RESERVA
             </ion-button>
           </div>
         </form>

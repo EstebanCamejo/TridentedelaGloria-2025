@@ -10,6 +10,7 @@ import { camera, save } from 'ionicons/icons';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ToastrService } from 'ngx-toastr';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import { MesasService, MesaTipo } from 'src/app/services/mesas.service';
 import { ModalController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -52,6 +53,7 @@ export class AltaMesaComponent implements OnInit {
 
   constructor(
     private toast: ToastrService,
+    private spinner: SpinnerService,
     private mesas: MesasService
   ) {
     addIcons({ camera, save });
@@ -74,8 +76,8 @@ export class AltaMesaComponent implements OnInit {
 
   // ====== UI helpers ======
   private isAndroid(): boolean { return Capacitor.getPlatform() === 'android'; }
-  private ok(msg: string)  { this.toast.success(msg, '', { positionClass: 'toast-center', timeOut: 2000 }); }
-  private err(msg: string) { this.toast.error(msg, 'Error', { positionClass: 'toast-center', timeOut: 3000 }); }
+  private ok(msg: string)  { this.toast.success(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 2000 }); }
+  private err(msg: string) { this.toast.error(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 3000 }); }
 
   public updateBtnDisabled() {
     this.btnDisabled =
@@ -136,7 +138,7 @@ export class AltaMesaComponent implements OnInit {
         shot = await this.getPhotoWithTimeout(12000, 'photos').catch(() => null);
       }
       if (!shot || !shot.webPath) {
-        this.err('No se pudo capturar la imagen.');
+        this.err('NO SE PUDO CAPTURAR LA IMAGEN');
         return;
       }
   
@@ -157,9 +159,9 @@ export class AltaMesaComponent implements OnInit {
       this.updateBtnDisabled();
     } catch (e: any) {
       const msg = String(e?.message || e || '');
-      if (msg.includes('timeout')) this.err('La cámara tardó demasiado. Reintentá.');
-      else if (msg.toLowerCase().includes('permission')) this.err('Necesitamos permiso de cámara.');
-      else if (!msg.includes('User cancelled')) this.err('No se pudo tomar la foto.');
+      if (msg.includes('timeout')) this.err('LA CÁMARA TARDÓ DEMASIADO. REINTENTÁ');
+      else if (msg.toLowerCase().includes('permission')) this.err('NECESITAMOS PERMISO DE CÁMARA');
+      else if (!msg.includes('User cancelled')) this.err('NO SE PUDO TOMAR LA FOTO');
     } finally {
       this.takingPhoto = false;
     }
@@ -282,7 +284,7 @@ export class AltaMesaComponent implements OnInit {
       numero: this.numero!, capacidad: this.capacidad!, tipo: this.tipo!,
       fotoBlob: this.fotoBlob!
     });
-    this.ok(`Mesa #${res.numero} creada.`);
+    this.ok(`MESA #${res.numero} CREADA`);
   }
 
   /** EDICIÓN (ajustá a los métodos reales de tu service si corresponde) */
@@ -294,7 +296,7 @@ export class AltaMesaComponent implements OnInit {
       tipo: this.tipo!,
       fotoBlob: this.fotoBlob || undefined
     });
-    this.ok(`Mesa #${this.numero} actualizada.`);
+    this.ok(`MESA #${this.numero} ACTUALIZADA`);
   }
 
   /** CARGA para modo edición */
@@ -326,77 +328,38 @@ export class AltaMesaComponent implements OnInit {
   }
 
   private info(msg: string) {
-    this.toast.info(msg, '', { positionClass: 'toast-center', timeOut: 2200 });
+    this.toast.info(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 2200 });
   }
   
 
   /** Botón guardar (decide crear/actualizar) */
-  // async guardar() {
-  //   if (this.btnDisabled) { this.err('Completá número, capacidad, tipo y foto.'); return; }
-  //   this.guardando = true; this.updateBtnDisabled();
-  //   try {
-  //     if (this.mesaId) await this.actualizarMesa(this.mesaId);
-  //     else await this.crearMesa();
-  //     console.log('[alta-mesa] voy a cerrar modal con role "saved"');
-  //     // cerrar si es modal → MesasComponent refresca lista con role 'saved'
-  //     try { await this.modalCtrl.dismiss(null, 'saved'); }
-  //     catch {
-  //       // si NO es modal, volvemos al listado
-  //       this.router.navigateByUrl('/admin/mesas', { replaceUrl: true });
-  //     }
-
-  //     // si siguiera en pantalla, reseteamos
-  //     this.resetForm();
-  //   } catch (e: any) {
-  //     this.err(e?.message || 'No se pudo guardar la mesa.');
-  //   } finally {
-  //     this.guardando = false; this.updateBtnDisabled();
-  //   }
-  // }
   async guardar() {
     if (this.mesaId && this.numero !== this.numeroOriginal) {
-      this.info('El número de mesa no se puede editar. Eliminá y creá otra.');
+      this.info('EL NÚMERO DE MESA NO SE PUEDE EDITAR. ELIMINÁ Y CREÁ OTRA');
       return;
     }
     if (this.btnDisabled) {
-      this.err('Completá número, capacidad, tipo y foto.');
+      this.err('COMPLETÁ NÚMERO, CAPACIDAD, TIPO Y FOTO');
       return;
     }
     this.guardando = true;
     this.updateBtnDisabled();
+    this.spinner.show({ immediate: true, minMs: 1000 });
   
     try {
       let mesaCreada: any = null;
   
       if (this.mesaId) {
-        
         // MODO EDICIÓN → actualizás y listo
         await this.actualizarMesa(this.mesaId);
       } else {
         // MODO CREACIÓN → creamos y armamos el payload para el merge optimista
-        // const res = await this.mesas.crearMesaViaFunction({
-        //   numero: this.numero!, capacidad: this.capacidad!, tipo: this.tipo!,
-        //   fotoBlob: this.fotoBlob!
-        // });
-  
-        // mesaCreada = {
-        //   id: res.id,
-        //   numero: this.numero!,
-        //   capacidad: this.capacidad!,
-        //   tipo: this.tipo!,
-        //   estado: 'libre',
-        //   foto_url: this.fotoPreview ?? null,
-        //   qr_text: res.qr_text ?? null,
-        //   created_at: new Date().toISOString(),
-        //   updated_at: new Date().toISOString(),
-        // };
-        // dentro de guardar(), rama de creación:
         const res = await this.mesas.crearMesaViaFunction({
           numero: this.numero!, capacidad: this.capacidad!, tipo: this.tipo!, fotoBlob: this.fotoBlob!
         });
-        this.ok(`Mesa #${res.numero} creada.`);   // ← toast visible inmediato
+        this.ok(`MESA #${res.numero} CREADA`);   // ← toast visible inmediato
 
-        // cerrar modal con role 'saved' + payload optimista (si ya lo tenés, dejalo igual)
+        // cerrar modal con role 'saved' + payload optimista
         const top = await this.modalCtrl.getTop();
         if (top) {
           await top.dismiss({ mesa: {
@@ -413,7 +376,6 @@ export class AltaMesaComponent implements OnInit {
         } else {
           this.router.navigateByUrl('/admin/mesas', { replaceUrl: true });
         }
-
       }
   
       console.log('[alta-mesa] voy a cerrar modal con role "saved"');
@@ -431,10 +393,11 @@ export class AltaMesaComponent implements OnInit {
       this.resetForm();
   
     } catch (e: any) {
-      this.err(e?.message || 'No se pudo guardar la mesa.');
+      this.err((e?.message || 'NO SE PUDO GUARDAR LA MESA').toUpperCase());
     } finally {
       this.guardando = false;
       this.updateBtnDisabled();
+      this.spinner.hide();
     }
   }
   

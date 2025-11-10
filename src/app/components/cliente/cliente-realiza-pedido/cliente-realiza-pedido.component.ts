@@ -3,6 +3,11 @@ import { MenuService, PlatoTipo } from 'src/app/services/menu.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { SupabaseService } from 'src/app/services/supabase.service';
+import { SpinnerService } from 'src/app/services/spinner.service';
+import { SesionService } from 'src/app/services/sesion.service';
+import { ModalController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
+import { DireccionDeliveryComponent, DireccionDelivery } from '../direccion-delivery/direccion-delivery.component';
 import {
   IonContent, IonGrid, IonRow, IonCol,
   IonButton, IonIcon, IonHeader, IonToolbar, IonTitle, IonCard } from '@ionic/angular/standalone';
@@ -50,7 +55,11 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
   
   // Propiedades para modo edición
   modoEdicion = false;
-  pedidoAEditar: number | null = null; 
+  pedidoAEditar: number | null = null;
+  
+  // Propiedades para delivery
+  tipoPedido: 'mesa' | 'delivery' = 'mesa';
+  direccionDelivery?: DireccionDelivery; 
 
   constructor(
     private pedidosSvc: PedidosService, 
@@ -58,7 +67,10 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
     private route: ActivatedRoute,
     private menuService: MenuService, 
     private toastr: ToastrService,
-    private supa: SupabaseService
+    private supa: SupabaseService,
+    private spinner: SpinnerService,
+    private sesion: SesionService,
+    private modalCtrl: ModalController
   ) {
     addIcons({
       'checkmark-outline': checkmarkOutline
@@ -68,26 +80,104 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
 
   async ngOnInit() {
     try {
+      // Obtener query params (usar firstValueFrom para esperar el primer valor)
+      const params = await firstValueFrom(this.route.queryParams);
+      const tipoPedido = params['tipo'];
+      
+      // Si es pedido delivery, verificar que es cliente registrado
+      if (tipoPedido === 'delivery') {
+        this.tipoPedido = 'delivery';
+        
+        // Esperar a que el perfil esté cargado
+        await this.esperarPerfilCargado();
+        
+        // Verificar que es cliente registrado (no anónimo)
+        const esClienteReg = this.sesion.esCliente() && 
+                             this.sesion.usuarioBD?.perfil === 'clienteReg';
+        
+        if (!esClienteReg) {
+          console.warn('[ClienteRealizaPedidoComponent] ❌ Cliente no registrado intentando hacer pedido repartidor');
+          this.toastr.error('SOLO LOS CLIENTES REGISTRADOS PUEDEN HACER PEDIDOS DE REPARTIDOR', '', {
+            positionClass: 'toast-center',
+            timeOut: 4000
+          });
+          // Redirigir a home-cliente
+          this.router.navigate(['/home-cliente']);
+          return;
+        }
+        
+        console.log('[ClienteRealizaPedidoComponent] ✅ Cliente registrado validado para pedido repartidor');
+      } else {
+        this.tipoPedido = 'mesa';
+      }
+      
+      // Verificar si está en modo edición
+      if (params['editar'] === 'true' && params['pedidoId']) {
+        this.modoEdicion = true;
+        this.pedidoAEditar = +params['pedidoId'];
+        this.cargarPedidoParaEditar(this.pedidoAEditar);
+      }
+      
       this.idCliente = await this.menuService.getClienteIdActual(); // uuid string
       this.menu = await this.menuService.obtenerMenu();
       
-      // Verificar si está en modo edición
-      this.route.queryParams.subscribe(params => {
-        if (params['editar'] === 'true' && params['pedidoId']) {
-          this.modoEdicion = true;
-          this.pedidoAEditar = +params['pedidoId'];
-          this.cargarPedidoParaEditar(this.pedidoAEditar);
-        }
-      });
-      
     } catch (err) {
       console.error(err);
-      this.toastr.error('No se pudo identificar al usuario.');
+      this.toastr.error('NO SE PUDO IDENTIFICAR AL USUARIO', '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
+    }
+  }
+  
+  /**
+   * Espera a que el perfil del usuario esté cargado en SesionService
+   */
+  private async esperarPerfilCargado(): Promise<void> {
+    // Si ya está cargado, retornar inmediatamente
+    if (this.sesion.perfilCargado) {
+      return;
+    }
+    
+    // Esperar hasta que esté cargado (máximo 5 segundos)
+    const maxWait = 5000;
+    const startTime = Date.now();
+    
+    while (!this.sesion.perfilCargado && (Date.now() - startTime) < maxWait) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    if (!this.sesion.perfilCargado) {
+      console.warn('[ClienteRealizaPedidoComponent] ⚠️ Timeout esperando perfil cargado');
     }
   }
 
+  /**
+   * Abre el modal para solicitar la dirección de entrega
+   */
+  private async solicitarDireccion(): Promise<DireccionDelivery | null> {
+    const modal = await this.modalCtrl.create({
+      component: DireccionDeliveryComponent,
+      canDismiss: true,
+      breakpoints: [0, 0.9],
+      initialBreakpoint: 0.9,
+    });
+
+    await modal.present();
+
+    const { role, data } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data) {
+      console.log('[ClienteRealizaPedidoComponent] ✅ Dirección confirmada:', data);
+      return data as DireccionDelivery;
+    }
+
+    console.log('[ClienteRealizaPedidoComponent] ❌ Dirección cancelada');
+    return null;
+  }
+
   private toastOk(msg: string) {
-    this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
+    this.toastr.success(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
   }
 
   async cargarPedidoParaEditar(pedidoId: number) {
@@ -136,11 +226,17 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
 
       console.log(`[ClienteRealizaPedidoComponent] ✅ Pedido ${pedidoId} cargado para editar:`, this.cantidadesProductosEnCarrito);
       
-      this.toastr.info('Pedido cargado para editar. Puedes modificar productos y cantidades.');
+      this.toastr.info('PEDIDO CARGADO PARA EDITAR. PUEDES MODIFICAR PRODUCTOS Y CANTIDADES', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
       
     } catch (error: any) {
       console.error('[ClienteRealizaPedidoComponent] Error al cargar pedido para editar:', error);
-      this.toastr.error('Error al cargar el pedido: ' + (error?.message || 'Error desconocido'));
+      this.toastr.error('ERROR AL CARGAR EL PEDIDO: ' + (error?.message || 'ERROR DESCONOCIDO').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
     }
   }
 
@@ -186,12 +282,12 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
       this.cantidadesProductosEnCarrito.forEach(item => {
         const tiempoDesdeMenu = tiemposMap.get(item.id) || 0;
         item.tiempo_preparacion = tiempoDesdeMenu;
-        console.log(`[ClienteRealizaPedidoComponent] Producto ${item.id}: tiempo ${tiempoDesdeMenu} min`);
+        console.log(`[ClienteRealizaPedidoComponent] Producto ${item.id}: tiempo ${tiempoDesdeMenu} minutos`);
       });
 
       // Recalcular tiempo total
       this.tiempoDeEspera = Math.max(...this.cantidadesProductosEnCarrito.map(item => item.tiempo_preparacion), 0);
-      console.log(`[ClienteRealizaPedidoComponent] Tiempo total recalculado: ${this.tiempoDeEspera} min`);
+      console.log(`[ClienteRealizaPedidoComponent] Tiempo total recalculado: ${this.tiempoDeEspera} minutos`);
 
     } catch (error) {
       console.error('[ClienteRealizaPedidoComponent] Error al cargar tiempos de preparación:', error);
@@ -223,7 +319,7 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
         console.log(`[ClienteRealizaPedidoComponent] Producto ${item.id}: ${item.cantidad} x $${item.precio_unitario} = $${subtotal}`);
       }
 
-      console.log(`[ClienteRealizaPedidoComponent] Total calculado: $${nuevoTotal}, Tiempo: ${maxTiempo} min`);
+      console.log(`[ClienteRealizaPedidoComponent] Total calculado: $${nuevoTotal}, Tiempo: ${maxTiempo} minutos`);
 
       if (nuevoTotal <= 0) {
         throw new Error('El total del pedido debe ser mayor a 0');
@@ -275,12 +371,26 @@ async finalizarPedido() {
   if (this.cargando || this.pedidoRealizado) return;
 
   if (!this.cantidadesProductosEnCarrito.length) {
-    this.toastr.info('Agregá al menos un producto.');
+    this.toastr.info('AGREGÁ AL MENOS UN PRODUCTO', '', {
+      positionClass: 'toast-center',
+      timeOut: 3000
+    });
     return;
+  }
+
+  // Si es pedido repartidor, primero pedir la dirección
+  if (this.tipoPedido === 'delivery' && !this.direccionDelivery) {
+    const direccion = await this.solicitarDireccion();
+    if (!direccion) {
+      // Usuario canceló, no crear pedido
+      return;
+    }
+    this.direccionDelivery = direccion;
   }
 
   try {
     this.cargando = true;
+    this.spinner.show({ immediate: true });
 
     let res: any;
 
@@ -293,12 +403,14 @@ async finalizarPedido() {
       console.log('[ClienteRealizaPedidoComponent] Creando nuevo pedido...');
       res = await this.menuService.crearPedido({
         idCliente: this.idCliente,                 // uuid del usuario
-        productos: this.cantidadesProductosEnCarrito
+        productos: this.cantidadesProductosEnCarrito,
+        tipoPedido: this.tipoPedido,
+        direccionDelivery: this.direccionDelivery
       });
     }
 
     // espero que res traiga: { id: number, total: number, tiempoEstimado: number }
-    if (!res?.id) throw new Error('La API no devolvió un id de pedido.');
+    if (!res?.id) throw new Error('LA API NO DEVOLVIÓ UN ID DE PEDIDO');
 
     // ✅ marcar pedido actual (queda disponible en todos los tabs, p.ej. Juegos)
     this.pedidosSvc.setPedidoActual({ id: Number(res.id) });
@@ -308,9 +420,9 @@ async finalizarPedido() {
 
     // Mensaje de éxito diferente según el modo
     if (this.modoEdicion) {
-      this.toastOk('¡Pedido actualizado y enviado nuevamente!');
+      this.toastOk('PEDIDO ACTUALIZADO Y ENVIADO NUEVAMENTE');
     } else {
-      this.toastOk('¡Pedido enviado!');
+      this.toastOk('PEDIDO ENVIADO');
     }
 
     // Navegar a "pedido en curso" con state útil para pintar la UI al toque
@@ -323,9 +435,13 @@ async finalizarPedido() {
     });
 
   } catch (e: any) {
-    this.toastr.error(e?.message || 'Error creando el pedido.');
+    this.toastr.error((e?.message || 'ERROR CREANDO EL PEDIDO').toUpperCase(), '', {
+      positionClass: 'toast-center',
+      timeOut: 4000
+    });
   } finally {
     this.cargando = false;
+    this.spinner.hide();
   }
 }
   agregarProducto(

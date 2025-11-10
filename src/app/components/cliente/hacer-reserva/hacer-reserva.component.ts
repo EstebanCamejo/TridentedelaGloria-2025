@@ -107,7 +107,10 @@ export class HacerReservaComponent implements OnInit {
     // Verificar que sea cliente registrado
     const esRegistrado = await this.reservasService.esClienteRegistrado();
     if (!esRegistrado) {
-      this.toast.error('Solo los clientes registrados pueden hacer reservas');
+      this.toast.error('SOLO LOS CLIENTES REGISTRADOS PUEDEN HACER RESERVAS', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
       this.router.navigate(['/home-cliente']);
       return;
     }
@@ -190,7 +193,10 @@ export class HacerReservaComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error al cargar reservas:', error);
-      this.toast.error('Error al cargar tus reservas actuales');
+      this.toast.error('ERROR AL CARGAR TUS RESERVAS ACTUALES', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.cargandoReservas = false;
     }
@@ -201,19 +207,19 @@ export class HacerReservaComponent implements OnInit {
    */
   validarFormulario(): { valido: boolean; mensaje: string } {
     if (!this.fecha) {
-      return { valido: false, mensaje: 'Debes seleccionar una fecha' };
+      return { valido: false, mensaje: 'DEBÉS SELECCIONAR UNA FECHA' };
     }
 
     if (!this.hora) {
-      return { valido: false, mensaje: 'Debes seleccionar una hora' };
+      return { valido: false, mensaje: 'DEBÉS SELECCIONAR UNA HORA' };
     }
 
     if (!this.cantidadComensales || this.cantidadComensales < 1) {
-      return { valido: false, mensaje: 'Debes indicar la cantidad de comensales (mínimo 1)' };
+      return { valido: false, mensaje: 'DEBÉS INDICAR LA CANTIDAD DE COMENSALES (MÍNIMO 1)' };
     }
 
     if (this.cantidadComensales > 20) {
-      return { valido: false, mensaje: 'Para reservas de más de 20 personas, contacta al restaurante directamente' };
+      return { valido: false, mensaje: 'PARA RESERVAS DE MÁS DE 20 PERSONAS, CONTACTÁ AL RESTAURANTE DIRECTAMENTE' };
     }
 
     return { valido: true, mensaje: '' };
@@ -242,7 +248,10 @@ export class HacerReservaComponent implements OnInit {
     // Validar formulario
     const validacion = this.validarFormulario();
     if (!validacion.valido) {
-      this.toast.warning(validacion.mensaje);
+      this.toast.warning(validacion.mensaje, '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
       return;
     }
 
@@ -253,7 +262,10 @@ export class HacerReservaComponent implements OnInit {
     console.log('🔍 Debug - Usuario BD completo:', this.sesion.usuarioBD);
     
     if (!userId) {
-      this.toast.error('No se pudo identificar tu usuario. Por favor, inicia sesión nuevamente.');
+      this.toast.error('NO SE PUDO IDENTIFICAR TU USUARIO. POR FAVOR, INICIÁ SESIÓN NUEVAMENTE', '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
       return;
     }
 
@@ -275,7 +287,10 @@ export class HacerReservaComponent implements OnInit {
       );
 
       if (!disponibilidad.valida) {
-        this.toast.warning(disponibilidad.mensaje);
+        this.toast.warning(disponibilidad.mensaje.toUpperCase(), '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
         return;
       }
 
@@ -291,7 +306,10 @@ export class HacerReservaComponent implements OnInit {
 
       await this.reservasService.crearReserva(nuevaReserva);
 
-      this.toast.success('¡Reserva creada exitosamente! Está pendiente de confirmación.');
+      this.toast.success('¡RESERVA CREADA EXITOSAMENTE! ESTÁ PENDIENTE DE CONFIRMACIÓN', '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
 
       // Limpiar formulario
       this.limpiarFormulario();
@@ -301,7 +319,10 @@ export class HacerReservaComponent implements OnInit {
 
     } catch (error: any) {
       console.error('Error al crear reserva:', error);
-      this.toast.error(error?.message || 'Error al crear la reserva. Intenta nuevamente.');
+      this.toast.error((error?.message || 'ERROR AL CREAR LA RESERVA. INTENTÁ NUEVAMENTE').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
     } finally {
       this.spinner.hide();
     }
@@ -314,27 +335,35 @@ export class HacerReservaComponent implements OnInit {
     if (!reserva.id) return;
 
     const alert = await this.alertController.create({
-      header: 'Cancelar Reserva',
-      message: `¿Estás seguro de que deseas cancelar la reserva del ${this.formatearFecha(reserva.fecha)} a las ${reserva.hora}?`,
+      header: 'CANCELAR RESERVA',
+      message: `¿ESTÁS SEGURO DE QUE DESEÁS CANCELAR LA RESERVA DEL ${this.formatearFecha(reserva.fecha).toUpperCase()} A LAS ${reserva.hora}?`,
       buttons: [
         {
-          text: 'Cancelar',
+          text: 'CANCELAR',
           role: 'cancel',
           cssClass: 'secondary'
         },
         {
-          text: 'Sí, Cancelar',
+          text: 'SÍ, CANCELAR',
           handler: async () => {
             try {
               this.cargando = true;
+              this.spinner.show({ immediate: true });
               await this.reservasService.cancelarReserva(reserva.id!);
-              this.toast.success('Reserva cancelada exitosamente');
+              this.toast.success('RESERVA CANCELADA EXITOSAMENTE', '', {
+                positionClass: 'toast-center',
+                timeOut: 3000
+              });
               await this.cargarReservasActivas();
             } catch (error) {
               console.error('Error al cancelar reserva:', error);
-              this.toast.error('Error al cancelar la reserva. Intenta nuevamente.');
+              this.toast.error('ERROR AL CANCELAR LA RESERVA. INTENTÁ NUEVAMENTE', '', {
+                positionClass: 'toast-center',
+                timeOut: 4000
+              });
             } finally {
               this.cargando = false;
+              this.spinner.hide();
             }
           }
         }
@@ -391,15 +420,15 @@ export class HacerReservaComponent implements OnInit {
   formatearEstado(estado: string): string {
     switch (estado) {
       case 'pendiente confirmacion':
-        return 'Pendiente';
+        return 'PENDIENTE';
       case 'confirmada':
-        return 'Confirmada';
+        return 'CONFIRMADA';
       case 'rechazada':
-        return 'Rechazada';
+        return 'RECHAZADA';
       case 'cancelada':
-        return 'Cancelada';
+        return 'CANCELADA';
       default:
-        return estado;
+        return estado.toUpperCase();
     }
   }
 

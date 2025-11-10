@@ -3,7 +3,7 @@
   <ion-header class="client-header">
     <ion-toolbar>
       <div class="nav-pill">
-        Ingresar los datos del plato
+        INGRESAR LOS DATOS DEL PLATO
       </div>
     </ion-toolbar>
   </ion-header>
@@ -15,7 +15,7 @@
         novalidate>
       <!-- Nombre -->
       <div class="form-group">
-        <label for="nombre" class="subTittle">Nombre</label>
+        <label for="nombre" class="subTittle">NOMBRE</label>
         <input id="nombre"
               name="nombre"
               type="text"
@@ -23,16 +23,16 @@
               #nombreModel="ngModel"
               required
               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]+" 
-              placeholder="Nombre" />
+              placeholder="NOMBRE" />
         <small *ngIf="showError(nombreModel, registerForm)"
               style="color:#ffd1d1;font-weight:600;">
-          El nombre es obligatorio.
+          EL NOMBRE ES OBLIGATORIO
         </small>
       </div>
 
       <!-- Descripción -->
       <div class="form-group">
-        <label for="descripcion" class="subTittle">Descripción</label>
+        <label for="descripcion" class="subTittle">DESCRIPCIÓN</label>
         <input id="descripcion"
               name="descripcion"
               type="text"
@@ -41,16 +41,16 @@
               required
               pattern=".{10,}"
               maxlength="300"
-              placeholder="Descripción" />
+              placeholder="DESCRIPCIÓN" />
         <small *ngIf="showError(descripcionModel, registerForm)"
               style="color:#ffd1d1;font-weight:600;">
-          Ingresá una descripción válida.
+          INGRESÁ UNA DESCRIPCIÓN VÁLIDA
         </small>
       </div>
 
       <!-- Tiempo de elaboración -->
       <div class="form-group">
-        <label for="tiempoElaboracion" class="subTittle">Tiempo de elaboración (en minutos)</label>
+        <label for="tiempoElaboracion" class="subTittle">TIEMPO DE ELABORACIÓN (EN MINUTOS)</label>
         <input id="tiempoElaboracion"
               name="tiempoElaboracion"
               type="text"
@@ -60,16 +60,16 @@
               inputmode="numeric"
               pattern="^[0-9]{1,2}$"
               maxlength="2"
-              placeholder="Tiempo de elaboración" />
+              placeholder="TIEMPO DE ELABORACIÓN" />
         <small *ngIf="showError(tiempoElaboracionModel, registerForm)"
               style="color:#ffd1d1;font-weight:600;">
-          El tiempo de elaboración debe ser numérico y no puede ser mayor a 99 minutos.
+          EL TIEMPO DE ELABORACIÓN DEBE SER NUMÉRICO Y NO PUEDE SER MAYOR A 99 MINUTOS
         </small>
       </div>
 
         <!-- Precio -->
       <div class="form-group">
-        <label for="precio" class="subTittle">Precio</label>
+        <label for="precio" class="subTittle">PRECIO</label>
         <input id="precio"
               name="precio"
               type="text"
@@ -79,10 +79,10 @@
               inputmode="numeric"
               pattern="^\d+(\.\d{1,2})?$"
               maxlength="10"
-              placeholder="Precio" />
+              placeholder="PRECIO" />
         <small *ngIf="showError(precioModel, registerForm)"
               style="color:#ffd1d1;font-weight:600;">
-          El precio solo puede contener números con hasta dos decimales y no puede contener más de 10 caracteres.
+          EL PRECIO SOLO PUEDE CONTENER NÚMEROS CON HASTA DOS DECIMALES Y NO PUEDE CONTENER MÁS DE 10 CARACTERES
         </small>
       </div>
 
@@ -95,7 +95,7 @@
               #fileInput />
         <ion-button expand="full" (click)="fileInput.click()" 
                     [disabled]="fotos.length >= 3">
-          Agregar fotos
+          AGREGAR FOTOS
         </ion-button>
 
 <ion-grid>
@@ -117,7 +117,7 @@
 
       <ion-button expand="full" 
             type="submit">
-        Confirmar (3 fotos)
+        CONFIRMAR (3 FOTOS)
       </ion-button>
 
       <div *ngIf="errorMsg" style="margin-top:8px;color:#ffd1d1;font-weight:600;">

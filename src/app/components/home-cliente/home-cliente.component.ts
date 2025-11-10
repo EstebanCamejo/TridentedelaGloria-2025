@@ -5,16 +5,21 @@ import { CommonModule } from '@angular/common';
 import {  IonContent, IonButton, IonIcon, IonHeader, IonToolbar, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline } from 'ionicons/icons';
-import { Observable } from 'rxjs';
+import { qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline, downloadOutline } from 'ionicons/icons';
+import { Observable, Subscription } from 'rxjs';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { Router } from '@angular/router';
 import { QrPayload, QrService } from 'src/app/services/qr.service';
 import { QrHtml5Service } from 'src/app/services/qr-html5.service';
 import { ClienteRealtimeService } from 'src/app/services/cliente-realtime.service';
 import { ToastrService } from 'ngx-toastr';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import { ReservasService } from 'src/app/services/reservas.service';
 import { SesionService } from 'src/app/services/sesion.service';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { AppLauncher } from '@capacitor/app-launcher';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
 @Component({
   selector: 'app-home-cliente',
@@ -29,6 +34,8 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
   tieneMesaAsignada = false;
   loadingLiberar = false;
   esClienteRegistrado = false;
+  facturaUrl: string | null = null; // URL de la factura cuando llega la notificación
+  private facturaSubscription?: Subscription;
 
   constructor(
     private supa: SupabaseService,
@@ -38,11 +45,12 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     private zone: NgZone,
     private clienteRt: ClienteRealtimeService,  // 🆕 Servicio de notificaciones para cliente
     private toast: ToastrService,
+    private spinner: SpinnerService,
     private reservasService: ReservasService,
-    private sesion: SesionService
+    private sesion: SesionService,
     private alertCtrl: AlertController
   ) {
-    addIcons({ qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline });
+    addIcons({ qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline, downloadOutline });
     this.email$ = this.supa.authEmail$;
     console.log('🏗️ [HomeCliente] Constructor ejecutado');
   }
@@ -67,6 +75,47 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       await this.verificarEstadoMesa();
       console.log('✅ [HomeCliente] Estado de mesa verificado');
 
+      // 🆕 Suscribirse a eventos de factura recibida (cuando llega el broadcast)
+      this.facturaSubscription = this.clienteRt.facturaRecibida$.subscribe((facturaData) => {
+        console.log('[HomeCliente] 📄 Factura recibida desde broadcast:', facturaData);
+        this.facturaUrl = facturaData.pdfUrl;
+        
+        // Mostrar mensaje de confirmación
+        this.toast.success('TU FACTURA ESTÁ LISTA', '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
+        
+        // Scroll al mensaje si está visible
+        setTimeout(() => {
+          const facturaSection = document.querySelector('.factura-message');
+          if (facturaSection) {
+            facturaSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 500);
+      });
+
+      // 🆕 Listener para cuando se toca una notificación
+      LocalNotifications.addListener('localNotificationActionPerformed', async (notification) => {
+        console.log('[HomeCliente] 🔔 Notificación tocada:', notification);
+        
+        const extra = notification.notification?.extra;
+        if (extra?.tipo === 'factura_lista' && extra?.pdfUrl) {
+          console.log('[HomeCliente] 📄 Factura recibida desde notificación, guardando URL:', extra.pdfUrl);
+          
+          // Guardar la URL de la factura para mostrarla en el mensaje alusivo
+          this.facturaUrl = extra.pdfUrl;
+          
+          // Intentar abrir directamente cuando se toca la notificación
+          this.zone.run(async () => {
+            await this.descargarFactura();
+          });
+        } else if (extra?.route) {
+          // Navegar a la ruta especificada (para otras notificaciones)
+          this.router.navigate([extra.route]);
+        }
+      });
+
     } catch (error) {
       console.error('❌ [HomeCliente] Error en servicios (pero verificación de cliente ya completada):', error);
     }
@@ -74,6 +123,10 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Limpiar suscripciones
+    if (this.facturaSubscription) {
+      this.facturaSubscription.unsubscribe();
+    }
     // Limpiar el servicio al destruir el componente
     this.clienteRt.dispose();
   }
@@ -178,8 +231,8 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
         if (!payload) {
           console.warn('[scanQr] ⚠️ Payload no válido');
           const alert = await this.alertCtrl.create({
-            header: 'QR no válido',
-            message: 'El código QR escaneado no es válido. Por favor intenta nuevamente.',
+            header: 'QR NO VÁLIDO',
+            message: 'EL CÓDIGO QR ESCANEADO NO ES VÁLIDO. POR FAVOR INTENTA NUEVAMENTE',
             buttons: [
               {
                 text: 'CONFIRMAR',
@@ -230,8 +283,8 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       const userId = this.supa.idUsuario;
       if (!userId) {
         const alert = await this.alertCtrl.create({
-          header: 'Error de identificación',
-          message: 'No se pudo identificar el usuario. Por favor inicia sesión nuevamente.',
+          header: 'ERROR DE IDENTIFICACIÓN',
+          message: 'NO SE PUDO IDENTIFICAR EL USUARIO. POR FAVOR INICIA SESIÓN NUEVAMENTE',
           buttons: [
             {
               text: 'CONFIRMAR',
@@ -259,8 +312,8 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       if (error) {
         console.error('[handleMesaScan] Error al consultar lista_espera:', error);
         const alert = await this.alertCtrl.create({
-          header: 'Error',
-          message: 'Error al verificar tu estado. Intenta nuevamente.',
+          header: 'ERROR',
+          message: 'ERROR AL VERIFICAR TU ESTADO. INTENTA NUEVAMENTE',
           buttons: [
             {
               text: 'CONFIRMAR',
@@ -276,8 +329,8 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       // CASO 1: No tiene mesa asignada aún (estado 'esperando')
       if (!waitRow || waitRow.estado === 'esperando') {
         const alert = await this.alertCtrl.create({
-          header: 'Esperando asignación',
-          message: '⏳ Aún no tienes una mesa asignada.\n\nPor favor espera a que el maitre te asigne una mesa.',
+          header: 'ESPERANDO ASIGNACIÓN',
+          message: 'AÚN NO TIENES UNA MESA ASIGNADA.\n\nPOR FAVOR ESPERA A QUE EL MAÎTRE TE ASIGNE UNA MESA',
           buttons: [
             {
               text: 'CONFIRMAR',
@@ -295,8 +348,8 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
         if (!waitRow.mesa_id) {
           console.error('[handleMesaScan] Mesa asignada sin mesa_id');
           const alert = await this.alertCtrl.create({
-            header: 'Error',
-            message: 'Error: mesa asignada incorrectamente. Contacta al personal.',
+            header: 'ERROR',
+            message: 'MESA ASIGNADA INCORRECTAMENTE. CONTACTA AL PERSONAL',
             buttons: [
               {
                 text: 'CONFIRMAR',
@@ -321,10 +374,10 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
           const numeroAsignado = mesaAsignada?.numero ?? '?';
           
           const alert = await this.alertCtrl.create({
-            header: 'Mesa incorrecta',
-            message: `❌ Esta no es tu mesa asignada.\n\n` +
-                    `Tu mesa asignada es la N° ${numeroAsignado}.\n\n` +
-                    `Por favor escanea el QR de la mesa ${numeroAsignado}.`,
+            header: 'MESA INCORRECTA',
+            message: `ESTA NO ES TU MESA ASIGNADA.\n\n` +
+                    `TU MESA ASIGNADA ES LA N° ${numeroAsignado}.\n\n` +
+                    `POR FAVOR ESCANEA EL QR DE LA MESA ${numeroAsignado}`,
             buttons: [
               {
                 text: 'CONFIRMAR',
@@ -353,8 +406,8 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     } catch (e: any) {
       console.error('[handleMesaScan] Error:', e);
       const alert = await this.alertCtrl.create({
-        header: 'Error',
-        message: 'Error al verificar la mesa: ' + (e?.message || 'Error desconocido'),
+        header: 'ERROR',
+        message: 'ERROR AL VERIFICAR LA MESA: ' + (e?.message || 'ERROR DESCONOCIDO').toUpperCase(),
         buttons: [
           {
             text: 'CONFIRMAR',
@@ -421,14 +474,20 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
 
       // Enviar notificación al mozo
       await this.supa.solicitarCuenta(waitStatus.numero_mesa);
-      this.toast.success('Solicitud de cuenta enviada al mozo');
+      this.toast.success('SOLICITUD DE CUENTA ENVIADA AL MOZO', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
 
       // Navegar al detalle de cuenta
       this.router.navigate(['/cliente-detalle-cuenta']);
       
     } catch (error: any) {
       console.error('Error al solicitar cuenta:', error);
-      this.toast.error(error?.message || 'Error al solicitar la cuenta');
+      this.toast.error((error?.message || 'ERROR AL SOLICITAR LA CUENTA').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
     } finally {
       this.loadingLiberar = false;
     }
@@ -490,19 +549,299 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
    */
   hacerReserva() {
     if (!this.esClienteRegistrado) {
-      this.toast.warning('Solo los clientes registrados pueden hacer reservas');
+      this.toast.warning('SOLO LOS CLIENTES REGISTRADOS PUEDEN HACER RESERVAS', '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
       return;
     }
     this.router.navigate(['/cliente/hacer-reserva']);
   }
 
   /**
-   * Navega a la página de pedido de delivery
+   * Navega a la página de pedido de repartidor
+   * Solo permite acceso a clientes registrados
    */
   hacerPedidoDelivery() {
-    // Por ahora navega a la misma página de pedidos, pero podrías crear una específica para delivery
+    // Verificar que es cliente registrado
+    if (!this.esClienteRegistrado) {
+      this.toast.error('SOLO LOS CLIENTES REGISTRADOS PUEDEN HACER PEDIDOS DE REPARTIDOR', '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
+      return;
+    }
+    
+    // Si es cliente registrado, navegar a la página de pedidos repartidor
     this.router.navigate(['/cliente/cliente-realiza-pedido'], { 
       queryParams: { tipo: 'delivery' } 
     });
+  }
+
+  /**
+   * Descargar/Abrir factura PDF
+   */
+  async descargarFactura() {
+    if (!this.facturaUrl) {
+      this.toast.error('NO HAY FACTURA DISPONIBLE', '', {
+        positionClass: 'toast-center',
+        timeOut: 2000
+      });
+      return;
+    }
+
+    try {
+      console.log('[HomeCliente] 📄 Descargando y abriendo factura:', this.facturaUrl);
+      
+      this.spinner.show({ immediate: true });
+      
+      // Mostrar toast de carga
+      const loadingToast = this.toast.info('DESCARGANDO FACTURA...', '', {
+        positionClass: 'toast-center',
+        disableTimeOut: true,
+        timeOut: 0
+      });
+
+      // 1. Descargar el archivo usando fetch para evitar problemas de CORS
+      const response = await fetch(this.facturaUrl);
+      if (!response.ok) {
+        throw new Error(`Error al descargar: ${response.status} ${response.statusText}`);
+      }
+
+      // 2. Convertir a blob
+      const blob = await response.blob();
+      console.log('[HomeCliente] ✅ Blob creado, tamaño:', blob.size, 'bytes');
+
+      // 3. Convertir blob a base64 para usar con Filesystem
+      const reader = new FileReader();
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          const base64String = (reader.result as string).split(',')[1]; // Remover el prefijo data:application/pdf;base64,
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const fileName = `factura_${Date.now()}.pdf`;
+      let downloadSuccess = false;
+
+      // 4. MÉTODO PRINCIPAL: Si estamos en móvil, usar Filesystem para guardar directamente
+      if (Capacitor.isNativePlatform()) {
+        try {
+          console.log('[HomeCliente] 📱 Guardando archivo con Filesystem...');
+          
+          // Para archivos binarios, no usar encoding, pasar base64 directamente
+          // Guardar en el directorio de documentos (accesible para el usuario)
+          const result = await Filesystem.writeFile({
+            path: fileName,
+            data: base64Data,
+            directory: Directory.Documents, // Usa Documents que es más accesible que Data
+            // No especificar encoding para archivos binarios
+          });
+          
+          console.log('[HomeCliente] ✅ Archivo guardado en:', result.uri);
+          downloadSuccess = true;
+          
+          // Obtener la URI pública para abrir el archivo
+          const readResult = await Filesystem.getUri({
+            path: fileName,
+            directory: Directory.Documents,
+          });
+          
+          this.toast.success('FACTURA GUARDADA CORRECTAMENTE', '', {
+            positionClass: 'toast-center',
+            timeOut: 3000
+          });
+          
+          // Intentar abrir el archivo guardado
+          try {
+            await AppLauncher.openUrl({ url: readResult.uri });
+            console.log('[HomeCliente] ✅ Archivo abierto desde:', readResult.uri);
+          } catch (openError) {
+            console.log('[HomeCliente] No se pudo abrir automáticamente, pero está guardado');
+          }
+        } catch (filesystemError: any) {
+          console.error('[HomeCliente] ❌ Error al guardar con Filesystem:', filesystemError);
+          // Intentar con Directory.Data como fallback
+          try {
+            const result = await Filesystem.writeFile({
+              path: fileName,
+              data: base64Data,
+              directory: Directory.Data,
+              // No especificar encoding para archivos binarios
+            });
+            console.log('[HomeCliente] ✅ Archivo guardado en Data:', result.uri);
+            downloadSuccess = true;
+          } catch (fallbackError) {
+            console.error('[HomeCliente] ❌ Fallback también falló:', fallbackError);
+          }
+        }
+      }
+
+      // 5. MÉTODO WEB/FALLBACK: Para web o si Filesystem falló, usar blob URL
+      if (!Capacitor.isNativePlatform() || !downloadSuccess) {
+        try {
+          const blobUrl = URL.createObjectURL(blob);
+          
+          const downloadLink = document.createElement('a');
+          downloadLink.href = blobUrl;
+          downloadLink.download = fileName;
+          downloadLink.style.display = 'none';
+          downloadLink.setAttribute('download', fileName);
+          
+          document.body.appendChild(downloadLink);
+          
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          });
+          
+          downloadLink.dispatchEvent(clickEvent);
+          downloadLink.click();
+          
+          console.log('[HomeCliente] ✅ Click de descarga ejecutado (web)');
+          downloadSuccess = true;
+          
+          setTimeout(() => {
+            if (document.body.contains(downloadLink)) {
+              document.body.removeChild(downloadLink);
+            }
+            URL.revokeObjectURL(blobUrl);
+          }, 500);
+        } catch (webError) {
+          console.warn('[HomeCliente] ⚠️ Método web falló:', webError);
+        }
+      }
+
+      // 7. Abrir en el navegador para visualización (siempre)
+      if (this.facturaUrl) {
+        setTimeout(() => {
+          const viewLink = document.createElement('a');
+          viewLink.href = this.facturaUrl!;
+          viewLink.target = '_blank';
+          viewLink.rel = 'noopener noreferrer';
+          viewLink.style.display = 'none';
+          
+          document.body.appendChild(viewLink);
+          viewLink.click();
+          
+          setTimeout(() => {
+            if (document.body.contains(viewLink)) {
+              document.body.removeChild(viewLink);
+            }
+          }, 100);
+        }, 200);
+      }
+
+      // 8. También intentar con AppLauncher en móvil
+      if (Capacitor.isNativePlatform() && this.facturaUrl) {
+        setTimeout(async () => {
+          try {
+            await AppLauncher.openUrl({ url: this.facturaUrl! });
+            console.log('[HomeCliente] ✅ También abierto con AppLauncher');
+          } catch (launcherError) {
+            console.log('[HomeCliente] AppLauncher no disponible');
+          }
+        }, 500);
+      }
+
+      // Limpiar blob URL si se creó (solo en web)
+      if (!Capacitor.isNativePlatform() || !downloadSuccess) {
+        // El blobUrl ya se revocó en el método web
+      }
+
+      // Cerrar toast de carga y mostrar éxito
+      if (loadingToast && typeof loadingToast === 'object' && 'toastId' in loadingToast) {
+        this.toast.clear((loadingToast as any).toastId);
+      }
+      
+      this.spinner.hide();
+      
+      if (downloadSuccess) {
+        this.toast.success('FACTURA DESCARGADA Y ABIERTA', '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
+      } else {
+        this.toast.warning('FACTURA ABIERTA. SI NO SE DESCARGÓ, USA EL MENÚ DEL NAVEGADOR PARA GUARDARLA', '', {
+          positionClass: 'toast-center',
+          timeOut: 4000
+        });
+      }
+      
+    } catch (error: any) {
+      console.error('[HomeCliente] ❌ Error al descargar factura:', error);
+      this.spinner.hide();
+      
+      // Fallback: intentar abrir directamente sin descarga
+      try {
+        const link = document.createElement('a');
+        link.href = this.facturaUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          if (document.body.contains(link)) {
+            document.body.removeChild(link);
+          }
+        }, 100);
+        
+        this.toast.warning('NO SE PUDO DESCARGAR, PERO SE ABRIÓ EN EL NAVEGADOR', '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
+      } catch (fallbackError) {
+        // Si todo falla, mostrar alert
+        const alert = await this.alertCtrl.create({
+          header: 'ERROR AL DESCARGAR FACTURA',
+          message: `NO SE PUDO DESCARGAR LA FACTURA. PUEDES COPIAR ESTE ENLACE:\n\n${this.facturaUrl}`,
+          buttons: [
+            {
+              text: 'COPIAR URL',
+              handler: async () => {
+                try {
+                  if (navigator.clipboard) {
+                    await navigator.clipboard.writeText(this.facturaUrl || '');
+                    this.toast.success('URL COPIADA AL PORTAPAPELES', '', {
+                      positionClass: 'toast-center',
+                      timeOut: 2000
+                    });
+                  } else {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = this.facturaUrl || '';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    this.toast.success('URL COPIADA', '', {
+                      positionClass: 'toast-center',
+                      timeOut: 2000
+                    });
+                  }
+                } catch (copyError) {
+                  console.error('Error al copiar:', copyError);
+                }
+              }
+            },
+            {
+              text: 'CERRAR',
+              role: 'cancel'
+            }
+          ],
+          cssClass: 'custom-alert'
+        });
+        await alert.present();
+      }
+    }
+  }
+
+  /**
+   * Cerrar mensaje de factura
+   */
+  cerrarMensajeFactura() {
+    this.facturaUrl = null;
   }
 }

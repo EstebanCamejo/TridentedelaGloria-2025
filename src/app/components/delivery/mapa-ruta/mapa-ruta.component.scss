@@ -1,0 +1,101 @@
+.mapa-content {
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.info-panel {
+  background: #ffffff; /* Fondo claro por defecto */
+  padding: 16px;
+  border-bottom: 2px solid #e0e0e0;
+  z-index: 1000;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  /* Tema oscuro */
+  @media (prefers-color-scheme: dark) {
+    background: #1a1a1a;
+    border-bottom-color: #333333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: #1a1a1a; /* Texto oscuro por defecto - aplica a todo el texto del elemento */
+  font-weight: 500;
+  
+  /* Tema oscuro - texto claro */
+  @media (prefers-color-scheme: dark) {
+    color: #e0e0e0; /* Texto claro en tema oscuro */
+  }
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  ion-icon {
+    color: #7b2f2f; /* Color primario */
+    font-size: 20px;
+    flex-shrink: 0;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #ff6b6b; /* Color más claro para tema oscuro */
+    }
+  }
+
+  ion-spinner {
+    margin-right: 8px;
+    --color: #7b2f2f;
+    
+    @media (prefers-color-scheme: dark) {
+      --color: #ff6b6b;
+    }
+  }
+
+  strong {
+    color: #2c2c2c; /* Texto más oscuro para labels */
+    margin-right: 6px;
+    font-weight: 700;
+    font-size: 1rem;
+    
+    @media (prefers-color-scheme: dark) {
+      color: #ffffff; /* Texto blanco en tema oscuro */
+    }
+  }
+  
+  /* Texto del valor (dirección, distancia) dentro de span */
+  span {
+    color: inherit; /* Hereda el color del .info-item */
+    font-weight: 500;
+  }
+}
+
+.map-container {
+  width: 100%;
+  height: calc(100vh - 200px);
+  min-height: 400px;
+  position: relative;
+}
+
+.action-buttons {
+  padding: 16px;
+  background: var(--ion-background-color);
+  border-top: 1px solid var(--ion-color-light);
+  z-index: 1000;
+  position: relative;
+
+  ion-button {
+    margin-bottom: 8px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+

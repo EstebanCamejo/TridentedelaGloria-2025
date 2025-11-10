@@ -58,7 +58,7 @@
 
 <ion-header>
   <ion-toolbar>
-    <ion-title>Mesas</ion-title>
+    <ion-title>MESAS</ion-title>
 
     <ion-buttons slot="end">
       <ion-button (click)="cargarMesas()">
@@ -89,12 +89,12 @@
 
       <ion-label>
         <div class="row1">
-          <span class="nro">Mesa #{{ m.numero }}</span>
-          <ion-badge [color]="estadoColor(m.estado)">{{ m.estado }}</ion-badge>
+          <span class="nro">MESA #{{ m.numero }}</span>
+          <ion-badge [color]="estadoColor(m.estado)">{{ estadoTexto(m.estado) }}</ion-badge>
         </div>
         <div class="row2">
-          <span>Tipo: {{ m.tipo }}</span>
-          <span>Cap: {{ m.capacidad }}</span>
+          <span>TIPO: {{ m.tipo.toUpperCase() }}</span>
+          <span>CAP: {{ m.capacidad }}</span>
         </div>
       </ion-label>
 

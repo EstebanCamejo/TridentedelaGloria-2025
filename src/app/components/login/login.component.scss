@@ -23,12 +23,29 @@
 // :host-context(.ion-page-hidden) .spinner {
 //   display: none !important;
 // }
-/* Sube el FAB unos px; respeta safe-area en móviles con notch */
+/* Sube los FABs unos px; respeta safe-area en móviles con notch */
 ion-fab.fab-up{
   position: fixed; /* por las dudas */
   bottom: calc(env(safe-area-inset-bottom, 0px) + 55px); /* <- ajustá 28px a gusto */
-  right:  calc(env(safe-area-inset-right, 0px) + 12px);
   z-index: 10;
+}
+
+/* FAB derecho - Empleados */
+ion-fab.fab-employees{
+  right: calc(env(safe-area-inset-right, 0px) + 12px);
+}
+
+/* FAB izquierdo - Clientes */
+ion-fab.fab-clients{
+  left: calc(env(safe-area-inset-left, 0px) + 12px);
+}
+
+/* Mejorar visualización de los FABs cuando hay dos */
+@media (max-width: 768px) {
+  /* En móviles, ajustar posición para evitar solapamiento */
+  ion-fab.fab-clients {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+  }
 }
 
 

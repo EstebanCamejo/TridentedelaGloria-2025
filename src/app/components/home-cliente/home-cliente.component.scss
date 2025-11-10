@@ -295,3 +295,77 @@
   --border-radius: 14px;
   font-weight: 800;
 }
+
+/* ===== Mensaje alusivo para factura lista ===== */
+.factura-message {
+  background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+  border: 2px solid #7b2f2f;
+  border-radius: 20px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  max-width: 500px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.factura-message .empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.factura-message .empty-title {
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  letter-spacing: 1px;
+}
+
+.factura-message .empty-subtitle {
+  color: #d0d0d0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.factura-message .empty-description {
+  color: #d0d0d0;
+  font-size: 0.95rem;
+  opacity: 0.8;
+  line-height: 1.4;
+  margin-bottom: 24px;
+}
+
+.factura-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-descargar-factura {
+  --color: #fff;
+  --background: #7b2f2f;
+  --background-hover: #6b2727;
+  --border-radius: 12px;
+  font-weight: 700;
+  height: 50px;
+}
+
+.btn-descargar-factura ion-icon {
+  font-size: 1.4em;
+}
+
+.btn-cerrar-factura {
+  --color: #d0d0d0;
+  --border-color: #7b2f2f;
+  --border-width: 2px;
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 40px;
+}

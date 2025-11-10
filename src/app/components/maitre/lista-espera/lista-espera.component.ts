@@ -93,12 +93,13 @@ import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonList, IonItem, IonLabel, IonAvatar, IonBadge,
-  IonRefresher, IonRefresherContent, IonButton, IonIcon,IonCard
+  IonAvatar, IonBadge,
+  IonRefresher, IonButton, IonIcon, IonCard
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { refresh,reorderThreeOutline} from 'ionicons/icons';
 import { AlertController, ToastController, ActionSheetController ,ActionSheetButton} from '@ionic/angular';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import { MaitreWaitlistService, EsperaItem, MesaLite } from 'src/app/services/maitre-waitlist.service';
 import { MaitreRealtimeService } from 'src/app/services/maitre-realtime.service';
 
@@ -109,8 +110,8 @@ import { MaitreRealtimeService } from 'src/app/services/maitre-realtime.service'
   imports: [
     CommonModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonList, IonItem, IonLabel, IonAvatar, IonBadge,IonCard,IonRefresherContent,
-    IonRefresher, IonRefresherContent, IonButton, IonIcon
+    IonAvatar, IonBadge, IonCard,
+    IonRefresher, IonButton, IonIcon
   ],
   templateUrl: './lista-espera.component.html',
 })
@@ -124,6 +125,7 @@ export class ListaEsperaComponent implements OnDestroy {
     private alert: AlertController,
     private toast: ToastController,
     private sheet: ActionSheetController,
+    private spinner: SpinnerService,
     private maitreRt: MaitreRealtimeService
   ) {
     addIcons({ refresh, reorderThreeOutline })
@@ -143,9 +145,12 @@ export class ListaEsperaComponent implements OnDestroy {
 
 
 
-  async load() {
+  async load(showSpinner = true) {
     this.loading = true;
     try {
+      if (showSpinner) {
+        this.spinner.show({ immediate: true });
+      }
       const [espera, libres] = await Promise.all([
         this.svc.fetch(),
         this.svc.getFreeTables(),
@@ -153,14 +158,17 @@ export class ListaEsperaComponent implements OnDestroy {
       this.items = espera;
       this.mesasLibres = libres;
     } catch (e: any) {
-      this.msg(e?.message || 'No se pudo cargar la lista.', true);
+      this.msg((e?.message || 'NO SE PUDO CARGAR LA LISTA').toUpperCase(), true);
     } finally {
       this.loading = false;
+      if (showSpinner) {
+        this.spinner.hide();
+      }
     }
   }
 
   handleRefresh(ev: CustomEvent) {
-    this.load().finally(() => (ev.target as any).complete());
+    this.load(false).finally(() => (ev.target as any).complete());
   }
 
   /** Prioridad = posición (1-based) en la lista actual */
@@ -171,33 +179,36 @@ export class ListaEsperaComponent implements OnDestroy {
   /** Abre un sheet con botones "Mesa N" (sólo libres) */
 async atender(it: EsperaItem) {
   if (!this.mesasLibres.length) {
-    this.msg('No hay mesas libres.', true);
+    this.msg('NO HAY MESAS LIBRES', true);
     return;
   }
   const prioridad = this.prioridadDe(it);
 
   // 👇 tipado explícito
   const btns: ActionSheetButton[] = this.mesasLibres.map(m => ({
-    text: `Mesa ${m.numero}`,
+    text: `MESA ${m.numero}`,
       icon: 'restaurant-outline',
   cssClass: 'mesa-item',
     handler: async () => {
       try {
+        this.spinner.show({ immediate: true, minMs: 1000 });
         const numero = await this.svc.assignAtomic(it.id, m.id);
         this.items = this.items.filter(x => x.id !== it.id);
         this.mesasLibres = this.mesasLibres.filter(x => x.id !== m.id);
-        this.msg(`Mesa ${numero} asignada a ${it.nombre}.`);
+        this.msg(`MESA ${numero} ASIGNADA A ${it.nombre.toUpperCase()}`, false);
       } catch (e: any) {
-        this.msg(e?.message || 'No se pudo asignar la mesa.', true);
+        this.msg((e?.message || 'NO SE PUDO ASIGNAR LA MESA').toUpperCase(), true);
+      } finally {
+        this.spinner.hide();
       }
     }
   }));
-btns.push({ text: 'Cancelar', role: 'cancel', icon: 'close-outline', cssClass: 'mesa-cancel' });
+btns.push({ text: 'CANCELAR', role: 'cancel', icon: 'close-outline', cssClass: 'mesa-cancel' });
 
 const s = await this.sheet.create({
-  header: 'Asignar mesa',
-  subHeader: `Cantidad Comensales: ${it.cantidad_comensales}`,
-  buttons: btns,                    // tus “Mesa N” + { role:'cancel' }
+  header: 'ASIGNAR MESA',
+  subHeader: `CANTIDAD COMENSALES: ${it.cantidad_comensales}`,
+  buttons: btns,                    // tus "Mesa N" + { role:'cancel' }
   cssClass: 'mesa-sheet-dark'       // 👈 clave
 });
 await s.present();
@@ -208,7 +219,13 @@ await s.present();
   trackById(_: number, it: EsperaItem) { return it.id; }
 
   private async msg(message: string, error = false) {
-    const t = await this.toast.create({ message, duration: 1800, position: 'top', color: error ? 'danger' : 'success' });
+    const t = await this.toast.create({
+      message: message.toUpperCase(),
+      duration: 1800,
+      position: 'middle',
+      cssClass: 'toast-center',
+      color: error ? 'danger' : 'success'
+    });
     t.present();
   }
 

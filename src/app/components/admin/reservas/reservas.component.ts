@@ -29,6 +29,7 @@ import {
 } from 'ionicons/icons';
 import { ReservasService, Reserva } from '../../../services/reservas.service';
 import { SupabaseService } from '../../../services/supabase.service';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import { ToastrService } from 'ngx-toastr';
 import type { RefresherCustomEvent } from '@ionic/angular';
 
@@ -66,6 +67,7 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
     private supa: SupabaseService,
     private router: Router,
     private toast: ToastrService,
+    private spinner: SpinnerService,
     private alertController: AlertController
   ) {
     addIcons({ 
@@ -93,12 +95,17 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   async cargarReservas() {
     try {
       this.cargando = true;
+      this.spinner.show({ immediate: true });
       this.reservas = await this.reservasService.obtenerReservasPendientes();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar reservas:', error);
-      this.toast.error('Error al cargar las reservas');
+      this.toast.error((error?.message || 'ERROR AL CARGAR LAS RESERVAS').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.cargando = false;
+      this.spinner.hide();
     }
   }
 
@@ -117,17 +124,18 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
     if (!reserva.id) return;
 
     const alert = await this.alertController.create({
-      header: 'Confirmar Reserva',
-      message: `¿Confirmar la reserva de ${this.obtenerNombreCliente(reserva)} (${this.obtenerEmailCliente(reserva)}) para el ${this.formatearFecha(reserva.fecha)} a las ${reserva.hora}?`,
+      header: 'CONFIRMAR RESERVA',
+      message: `¿CONFIRMAR LA RESERVA DE ${this.obtenerNombreCliente(reserva).toUpperCase()} (${this.obtenerEmailCliente(reserva)}) PARA EL ${this.formatearFecha(reserva.fecha).toUpperCase()} A LAS ${reserva.hora}?`,
       buttons: [
         {
-          text: 'Cancelar',
+          text: 'CANCELAR',
           role: 'cancel',
           cssClass: 'secondary'
         },
         {
-          text: 'Confirmar',
+          text: 'CONFIRMAR',
           handler: async () => {
+            await alert.dismiss();
             await this.confirmarReservaCompleta(reserva.id!.toString());
           }
         }
@@ -144,13 +152,13 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
     if (!reserva.id) return;
 
     const alert = await this.alertController.create({
-      header: 'Rechazar Reserva',
-      message: `¿Rechazar la reserva de ${this.obtenerNombreCliente(reserva)} (${this.obtenerEmailCliente(reserva)}) para el ${this.formatearFecha(reserva.fecha)} a las ${reserva.hora}?`,
+      header: 'RECHAZAR RESERVA',
+      message: `¿RECHAZAR LA RESERVA DE ${this.obtenerNombreCliente(reserva).toUpperCase()} (${this.obtenerEmailCliente(reserva)}) PARA EL ${this.formatearFecha(reserva.fecha).toUpperCase()} A LAS ${reserva.hora}?`,
       inputs: [
         {
           name: 'motivo',
           type: 'textarea',
-          placeholder: 'Motivo del rechazo (obligatorio)',
+          placeholder: 'MOTIVO DEL RECHAZO (OBLIGATORIO)',
           attributes: {
             maxlength: 500,
             rows: 3
@@ -159,18 +167,22 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
       ],
       buttons: [
         {
-          text: 'Cancelar',
+          text: 'CANCELAR',
           role: 'cancel',
           cssClass: 'secondary'
         },
         {
-          text: 'Rechazar',
+          text: 'RECHAZAR',
           cssClass: 'danger',
           handler: async (data) => {
             if (!data.motivo || data.motivo.trim().length === 0) {
-              this.toast.error('Debe indicar el motivo del rechazo');
+              this.toast.error('DEBÉS INDICAR EL MOTIVO DEL RECHAZO', '', {
+                positionClass: 'toast-center',
+                timeOut: 3000
+              });
               return false;
             }
+            await alert.dismiss();
             await this.rechazarReservaCompleta(reserva.id!.toString(), data.motivo.trim());
             return true;
           }
@@ -187,21 +199,32 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   private async confirmarReservaCompleta(reservaId: string) {
     try {
       this.cargandoConfirmar = true;
+      this.spinner.show({ immediate: true, minMs: 1000 });
       const res = await this.reservasService.confirmarReserva(reservaId);
       
-      this.toast.success('Reserva confirmada exitosamente');
+      this.toast.success('RESERVA CONFIRMADA EXITOSAMENTE', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
       
       if (!res.ok) {
-        this.toast.warning(`Reserva confirmada, pero el email no se envió${res.detail ? `: ${res.detail}` : ''}`, 'Aviso', { timeOut: 6000 });
+        this.toast.warning(`RESERVA CONFIRMADA, PERO EL CORREO NO SE ENVIÓ${res.detail ? `: ${res.detail.toUpperCase()}` : ''}`, '', {
+          positionClass: 'toast-center',
+          timeOut: 6000
+        });
         console.warn('notificar-cliente (confirmada) falló:', res);
       }
       
       await this.cargarReservas();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al confirmar reserva:', error);
-      this.toast.error('Error al confirmar la reserva');
+      this.toast.error((error?.message || 'ERROR AL CONFIRMAR LA RESERVA').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
     } finally {
       this.cargandoConfirmar = false;
+      this.spinner.hide();
     }
   }
 
@@ -211,21 +234,32 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   private async rechazarReservaCompleta(reservaId: string, motivoRechazo: string) {
     try {
       this.cargandoRechazar = true;
+      this.spinner.show({ immediate: true, minMs: 1000 });
       const res = await this.reservasService.rechazarReserva(reservaId, motivoRechazo);
       
-      this.toast.success('Reserva rechazada exitosamente');
+      this.toast.success('RESERVA RECHAZADA EXITOSAMENTE', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
       
       if (!res.ok) {
-        this.toast.warning(`Reserva rechazada, pero el email no se envió${res.detail ? `: ${res.detail}` : ''}`, 'Aviso', { timeOut: 6000 });
+        this.toast.warning(`RESERVA RECHAZADA, PERO EL CORREO NO SE ENVIÓ${res.detail ? `: ${res.detail.toUpperCase()}` : ''}`, '', {
+          positionClass: 'toast-center',
+          timeOut: 6000
+        });
         console.warn('notificar-cliente (rechazada) falló:', res);
       }
       
       await this.cargarReservas();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al rechazar reserva:', error);
-      this.toast.error('Error al rechazar la reserva');
+      this.toast.error((error?.message || 'ERROR AL RECHAZAR LA RESERVA').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
     } finally {
       this.cargandoRechazar = false;
+      this.spinner.hide();
     }
   }
 
@@ -233,14 +267,14 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
    * Obtiene el nombre del cliente de la reserva
    */
   obtenerNombreCliente(reserva: any): string {
-    return reserva.nombre_cliente || 'Cliente';
+    return reserva.nombre_cliente || 'CLIENTE';
   }
 
   /**
    * Obtiene el email del cliente de la reserva
    */
   obtenerEmailCliente(reserva: any): string {
-    return reserva.email_cliente || 'Sin email';
+    return reserva.email_cliente || 'SIN CORREO';
   }
 
   /**
@@ -304,15 +338,15 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   formatearEstado(estado: string): string {
     switch (estado) {
       case 'pendiente confirmacion':
-        return 'Pendiente Confirmación';
+        return 'PENDIENTE CONFIRMACIÓN';
       case 'confirmada':
-        return 'Confirmada';
+        return 'CONFIRMADA';
       case 'rechazada':
-        return 'Rechazada';
+        return 'RECHAZADA';
       case 'cancelada':
-        return 'Cancelada';
+        return 'CANCELADA';
       default:
-        return estado;
+        return estado.toUpperCase();
     }
   }
 

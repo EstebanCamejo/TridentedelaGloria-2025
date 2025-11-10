@@ -5,10 +5,11 @@ import {
   IonButton, IonIcon, IonTitle, IonToolbar, IonHeader } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart, calendarOutline} from 'ionicons/icons';
+import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart, calendarOutline, bicycleOutline, receiptOutline} from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { ToastrService } from 'ngx-toastr';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import { AdminRealtimeService } from 'src/app/services/admin-realtime.service';
 import { AdminReservasRealtimeService } from 'src/app/services/admin-reservas-realtime.service'; 
 
@@ -27,19 +28,21 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
   constructor(
     private router: Router, 
     private supa: SupabaseService, 
-    private toast: ToastrService, 
+    private toast: ToastrService,
+    private spinner: SpinnerService,
     private route: ActivatedRoute,
     private adminRt: AdminRealtimeService,
     private adminReservasRt: AdminReservasRealtimeService
   ) {
-    addIcons({ checkmarkDoneCircle, personAdd, restaurant, statsChart, create, calendarOutline });    
+    addIcons({ 
+      checkmarkDoneCircle, personAdd, restaurant, statsChart, create, calendarOutline, bicycleOutline, receiptOutline });    
   }
 
   async ngOnInit() {
 
     const from = this.route.snapshot.queryParamMap.get('from');
     if (from === 'alta-usuario') {
-      this.toast.success('Empleado creado correctamente', '', {
+      this.toast.success('EMPLEADO CREADO CORRECTAMENTE', '', {
         positionClass: 'toast-center',
         timeOut: 2200
       });
@@ -113,8 +116,8 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
         await LocalNotifications.schedule({
           notifications: [{
             id: now % 1000000000,
-            title: 'Nuevo cliente pendiente',
-            body: `${nombre} espera aprobación`,
+            title: 'NUEVO CLIENTE PENDIENTE',
+            body: `${nombre.toUpperCase()} ESPERA APROBACIÓN`,
             channelId: 'default',
             extra: { route: '/admin/pendientes' }
           }]
@@ -139,5 +142,15 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
   irAResultados()    { this.router.navigate(['/pagina-resultados-encuestas']); }
   irAMesas()         { this.router.navigate(['/admin/mesas']);}
   irAReservas()      { this.router.navigate(['/admin/reservas']);}
+  irADeliveryPedidos() { 
+    console.log('[HomeAdminComponent] Navegando a delivery-pedidos...');
+    this.router.navigate(['/admin/delivery-pedidos']).catch(err => {
+      console.error('[HomeAdminComponent] Error al navegar a delivery-pedidos:', err);
+    });
+  }
+  
+  irADeliveryConfirmarPago() { 
+    this.router.navigate(['/admin/delivery-confirmar-pago']); 
+  }
 
 }

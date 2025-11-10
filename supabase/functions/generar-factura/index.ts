@@ -1,4 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from '@supabase/supabase-js'
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 
 interface FacturaData {
   pedido_id: number;
@@ -11,6 +12,8 @@ interface FacturaData {
     dni: string | null;
     email: string | null;
   };
+  subtotal: number;
+  monto_descuento_total: number;
   total_pedido: number;
   total_propina: number;
   total_final: number;
@@ -123,7 +126,8 @@ Deno.serve(async (req: Request) => {
           descuento_pct,
           descuento_fuente,
           created_at,
-          idCliente
+          idCliente,
+          tipo_pedido
         `)
         .eq('id', pedido_id)
         .single()
@@ -242,42 +246,50 @@ Deno.serve(async (req: Request) => {
 
     // 4. Obtener información de mesa
     console.log('[generar-factura] ===== PASO 4: Obteniendo información de mesa =====')
-    console.log('[generar-factura] Usuario ID:', usuario?.id || 'null')
+    // IMPORTANTE: lista_espera.usuario_id guarda el auth_id (UUID), NO el usuarios.id (BIGINT)
+    console.log('[generar-factura] Auth ID (para lista_espera.usuario_id):', pedido.idCliente)
     
+    // Solo buscar mesa si NO es delivery (para delivery, numero_mesa será 0)
+    const esDelivery = pedido.tipo_pedido === 'delivery'
     let listaEspera: any = null
-    try {
-      const usuarioIdLE = usuario?.id ?? null
-      const { data: listaEsperaData, error: listaError } = await supabase
-        .from('lista_espera')
-        .select('numero_mesa')
-        .eq('usuario_id', usuarioIdLE)
-        .in('estado', ['asignado','finalizado'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+    
+    if (!esDelivery) {
+      try {
+        // Usar auth_id directamente ya que lista_espera.usuario_id guarda auth_id (UUID)
+        const { data: listaEsperaData, error: listaError } = await supabase
+          .from('lista_espera')
+          .select('numero_mesa')
+          .eq('usuario_id', pedido.idCliente) // auth_id UUID
+          .in('estado', ['asignado','finalizado'])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
 
-      if (listaError) {
-        console.error('[generar-factura] ❌ ERROR EN PASO 4:', JSON.stringify(listaError, null, 2))
+        if (listaError) {
+          console.error('[generar-factura] ❌ ERROR EN PASO 4:', JSON.stringify(listaError, null, 2))
+          return new Response(
+            JSON.stringify({ 
+              ok: false, 
+              error: `Error al obtener mesa: ${listaError.message}`,
+              code: listaError.code || 500,
+              step: 4
+            }),
+            { status: 500, headers: { 'Content-Type': 'application/json', ...cors } }
+          )
+        }
+
+        listaEspera = listaEsperaData
+        console.log('[generar-factura] ✅ PASO 4 COMPLETADO - Mesa:', listaEspera?.numero_mesa || 'No encontrada')
+      } catch (step4Err: unknown) {
+        const step4Msg = step4Err instanceof Error ? step4Err.message : String(step4Err)
+        console.error('[generar-factura] ❌ EXCEPCIÓN EN PASO 4:', step4Msg)
         return new Response(
-          JSON.stringify({ 
-            ok: false, 
-            error: `Error al obtener mesa: ${listaError.message}`,
-            code: listaError.code || 500,
-            step: 4
-          }),
+          JSON.stringify({ ok: false, error: `Excepción en paso 4: ${step4Msg}`, step: 4 }),
           { status: 500, headers: { 'Content-Type': 'application/json', ...cors } }
         )
       }
-
-      listaEspera = listaEsperaData
-      console.log('[generar-factura] ✅ PASO 4 COMPLETADO - Mesa:', listaEspera?.numero_mesa || 'No encontrada')
-    } catch (step4Err: unknown) {
-      const step4Msg = step4Err instanceof Error ? step4Err.message : String(step4Err)
-      console.error('[generar-factura] ❌ EXCEPCIÓN EN PASO 4:', step4Msg)
-      return new Response(
-        JSON.stringify({ ok: false, error: `Excepción en paso 4: ${step4Msg}`, step: 4 }),
-        { status: 500, headers: { 'Content-Type': 'application/json', ...cors } }
-      )
+    } else {
+      console.log('[generar-factura] ✅ PASO 4 COMPLETADO - Pedido delivery, numero_mesa será 0')
     }
 
     // 4. Procesar datos para la factura
@@ -322,12 +334,14 @@ Deno.serve(async (req: Request) => {
         dni: usuario?.dni ?? null,
         email: usuario?.email ?? null
       },
+      subtotal: subtotal,
+      monto_descuento_total: montoDescuentoTotal,
       total_pedido: baseParaPropina,
       total_propina: propinaCalculada,
       total_final: totalFinal,
       items,
       descuentos,
-      numero_mesa: listaEspera?.numero_mesa ?? 0,
+      numero_mesa: esDelivery ? 0 : (listaEspera?.numero_mesa ?? 0),
       fecha_pedido: pedido.created_at
     }
     
@@ -538,97 +552,385 @@ Deno.serve(async (req: Request) => {
 async function generarPDF(facturaData: FacturaData, supabase: any): Promise<string> {
   console.log('[generarPDF] Generando contenido PDF para pedido:', facturaData.pedido_id)
   
-  // Por ahora, simular la generación del PDF
-  // En implementación real, usar librería como pdf-lib o similar
-  
   const fileName = `factura_${facturaData.pedido_id}_${Date.now()}.pdf`
   
-  // Simular contenido del PDF
-  const pdfContent = `FACTURA Nº ${facturaData.pedido_id}
-El Tridente de la Gloria
-Mitre 750, Avellaneda
-Fecha: ${new Date(facturaData.fecha_pedido).toLocaleDateString('es-AR')}
-
-Cliente: ${facturaData.datos_cliente.nombres} ${facturaData.datos_cliente.apellidos}
-${facturaData.datos_cliente.cuil ? `CUIL: ${facturaData.datos_cliente.cuil}` : `DNI: ${facturaData.datos_cliente.dni}`}
-Mesa: ${facturaData.numero_mesa}
-
-ITEMS:
-${facturaData.items.map(item => 
-  `${item.nombre} - ${item.cantidad} x $${item.precio_unitario} = $${item.subtotal}`
-).join('\n')}
-
-Subtotal: $${facturaData.total_pedido}
-${facturaData.descuentos.length > 0 ? `Descuentos: -$${facturaData.descuentos.reduce((sum, d) => sum + d.monto_descuento, 0)}` : ''}
-Propina: $${facturaData.total_propina}
-TOTAL: $${facturaData.total_final}`
-
-  console.log('[generarPDF] Subiendo archivo a Storage bucket "facturas"...')
-  console.log('[generarPDF] Nombre de archivo:', fileName)
-  console.log('[generarPDF] Tamaño del contenido:', pdfContent.length, 'bytes')
-  
-  // Subir a Supabase Storage
   try {
+    console.log('[generarPDF] Inicializando pdf-lib...')
+    
+    const pdfDoc = await PDFDocument.create()
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    
+    const page = pdfDoc.addPage([595, 842]) // A4
+    const pageWidth = page.getWidth()
+    const pageHeight = page.getHeight()
+    const blackColor = rgb(0, 0, 0)
+    const grayColor = rgb(0.5, 0.5, 0.5)
+    
+    // Fetch logo from Supabase Storage
+    let logoImage = null
+    try {
+      const logoUrl = 'https://ujpfjthcqpenkizxjimp.supabase.co/storage/v1/object/public/Imagenes/brand.png'
+      console.log('[generarPDF] Descargando logo desde:', logoUrl)
+      const logoResponse = await fetch(logoUrl)
+      if (logoResponse.ok) {
+        const logoBytes = new Uint8Array(await logoResponse.arrayBuffer())
+        logoImage = await pdfDoc.embedPng(logoBytes)
+        console.log('[generarPDF] ✅ Logo cargado exitosamente')
+      }
+    } catch (logoErr) {
+      console.warn('[generarPDF] ⚠️ No se pudo cargar el logo:', logoErr)
+    }
+    
+    const marginX = 25
+    const marginY = 25
+    const innerWidth = pageWidth - (marginX * 2)
+    const innerHeight = pageHeight - (marginY * 2)
+    
+    // Borde exterior
+    page.drawRectangle({
+      x: marginX,
+      y: marginY,
+      width: innerWidth,
+      height: innerHeight,
+      borderColor: blackColor,
+      borderWidth: 1.5,
+    })
+    
+    // ===== SECCIÓN 1: HEADER (Empresa + Tipo Factura) =====
+    const headerTop = pageHeight - marginY - 10
+    const headerHeight = 120
+    const headerBottom = headerTop - headerHeight
+    
+    // Recuadro del header
+    page.drawRectangle({
+      x: marginX + 5,
+      y: headerBottom,
+      width: innerWidth - 10,
+      height: headerHeight,
+      borderColor: blackColor,
+      borderWidth: 1,
+    })
+    
+    // Logo a la izquierda
+    const logoSize = 70
+    const logoX = marginX + 15
+    const logoY = headerTop - 20 - logoSize
+    if (logoImage) {
+      page.drawImage(logoImage, {
+        x: logoX,
+        y: logoY,
+        width: logoSize,
+        height: logoSize,
+      })
+    }
+    
+    // Información empresa (izquierda)
+    let textY = headerTop - 25
+    const leftStartX = marginX + 100
+    page.drawText('El Tridente de la Gloria', { x: leftStartX, y: textY, size: 20, font: helveticaBold, color: blackColor })
+    textY -= 18
+    page.drawText('Razón Social: El Tridente de la Gloria', { x: leftStartX, y: textY, size: 10, font: helvetica, color: blackColor })
+    textY -= 14
+    page.drawText('Domicilio Comercial: Mitre 750 - Avellaneda', { x: leftStartX, y: textY, size: 10, font: helvetica, color: blackColor })
+    textY -= 14
+    page.drawText('Condición frente al IVA: Responsable Inscripto', { x: leftStartX, y: textY, size: 10, font: helvetica, color: blackColor })
+    
+    // Tipo FACTURA y datos (derecha)
+    const fechaEmision = new Date(facturaData.fecha_pedido).toLocaleDateString('es-AR')
+    const rightStartX = marginX + 320
+    textY = headerTop - 25
+    page.drawText('FACTURA', { x: rightStartX, y: textY, size: 18, font: helveticaBold, color: blackColor })
+    textY -= 18
+    page.drawText('Punto de Venta: 0001 Comp. Nro: ' + String(facturaData.pedido_id).padStart(8, '0'), { x: rightStartX, y: textY, size: 10, font: helvetica, color: blackColor })
+    textY -= 14
+    page.drawText(`Fecha de Emisión: ${fechaEmision}`, { x: rightStartX, y: textY, size: 10, font: helvetica, color: blackColor })
+    textY -= 14
+    page.drawText('CUIT: 30123456789', { x: rightStartX, y: textY, size: 10, font: helvetica, color: blackColor })
+    textY -= 14
+    page.drawText('Ingresos Brutos: exento', { x: rightStartX, y: textY, size: 10, font: helvetica, color: blackColor })
+    
+    // Tipo C dentro del header (centrado) - COMENTADO por si se necesita más adelante
+    // const tipoCBoxWidth = 70
+    // const tipoCBoxHeight = 60
+    // const tipoCBoxX = (pageWidth - tipoCBoxWidth) / 2
+    // const tipoCBoxY = headerTop - 20 - tipoCBoxHeight
+    // page.drawRectangle({
+    //   x: tipoCBoxX,
+    //   y: tipoCBoxY,
+    //   width: tipoCBoxWidth,
+    //   height: tipoCBoxHeight,
+    //   borderColor: blackColor,
+    //   borderWidth: 1,
+    // })
+    // const tipoCText = 'C'
+    // const tipoCWidth = helveticaBold.widthOfTextAtSize(tipoCText, 32)
+    // page.drawText(tipoCText, { x: (pageWidth - tipoCWidth) / 2, y: tipoCBoxY + 32, size: 32, font: helveticaBold, color: blackColor })
+    // page.drawText('COD. 007', { x: (pageWidth - 45) / 2, y: tipoCBoxY + 12, size: 8, font: helvetica, color: blackColor })
+    
+    // ===== SECCIÓN 2: DATOS DEL CLIENTE =====
+    const clienteTop = headerBottom - 15
+    const clienteHeight = 50
+    const clienteBottom = clienteTop - clienteHeight
+    
+    page.drawRectangle({
+      x: marginX + 5,
+      y: clienteBottom,
+      width: innerWidth - 10,
+      height: clienteHeight,
+      borderColor: blackColor,
+      borderWidth: 1,
+    })
+    
+    textY = clienteTop - 15
+    const cuilDni = facturaData.datos_cliente.cuil ? facturaData.datos_cliente.cuil : facturaData.datos_cliente.dni
+    page.drawText(`CUIT/DNI: ${cuilDni}`, { x: marginX + 15, y: textY, size: 10, font: helvetica, color: blackColor })
+    textY -= 18
+    
+    const nombreCliente = `${facturaData.datos_cliente.nombres} ${facturaData.datos_cliente.apellidos}`
+    page.drawText('Apellido y Nombre: ' + nombreCliente, { x: marginX + 15, y: textY, size: 10, font: helvetica, color: blackColor })
+    textY -= 18
+    
+    // Mesa comentada - no es necesario mostrar este dato
+    // if (facturaData.numero_mesa > 0) {
+    //   page.drawText(`Mesa: ${facturaData.numero_mesa}`, { x: marginX + 15, y: textY, size: 10, font: helvetica, color: blackColor })
+    // }
+    
+    // ===== SECCIÓN 3: TABLA DE PRODUCTOS =====
+    const tableTop = clienteBottom - 15
+    const tableHeaderHeight = 22
+    const tableStartY = tableTop - tableHeaderHeight
+    
+    // Header de tabla
+    page.drawRectangle({
+      x: marginX + 5,
+      y: tableStartY,
+      width: innerWidth - 10,
+      height: tableHeaderHeight,
+      color: grayColor,
+    })
+    
+    // Encabezados alineados con los datos (mismas posiciones X que los datos)
+    textY = tableStartY + 14
+    const dataCodeX = marginX + 18 // Posición X de los datos (código)
+    const dataProductX = marginX + 75 // Posición X de los datos (producto)
+    const dataCantX = marginX + 290 // Posición X de los datos (cantidad) - movido 25px a la izquierda
+    const dataPrecioX = marginX + 380 // Posición X de los datos (precio) - movido 25px a la izquierda
+    const dataSubtotalX = marginX + 480 // Posición X de los datos (subtotal) - movido 25px a la izquierda
+    
+    const codeText = 'Código'
+    page.drawText(codeText, { x: dataCodeX, y: textY, size: 9, font: helveticaBold, color: blackColor })
+    
+    const productText = 'Producto / Servicio'
+    page.drawText(productText, { x: dataProductX, y: textY, size: 9, font: helveticaBold, color: blackColor })
+    
+    const cantText = 'Cantidad'
+    page.drawText(cantText, { x: dataCantX, y: textY, size: 9, font: helveticaBold, color: blackColor })
+    
+    const precioText = 'Precio Unit.'
+    page.drawText(precioText, { x: dataPrecioX, y: textY, size: 9, font: helveticaBold, color: blackColor })
+    
+    page.drawText('Subtotal', { x: dataSubtotalX, y: textY, size: 9, font: helveticaBold, color: blackColor })
+    
+    // Espacio en blanco después del encabezado
+    // Items de productos (tamaño 10, igual que datos del cliente)
+    textY = tableStartY - 12
+    const itemHeight = 18
+    for (let i = 0; i < facturaData.items.length; i++) {
+      const item = facturaData.items[i]
+      const nombreTrunc = item.nombre.length > 28 ? item.nombre.substring(0, 25) + '...' : item.nombre
+      page.drawText(String(i + 1), { x: dataCodeX, y: textY, size: 10, font: helvetica, color: blackColor })
+      page.drawText(nombreTrunc, { x: dataProductX, y: textY, size: 10, font: helvetica, color: blackColor })
+      page.drawText(item.cantidad.toString() + ',00', { x: dataCantX, y: textY, size: 10, font: helvetica, color: blackColor })
+      page.drawText(`$${item.precio_unitario.toFixed(2)}`, { x: dataPrecioX, y: textY, size: 10, font: helvetica, color: blackColor })
+      page.drawText(`$${item.subtotal.toFixed(2)}`, { x: dataSubtotalX, y: textY, size: 10, font: helvetica, color: blackColor })
+      textY -= itemHeight
+    }
+    
+    // ===== SECCIÓN 4: TOTALES =====
+    const totalBoxTop = textY - 20
+    const totalBoxHeight = 130
+    const totalBoxBottom = totalBoxTop - totalBoxHeight
+    const totalBoxWidth = 235
+    const totalBoxX = marginX + innerWidth - 10 - totalBoxWidth
+    
+    page.drawRectangle({
+      x: totalBoxX,
+      y: totalBoxBottom,
+      width: totalBoxWidth,
+      height: totalBoxHeight,
+      borderColor: blackColor,
+      borderWidth: 1,
+    })
+    
+    // Alinear números a la derecha considerando la coma decimal
+    const numberRightX = totalBoxX + totalBoxWidth - 15 // Posición X para alinear a la derecha
+    const numberFormat = (num: number) => num.toFixed(2).replace('.', ',')
+    
+    let totalY = totalBoxTop - 15
+    const labelX = totalBoxX + 10
+    
+    // Calcular posición X del número más a la izquierda (para mantener alineación)
+    const maxNumberWidth = Math.max(
+      helveticaBold.widthOfTextAtSize(numberFormat(facturaData.subtotal), 9),
+      helveticaBold.widthOfTextAtSize(numberFormat(facturaData.monto_descuento_total), 9),
+      helveticaBold.widthOfTextAtSize(numberFormat(facturaData.total_propina), 9),
+      helveticaBold.widthOfTextAtSize(numberFormat(facturaData.total_final), 13)
+    )
+    const numberX = numberRightX - maxNumberWidth
+    
+    // Subtotal
+    page.drawText('Subtotal: $', { x: labelX, y: totalY, size: 9, font: helveticaBold, color: blackColor })
+    const subtotalText = numberFormat(facturaData.subtotal)
+    page.drawText(subtotalText, { x: numberX, y: totalY, size: 9, font: helveticaBold, color: blackColor })
+    totalY -= 15
+    
+    // Descuento (solo si hay)
+    if (facturaData.monto_descuento_total > 0) {
+      page.drawText('Descuento: $', { x: labelX, y: totalY, size: 9, font: helveticaBold, color: blackColor })
+      const descuentoText = numberFormat(facturaData.monto_descuento_total)
+      page.drawText(descuentoText, { x: numberX, y: totalY, size: 9, font: helveticaBold, color: blackColor })
+      totalY -= 15
+    }
+    
+    // Propina (solo si hay)
+    if (facturaData.total_propina > 0) {
+      page.drawText('Propina: $', { x: labelX, y: totalY, size: 9, font: helveticaBold, color: blackColor })
+      const propinaText = numberFormat(facturaData.total_propina)
+      page.drawText(propinaText, { x: numberX, y: totalY, size: 9, font: helveticaBold, color: blackColor })
+      totalY -= 15
+    }
+    
+    totalY -= 8
+    page.drawLine({ start: { x: totalBoxX + 10, y: totalY }, end: { x: totalBoxX + totalBoxWidth - 10, y: totalY }, thickness: 1, color: blackColor })
+    totalY -= 10
+    
+    // IMPORTE TOTAL
+    page.drawText('IMPORTE TOTAL: $', { x: labelX, y: totalY, size: 11, font: helveticaBold, color: blackColor })
+    const totalText = numberFormat(facturaData.total_final)
+    const totalTextWidth = helveticaBold.widthOfTextAtSize(totalText, 13)
+    page.drawText(totalText, { x: numberRightX - totalTextWidth, y: totalY, size: 13, font: helveticaBold, color: blackColor })
+    
+    // Footer centrado
+    const footerY = marginY + 30
+    page.drawText('Gracias por su visita', { x: (pageWidth - helvetica.widthOfTextAtSize('Gracias por su visita', 11)) / 2, y: footerY + 15, size: 11, font: helvetica, color: blackColor })
+    page.drawText('El Tridente de la Gloria, Buenos Aires, Argentina', { x: (pageWidth - helvetica.widthOfTextAtSize('El Tridente de la Gloria, Buenos Aires, Argentina', 10)) / 2, y: footerY, size: 10, font: helvetica, color: blackColor })
+    
+    const pdfBytes = await pdfDoc.save()
+    console.log('[generarPDF] PDF generado, tamaño:', pdfBytes.length, 'bytes')
+    
+    // Subir a Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('facturas')
-      .upload(fileName, new TextEncoder().encode(pdfContent), {
+      .upload(fileName, pdfBytes, {
         contentType: 'application/pdf',
         upsert: false,
         cacheControl: '3600'
       })
 
     if (uploadError) {
-      console.error('[generarPDF] ❌ Error completo al subir a Storage:', JSON.stringify(uploadError, null, 2))
-      console.error('[generarPDF] ❌ Código de error:', uploadError.statusCode)
-      console.error('[generarPDF] ❌ Mensaje:', uploadError.message)
-      throw new Error(`Error al subir PDF a Storage: ${uploadError.message} (status: ${uploadError.statusCode})`)
+      console.error('[generarPDF] ❌ Error al subir a Storage:', JSON.stringify(uploadError, null, 2))
+      throw new Error(`Error al subir PDF: ${uploadError.message}`)
     }
 
-    if (!uploadData || !uploadData.path) {
+    if (!uploadData?.path) {
       throw new Error('Upload exitoso pero no se obtuvo path')
     }
 
-    console.log('[generarPDF] ✅ Archivo subido exitosamente:', uploadData.path)
+    console.log('[generarPDF] ✅ Archivo subido:', uploadData.path)
 
-    // Obtener URL pública
     const { data: urlData } = supabase.storage
       .from('facturas')
       .getPublicUrl(fileName)
 
-    if (!urlData || !urlData.publicUrl) {
-      throw new Error('No se pudo obtener URL pública del PDF')
+    if (!urlData?.publicUrl) {
+      throw new Error('No se pudo obtener URL pública')
     }
 
-    console.log('[generarPDF] ✅ URL pública obtenida:', urlData.publicUrl)
+    console.log('[generarPDF] ✅ URL pública:', urlData.publicUrl)
     return urlData.publicUrl
-  } catch (uploadErr: unknown) {
-    const uploadMsg = uploadErr instanceof Error ? uploadErr.message : String(uploadErr)
-    console.error('[generarPDF] ❌ Error durante upload o obtención de URL:', uploadMsg)
-    throw uploadErr
+  } catch (pdfErr: unknown) {
+    const pdfMsg = pdfErr instanceof Error ? pdfErr.message : String(pdfErr)
+    console.error('[generarPDF] ❌ Error al generar PDF:', pdfMsg)
+    throw pdfErr
   }
 }
 
 async function enviarNotificacionPush(facturaData: FacturaData, pdfUrl: string, supabase: any) {
   console.log('[enviarNotificacionPush] Iniciando notificación push para cliente anónimo...')
   try {
-    // Enviar notificación push para cliente anónimo
-    // NOTA: Realtime channels con SERVICE_ROLE_KEY pueden requerir autenticación adicional
-    const channel = supabase.channel('notificacion_cliente_factura')
-    
-    console.log('[enviarNotificacionPush] Canal creado, enviando mensaje...')
-    const result = await channel.send({
-      type: 'broadcast',
-      event: 'factura_lista',
-      payload: {
-        titulo: 'Tu factura está lista',
-        mensaje: 'Descárgala tocando aquí',
-        pdf_url: pdfUrl,
-        mesa_numero: facturaData.numero_mesa,
-        timestamp: new Date().toISOString()
+    // Obtener el auth_id del cliente para el canal específico
+    // Necesitamos obtenerlo desde la tabla usuarios usando el cliente_id
+    let clienteAuthId: string | null = null
+    if (facturaData.cliente_id) {
+      const { data: usuario, error: usuarioError } = await supabase
+        .from('usuarios')
+        .select('auth_id')
+        .eq('id', facturaData.cliente_id)
+        .single()
+      
+      if (usuarioError) {
+        console.error('[enviarNotificacionPush] ❌ Error al obtener auth_id:', usuarioError)
+      } else {
+        clienteAuthId = usuario?.auth_id || null
+        console.log('[enviarNotificacionPush] Auth ID del cliente:', clienteAuthId)
       }
+    }
+    
+    // Usar canal específico por usuario si tenemos auth_id
+    const channelName = clienteAuthId 
+      ? `notificacion_cliente_factura_${clienteAuthId}` 
+      : 'notificacion_cliente_factura'
+    
+    console.log('[enviarNotificacionPush] Usando canal:', channelName)
+    const channel = supabase.channel(channelName)
+    
+    // Suscribirse al canal y esperar a que esté listo
+    return new Promise<void>((resolve, reject) => {
+      channel.subscribe((status: string) => {
+        console.log('[enviarNotificacionPush] Estado de suscripción:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('[enviarNotificacionPush] Canal suscrito, enviando mensaje...')
+          channel.send({
+            type: 'broadcast',
+            event: 'factura_lista',
+            payload: {
+              titulo: 'Tu factura está lista',
+              mensaje: 'Descárgala tocando aquí',
+              pdf_url: pdfUrl,
+              mesa_numero: facturaData.numero_mesa,
+              cliente_id: facturaData.cliente_id,
+              timestamp: new Date().toISOString()
+            }
+          }).then((result: any) => {
+            console.log('[enviarNotificacionPush] ✅ Mensaje enviado:', result)
+            // Desuscribirse después de enviar
+            setTimeout(() => {
+              supabase.removeChannel(channel)
+              resolve()
+            }, 500)
+          }).catch((sendErr: any) => {
+            console.error('[enviarNotificacionPush] ❌ Error al enviar mensaje:', sendErr)
+            supabase.removeChannel(channel)
+            reject(sendErr)
+          })
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[enviarNotificacionPush] ❌ Error en canal')
+          supabase.removeChannel(channel)
+          reject(new Error('Error en canal'))
+        }
+      })
+      
+      // Timeout de seguridad
+      setTimeout(() => {
+        if (channel.state !== 'closed') {
+          console.warn('[enviarNotificacionPush] ⚠️ Timeout, cerrando canal')
+          supabase.removeChannel(channel)
+          resolve() // Resolver sin error para no bloquear el flujo
+        }
+      }, 5000)
     })
     
-    console.log('[enviarNotificacionPush] ✅ Mensaje enviado:', result)
   } catch (pushErr: unknown) {
     const pushMsg = pushErr instanceof Error ? pushErr.message : String(pushErr)
     console.error('[enviarNotificacionPush] ❌ Error al enviar push:', pushMsg)
@@ -694,7 +996,6 @@ function makeHtmlFactura(facturaData: FacturaData, pdfUrl: string, logoUrl?: str
             </div>
             <div style="margin:16px 0; padding:12px; background:#ffffff; border-radius:8px; border-left:4px solid ${BRAND_PRIMARY};">
               <div style="font-size:14px; color:#333;">
-                <strong>Mesa:</strong> ${facturaData.numero_mesa}<br>
                 <strong>Total:</strong> $${facturaData.total_final.toFixed(2)}
               </div>
             </div>
@@ -767,7 +1068,6 @@ async function enviarEmailFactura(facturaData: FacturaData, pdfUrl: string, supa
 
 Tu factura de El Tridente de la Gloria está lista.
 
-Mesa: ${facturaData.numero_mesa}
 Total: $${facturaData.total_final.toFixed(2)}
 
 Descargá tu factura desde: ${pdfUrl}

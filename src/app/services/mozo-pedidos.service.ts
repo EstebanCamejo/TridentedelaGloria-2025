@@ -24,11 +24,13 @@ export class MozoPedidosService {
     console.log('[MozoPedidosService] Obteniendo pedidos pendientes...');
 
     try {
-      // 1. Obtener pedidos con estado 'pendiente'
+      // 1. Obtener pedidos con estado 'pendiente' (excluir delivery)
+      // NOTA: Solo incluir pedidos de mesa o sin tipo_pedido (compatibilidad con pedidos antiguos)
       const { data: pedidos, error: pedidosError } = await this.supa.client
         .from('pedidos')
-        .select('id, idCliente, created_at, total, tiempo_estimado, estado')
+        .select('id, idCliente, created_at, total, tiempo_estimado, estado, tipo_pedido')
         .eq('estado', 'pendiente')
+        .or('tipo_pedido.is.null,tipo_pedido.eq.mesa') // Solo mesa o sin tipo (pedidos antiguos)
         .order('created_at', { ascending: true });
 
       if (pedidosError) throw pedidosError;
@@ -159,9 +161,10 @@ export class MozoPedidosService {
 
     try {
       // 1. Obtener pedidos desde 'pedido en curso' hasta que el mozo confirme el pago (incluir 'pagado')
+      // NOTA: Excluir pedidos delivery (solo mesa o sin tipo_pedido)
       const { data: pedidos, error: pedidosError } = await this.supa.client
         .from('pedidos')
-        .select('id, idCliente, created_at, total, tiempo_estimado, estado')
+        .select('id, idCliente, created_at, total, tiempo_estimado, estado, tipo_pedido')
         .in('estado', [
           'pedido en curso', 
           'en preparación parcial', 
@@ -172,6 +175,7 @@ export class MozoPedidosService {
           'rechazado por mozo',
           'pendiente confirmacion pago'  // 🆕 Incluir pedidos que esperan confirmación de pago del mozo
         ])
+        .or('tipo_pedido.is.null,tipo_pedido.eq.mesa') // Solo mesa o sin tipo (pedidos antiguos)
         .order('created_at', { ascending: true });
 
       if (pedidosError) throw pedidosError;
@@ -299,9 +303,9 @@ export class MozoPedidosService {
         const pedido: any = payload.new || {};
         console.log('[MozoPedidosService] INSERT detectado en pedidos:', pedido);
         
-        // Solo recargar si es un pedido pendiente
-        if (pedido.estado === 'pendiente') {
-          console.log('[MozoPedidosService] Recargando lista por nuevo pedido pendiente');
+        // Solo recargar si es un pedido pendiente de MESA (no delivery)
+        if (pedido.estado === 'pendiente' && (pedido.tipo_pedido === 'mesa' || !pedido.tipo_pedido)) {
+          console.log('[MozoPedidosService] Recargando lista por nuevo pedido pendiente de mesa');
           const pedidos = await this.getPedidosPendientes();
           subject.next(pedidos);
         }
@@ -316,11 +320,14 @@ export class MozoPedidosService {
         
         console.log('[MozoPedidosService] UPDATE detectado en pedidos:', { old: oldPedido.estado, new: pedido.estado });
         
-        // Si cambió de pendiente a 'pedido en curso', recargar lista
+        // Si cambió de pendiente a 'pedido en curso', recargar lista (solo si es de mesa)
         if (oldPedido.estado === 'pendiente' && pedido.estado === 'pedido en curso') {
-          console.log('[MozoPedidosService] Pedido confirmado, recargando lista');
-          const pedidos = await this.getPedidosPendientes();
-          subject.next(pedidos);
+          // Solo procesar si es pedido de mesa (no delivery)
+          if (pedido.tipo_pedido === 'mesa' || !pedido.tipo_pedido) {
+            console.log('[MozoPedidosService] Pedido de mesa confirmado, recargando lista');
+            const pedidos = await this.getPedidosPendientes();
+            subject.next(pedidos);
+          }
         }
       })
       .subscribe((status) => {

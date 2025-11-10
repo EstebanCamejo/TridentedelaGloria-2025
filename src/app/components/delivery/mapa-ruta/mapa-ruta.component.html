@@ -1,0 +1,59 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>RUTA DE ENTREGA</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="mapa-content">
+  <div class="info-panel">
+    <div class="info-item" *ngIf="direccionEntrega">
+      <ion-icon name="location-outline"></ion-icon>
+      <strong>DESTINO:</strong> {{ direccionEntrega }}
+    </div>
+    <div class="info-item" *ngIf="distancia !== null">
+      <ion-icon name="navigate-outline"></ion-icon>
+      <strong>DISTANCIA:</strong> {{ distancia | number:'1.2-2' }} KM
+    </div>
+    <div class="info-item" *ngIf="cargandoUbicacion">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>OBTENIENDO TU UBICACIÓN...</span>
+    </div>
+  </div>
+
+  <div id="map-ruta" class="map-container"></div>
+
+  <div class="action-buttons">
+    <ion-button 
+      expand="block" 
+      fill="solid" 
+      color="primary"
+      (click)="abrirGoogleMaps()"
+      [disabled]="!latitudDestino || !longitudDestino">
+      <ion-icon name="navigate-outline" slot="start"></ion-icon>
+      ABRIR EN GOOGLE MAPS
+    </ion-button>
+
+    <ion-button 
+      expand="block" 
+      fill="outline" 
+      color="secondary"
+      (click)="abrirWaze()"
+      [disabled]="!latitudDestino || !longitudDestino">
+      <ion-icon name="navigate-outline" slot="start"></ion-icon>
+      ABRIR EN WAZE
+    </ion-button>
+
+    <ion-button 
+      expand="block" 
+      fill="clear" 
+      (click)="cerrar()">
+      CERRAR
+    </ion-button>
+  </div>
+</ion-content>
+

@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Escanear mesa</ion-title>
+    <ion-title>ESCANEAR MESA</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -9,25 +9,25 @@
   <ng-container *ngIf="!lastMesa; else resultado">
     <ion-button expand="block" (click)="escanear()" [disabled]="escaneando">
       <ion-icon slot="start" name="qr-code"></ion-icon>
-      {{ escaneando ? 'Escaneando…' : 'Escanear QR de mesa' }}
+      {{ escaneando ? 'ESCANEANDO…' : 'ESCANEAR QR DE MESA' }}
     </ion-button>
 
     <p *ngIf="escaneando" style="opacity:.7;margin-top:8px;">
-      Apuntá la cámara al QR…
+      APUNTÁ LA CÁMARA AL QR…
     </p>
 
     <p *ngIf="!escanear && !escaneando" style="opacity:.7;margin-top:8px;">
-      Al detectar una mesa, te mostraremos el número y podrás escanear otra.
+      AL DETECTAR UNA MESA, TE MOSTRAREMOS EL NÚMERO Y PODRÁS ESCANEAR OTRA
     </p>
   </ng-container>
 
   <!-- Resultado + acción para repetir -->
   <ng-template #resultado>
     <p style="margin-bottom:12px;">
-      Mesa <strong>#{{ lastMesa?.numero }}</strong> detectada correctamente.
+      MESA <strong>#{{ lastMesa?.numero }}</strong> DETECTADA CORRECTAMENTE
     </p>
     <ion-button expand="block" (click)="scanAgain()">
-      Escanear otro
+      ESCANEAR OTRO
     </ion-button>
   </ng-template>
 </ion-content>

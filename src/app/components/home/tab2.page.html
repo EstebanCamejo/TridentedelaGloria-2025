@@ -43,7 +43,7 @@
 <ng-template #cargando>
   <div style="padding: 24px; text-align:center; opacity:.7;">
     <ion-spinner name="crescent"></ion-spinner>
-    <div style="margin-top:8px;">Cargando perfil…</div>
+    <div style="margin-top:8px;">CARGANDO PERFIL…</div>
   </div>
 </ng-template>
 
@@ -60,12 +60,19 @@
   <!-- Bartender / Cocinero -->
   <app-home-bartender-cocinero *ngIf="sesion.esBartender() || sesion.esCocinero()"></app-home-bartender-cocinero>
 
+  <!-- Repartidor -->
+  <app-home-delivery *ngIf="sesion.esDelivery()"></app-home-delivery>
+
   <!-- Cliente -->
   <app-home-cliente *ngIf="sesion.esCliente()"></app-home-cliente>
 
-  <!-- Fallback si cargó pero no hay perfil -->
+  <!-- Fallback si cargó pero no hay perfil o no calza en ningún rol -->
   <div *ngIf="!sesion.usuarioBD" style="padding:16px; text-align:center; opacity:.8;">
-    No encontramos tu perfil. Contactá a un supervisor para completar el alta.
+    NO ENCONTRAMOS TU PERFIL. CONTACTÁ A UN SUPERVISOR PARA COMPLETAR EL ALTA.
+  </div>
+  
+  <div *ngIf="sesion.usuarioBD && !sesion.esDueno() && !sesion.esSupervisor() && !sesion.esMaitre() && !sesion.esMozo() && !sesion.esCocinero() && !sesion.esBartender() && !sesion.esDelivery() && !sesion.esCliente()" style="padding:16px; text-align:center; opacity:.8;">
+    ROL NO RECONOCIDO PARA: {{ sesion.usuarioBD?.email || 'USUARIO' }} (PERFIL: {{ sesion.usuarioBD?.perfil }})
   </div>
 </ng-container>
 

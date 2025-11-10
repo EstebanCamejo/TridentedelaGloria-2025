@@ -5,7 +5,7 @@
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Gestionar Reservas</ion-title>
+    <ion-title>GESTIONAR RESERVAS</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="cargarReservas()" [disabled]="cargando">
         <ion-icon name="refresh-outline"></ion-icon>
@@ -22,7 +22,7 @@
   <!-- Loading spinner -->
   <div *ngIf="cargando && reservas.length === 0" class="loading-container">
     <ion-spinner name="crescent"></ion-spinner>
-    <p>Cargando reservas...</p>
+    <p>CARGANDO RESERVAS...</p>
   </div>
 
   <!-- Lista de reservas -->
@@ -40,22 +40,22 @@
             </span>
             <span class="comensales">
               <ion-icon name="people-outline"></ion-icon>
-              {{ reserva.cantidad_comensales }} persona{{ reserva.cantidad_comensales > 1 ? 's' : '' }}
+              {{ reserva.cantidad_comensales }} PERSONA{{ reserva.cantidad_comensales > 1 ? 'S' : '' }}
             </span>
           </div>
           
           <div class="cliente-info">
-            <p><strong>Nombre:</strong> {{ obtenerNombreCliente(reserva) }}</p>
-            <p><strong>Correo:</strong> {{ obtenerEmailCliente(reserva) }}</p>
+            <p><strong>NOMBRE:</strong> {{ obtenerNombreCliente(reserva) }}</p>
+            <p><strong>CORREO:</strong> {{ obtenerEmailCliente(reserva) }}</p>
           </div>
           
           <p *ngIf="reserva.nota" class="nota">
-            <strong>Nota:</strong> {{ reserva.nota }}
+            <strong>NOTA:</strong> {{ reserva.nota }}
           </p>
           
           <!-- Motivo de rechazo -->
           <div *ngIf="reserva.estado === 'rechazada' && reserva.motivo_rechazo" class="motivo-rechazo">
-            <p><strong>Motivo del rechazo:</strong></p>
+            <p><strong>MOTIVO DEL RECHAZO:</strong></p>
             <p class="motivo-texto">{{ reserva.motivo_rechazo }}</p>
           </div>
         </div>
@@ -75,8 +75,8 @@
               class="btn-confirmar">
               <ion-spinner *ngIf="cargandoConfirmar" name="crescent"></ion-spinner>
               <ion-icon *ngIf="!cargandoConfirmar" name="checkmark-circle-outline"></ion-icon>
-              <span *ngIf="cargandoConfirmar">Aceptando...</span>
-              <span *ngIf="!cargandoConfirmar">Aceptar</span>
+              <span *ngIf="cargandoConfirmar">ACEPTANDO...</span>
+              <span *ngIf="!cargandoConfirmar">ACEPTAR</span>
             </ion-button>
             <ion-button 
               fill="solid" 
@@ -86,8 +86,8 @@
               class="btn-rechazar">
               <ion-spinner *ngIf="cargandoRechazar" name="crescent"></ion-spinner>
               <ion-icon *ngIf="!cargandoRechazar" name="close-circle-outline"></ion-icon>
-              <span *ngIf="cargandoRechazar">Rechazando...</span>
-              <span *ngIf="!cargandoRechazar">Rechazar</span>
+              <span *ngIf="cargandoRechazar">RECHAZANDO...</span>
+              <span *ngIf="!cargandoRechazar">RECHAZAR</span>
             </ion-button>
           </div>
         </div>
@@ -98,14 +98,14 @@
   <!-- Mensaje cuando no hay reservas -->
   <div *ngIf="!cargando && reservas.length === 0" class="empty-state">
     <ion-icon name="calendar-outline" size="large"></ion-icon>
-    <h3>No hay reservas pendientes</h3>
-    <p>Todas las reservas han sido procesadas</p>
+    <h3>NO HAY RESERVAS PENDIENTES</h3>
+    <p>TODAS LAS RESERVAS HAN SIDO PROCESADAS</p>
   </div>
 
   <!-- Loading overlay para acciones -->
   <div *ngIf="cargandoAccion" class="loading-overlay">
     <ion-spinner name="crescent"></ion-spinner>
-    <p>Procesando...</p>
+    <p>PROCESANDO...</p>
   </div>
 
 </ion-content>

@@ -16,16 +16,16 @@
     <!-- Barra superior: Prioridad + timestamp / estado -->
     <div class="wl-topbar">
       <div class="wl-prio">
-        <span class="wl-prio-label">Prioridad</span>
+        <span class="wl-prio-label">PRIORIDAD</span>
         <span class="wl-prio-value">{{ prioridadDe(it) }}</span>
       </div>
       <div class="wl-meta">
-        <ion-badge color="warning" class="wl-status">en espera</ion-badge>
+        <ion-badge color="warning" class="wl-status">EN ESPERA</ion-badge>
         <small class="wl-time">{{ it.created_at | date:'dd/MM, HH:mm' }}</small>
       </div>
     </div>
 
-    <!-- Cuerpo: avatar + nombre + email -->
+    <!-- Cuerpo: avatar + nombre + correo -->
     <div class="wl-body">
       <ion-avatar class="wl-avatar">
         <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
@@ -40,7 +40,7 @@
     <div class="wl-actions">
       <ion-button class="btn-asignar" fill="solid" expand="block" (click)="atender(it)">
   <ion-icon slot="start" name="reorder-three-outline"></ion-icon>
-  Asignar mesa
+  ASIGNAR MESA
 </ion-button>
 
     </div>
@@ -51,14 +51,14 @@
 <ng-template #estado>
   <div class="wl-state">
     <ng-container *ngIf="loading; else vacio">
-      <div class="loading-message">Cargando lista de espera…</div>
+      <div class="loading-message">CARGANDO LISTA DE ESPERA…</div>
     </ng-container>
     <ng-template #vacio>
       <div class="empty-message">
         <div class="empty-icon">📋</div>
         <div class="empty-title">¡LISTA DE ESPERA VACÍA!</div>
-        <div class="empty-subtitle">No hay clientes esperando</div>
-        <div class="empty-description">Todos los clientes han sido atendidos exitosamente</div>
+        <div class="empty-subtitle">NO HAY CLIENTES ESPERANDO</div>
+        <div class="empty-description">TODOS LOS CLIENTES HAN SIDO ATENDIDOS EXITOSAMENTE</div>
       </div>
     </ng-template>
   </div>
