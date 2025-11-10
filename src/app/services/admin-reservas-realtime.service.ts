@@ -12,10 +12,12 @@ export class AdminReservasRealtimeService implements OnDestroy {
   constructor(private supa: SupabaseService) {}
 
   async init() {
-    if (this.inited) return;
-    this.inited = true;
-
     console.log('[AdminReservasRealtimeService] 🚀 Inicializando servicio de notificaciones de reservas...');
+    if (this.inited) {
+      console.log('[AdminReservasRealtimeService] ⚠️ Servicio ya inicializado');
+      return;
+    }
+    this.inited = true;
 
     // Solicitar permisos de notificaciones
     const perm = await LocalNotifications.checkPermissions();
@@ -37,21 +39,26 @@ export class AdminReservasRealtimeService implements OnDestroy {
 
     console.log('[AdminReservasRealtimeService] 📺 Canal de notificaciones creado');
 
-    // Suscribirse a INSERTs en la tabla reservas
+    // Configurar canal realtime (igual que el maitre)
+    console.log('[AdminReservasRealtimeService] 🔗 Configurando canal realtime...');
+    console.log('[AdminReservasRealtimeService] 👤 idUsuario:', this.supa.idUsuario);
+    
+    // Suscribirse a INSERTs en la tabla reservas (igual que el maitre con lista_espera)
+    // Nota: Escuchamos TODOS los INSERTs y filtramos por estado en el callback
+    // porque 'pendiente confirmacion' tiene espacios y no funciona en el filtro
     this.chReservas = this.supa.client
-      .channel('admin_reservas_notifications')
+      .channel(`admin_reservas_${this.supa.idUsuario || 'admin'}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'reservas'
       }, async (payload) => {
-        console.log('[AdminReservasRealtimeService] 🔔 Nueva reserva detectada:', payload);
-        
+        console.log('[AdminReservasRealtimeService] 🔔 INSERT detectado:', payload);
         const reserva = payload.new as any;
         
-        // Verificar que la reserva tenga los datos necesarios
-        if (!reserva || !reserva.fecha || !reserva.hora) {
-          console.warn('[AdminReservasRealtimeService] ⚠️ Datos de reserva incompletos:', reserva);
+        // Solo notificar si el estado es 'pendiente confirmacion'
+        if (reserva.estado !== 'pendiente confirmacion') {
+          console.log('[AdminReservasRealtimeService] ⏭️ Estado diferente a "pendiente confirmacion". Estado:', reserva.estado);
           return;
         }
         
@@ -59,40 +66,29 @@ export class AdminReservasRealtimeService implements OnDestroy {
         const fechaFormateada = this.formatearFecha(reserva.fecha);
         const horaFormateada = this.formatearHora(reserva.hora);
         
-        const titulo = '📅 Nueva Reserva Creada';
-        const mensaje = `${reserva.nombre_cliente || 'Cliente'} - ${fechaFormateada} a las ${horaFormateada} (${reserva.cantidad_comensales} persona${reserva.cantidad_comensales > 1 ? 's' : ''})`;
+        const nombre = reserva.nombre_cliente || 'Cliente';
+        const cant = reserva.cantidad_comensales || 1;
         
-        console.log('[AdminReservasRealtimeService] 📱 Preparando notificación:', { titulo, mensaje });
-        
-        try {
-          const result = await LocalNotifications.schedule({
-            notifications: [{
-              id: Date.now() % 2147483647,
-              title: titulo,
-              body: mensaje,
-              channelId: 'admin_reservas',
-              smallIcon: 'ic_stat_notify',
-              extra: { 
-                route: '/admin/reservas',
-                reservaId: reserva.id,
-                tipo: 'nueva_reserva'
-              }
-            }]
-          });
-          
-          console.log('[AdminReservasRealtimeService] ✅ Notificación de nueva reserva enviada:', result);
-        } catch (error) {
-          console.error('[AdminReservasRealtimeService] ❌ Error al enviar notificación de reserva:', error);
-        }
+        console.log('[AdminReservasRealtimeService] 📱 Enviando notificación INSERT...');
+        await LocalNotifications.schedule({
+          notifications: [{
+            id: Date.now() % 2147483647,
+            title: '📅 Nueva Reserva Creada',
+            body: `${nombre} - ${fechaFormateada} a las ${horaFormateada} (${cant} persona${cant > 1 ? 's' : ''})`,
+            channelId: 'admin_reservas',
+            smallIcon: 'ic_stat_notify',
+            extra: { 
+              route: '/admin/reservas',
+              reservaId: reserva.id,
+              tipo: 'nueva_reserva'
+            }
+          }]
+        });
+        console.log('[AdminReservasRealtimeService] ✅ Notificación INSERT enviada');
       })
-      .subscribe((status) => {
-        console.log('[AdminReservasRealtimeService] Canal reservas suscrito con estado:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('[AdminReservasRealtimeService] ✅ Canal reservas suscrito correctamente');
-        } else {
-          console.log('[AdminReservasRealtimeService] ❌ Error en suscripción del canal reservas');
-        }
-      });
+      .subscribe();
+    
+    console.log('[AdminReservasRealtimeService] ✅ Servicio inicializado correctamente');
   }
 
   /**
@@ -131,10 +127,8 @@ export class AdminReservasRealtimeService implements OnDestroy {
   }
 
   dispose() {
-    if (this.chReservas) {
-      this.supa.client.removeChannel(this.chReservas as any);
-      this.chReservas = undefined;
-    }
+    this.chReservas?.unsubscribe();
+    this.chReservas = undefined;
     this.inited = false;
     console.log('[AdminReservasRealtimeService] 🧹 Servicio de reservas limpiado');
   }

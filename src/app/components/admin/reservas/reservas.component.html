@@ -95,11 +95,14 @@
     </ion-card>
   </div>
 
-  <!-- Mensaje cuando no hay reservas -->
-  <div *ngIf="!cargando && reservas.length === 0" class="empty-state">
-    <ion-icon name="calendar-outline" size="large"></ion-icon>
-    <h3>NO HAY RESERVAS PENDIENTES</h3>
-    <p>TODAS LAS RESERVAS HAN SIDO PROCESADAS</p>
+  <!-- Estado vacío/cargando -->
+  <div *ngIf="!cargando && reservas.length === 0" class="empty-state-container">
+    <div class="empty-state-message">
+      <div class="empty-state-icon">📅</div>
+      <div class="empty-state-title">¡NO HAY RESERVAS PENDIENTES!</div>
+      <div class="empty-state-subtitle">No hay reservas esperando confirmación</div>
+      <div class="empty-state-description">Todas las reservas han sido procesadas exitosamente</div>
+    </div>
   </div>
 
   <!-- Loading overlay para acciones -->

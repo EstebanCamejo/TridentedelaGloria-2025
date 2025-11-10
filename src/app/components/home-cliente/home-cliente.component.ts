@@ -274,9 +274,10 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * 🔒 PUNTO 1: Verificar que el cliente no pueda vincularse con otra mesa
-   * - Si tiene mesa asignada, solo puede escanear esa mesa
-   * - Si no tiene mesa asignada, debe primero inscribirse en lista de espera
+   * 🔒 Verifica que el cliente pueda escanear la mesa:
+   * 1. Si tiene reserva confirmada y está en tiempo válido, puede escanear su mesa asignada
+   * 2. Si tiene mesa asignada en lista_espera, solo puede escanear esa mesa
+   * 3. Si no tiene mesa asignada, debe primero inscribirse en lista de espera
    */
   private async handleMesaScan(mesaId: string, mesaNumero?: number) {
     try {
@@ -299,7 +300,152 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
 
       console.log('[handleMesaScan] Verificando mesa asignada para usuario:', userId);
 
-      // Consultar si el cliente tiene una mesa asignada en lista_espera
+      // PRIORIDAD 1: Verificar si tiene una reserva confirmada con esta mesa
+      const hoy = new Date();
+      const fechaHoy = hoy.toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      // Primero verificar si hay una reserva (confirmada o cancelada) para esta mesa
+      const { data: reservaConfirmada, error: errorReserva } = await this.supa.client
+        .from('reservas')
+        .select('id, fecha, hora, mesa_id, estado, motivo_rechazo')
+        .eq('usuario_id', userId)
+        .eq('mesa_id', mesaId)
+        .eq('fecha', fechaHoy)
+        .maybeSingle();
+
+      // Si la reserva fue cancelada por tiempo excedido, mostrar mensaje específico
+      if (!errorReserva && reservaConfirmada && reservaConfirmada.estado === 'cancelada') {
+        // Obtener el tiempo máximo de espera para incluirlo en el mensaje
+        const tiempoMaximoEspera = await this.obtenerTiempoMaximoEspera();
+        
+        // Construir mensaje: usar motivo_rechazo si está disponible, sino construir uno genérico
+        let mensaje = `❌ Tu reserva fue cancelada porque excediste el tiempo máximo de espera (${tiempoMaximoEspera} minutos) sin realizar un pedido.\n\n`;
+        
+        if (reservaConfirmada.motivo_rechazo) {
+          mensaje += `Motivo: ${reservaConfirmada.motivo_rechazo}\n\n`;
+        }
+        
+        mensaje += `Por favor, contacta al personal del restaurante si necesitas asistencia.`;
+        
+        const alert = await this.alertCtrl.create({
+          header: 'Reserva Cancelada',
+          message: mensaje,
+          buttons: [
+            {
+              text: 'ENTENDIDO',
+              cssClass: 'alert-button-confirm'
+            }
+          ],
+          cssClass: 'custom-alert'
+        });
+        await alert.present();
+        return;
+      }
+
+      // Continuar solo si la reserva está confirmada
+      if (!errorReserva && reservaConfirmada && reservaConfirmada.estado === 'confirmada') {
+        // Verificar si estamos en el tiempo válido (desde la hora de la reserva hasta 45 minutos después)
+        const tiempoMaximoEspera = await this.obtenerTiempoMaximoEspera(); // en minutos
+        const ahora = new Date();
+        const [horas, minutos] = reservaConfirmada.hora.split(':');
+        const horaReserva = new Date();
+        horaReserva.setHours(parseInt(horas), parseInt(minutos), 0, 0);
+        
+        const tiempoLimite = new Date(horaReserva.getTime() + (tiempoMaximoEspera * 60 * 1000));
+        
+        console.log('[handleMesaScan] Reserva encontrada:', {
+          horaReserva: horaReserva.toISOString(),
+          tiempoLimite: tiempoLimite.toISOString(),
+          ahora: ahora.toISOString(),
+          tiempoMaximoEspera
+        });
+
+        if (ahora >= horaReserva && ahora <= tiempoLimite) {
+          // ✅ Está en el tiempo válido, verificar que la mesa esté en estado reservaActiva
+          const { data: mesa, error: errorMesa } = await this.supa.client
+            .from('mesas')
+            .select('estado, numero')
+            .eq('id', mesaId)
+            .single();
+
+          if (errorMesa || !mesa) {
+            const alert = await this.alertCtrl.create({
+              header: 'Error',
+              message: 'No se pudo verificar el estado de la mesa. Intenta nuevamente.',
+              buttons: [
+                {
+                  text: 'CONFIRMAR',
+                  cssClass: 'alert-button-confirm'
+                }
+              ],
+              cssClass: 'custom-alert'
+            });
+            await alert.present();
+            return;
+          }
+
+          // Verificar que el estado de la mesa sea reservaActiva
+          if (mesa.estado !== 'reservaActiva') {
+            const alert = await this.alertCtrl.create({
+              header: 'Mesa no disponible',
+              message: `⏳ La mesa N° ${mesa.numero || '?'} aún no está lista para tu reserva.\n\nPor favor espera a que el personal active tu mesa.`,
+              buttons: [
+                {
+                  text: 'CONFIRMAR',
+                  cssClass: 'alert-button-confirm'
+                }
+              ],
+              cssClass: 'custom-alert'
+            });
+            await alert.present();
+            return;
+          }
+
+          // ✅ Todo correcto: reserva válida, tiempo válido y mesa en estado reservaActiva
+          console.log('[handleMesaScan] ✅ Reserva válida y mesa en estado reservaActiva! Navegando a cliente-pedido-en-curso...');
+          await this.router.navigate(
+            ['/cliente-pedido-en-curso'],
+            { 
+              queryParams: { 
+                mesa_id: mesaId,
+                mesa_numero: mesaNumero 
+              }
+            }
+          );
+          return;
+        } else if (ahora < horaReserva) {
+          const alert = await this.alertCtrl.create({
+            header: 'Reserva no disponible aún',
+            message: `Tu reserva es a las ${reservaConfirmada.hora}.\n\nPor favor espera hasta la hora de tu reserva.`,
+            buttons: [
+              {
+                text: 'CONFIRMAR',
+                cssClass: 'alert-button-confirm'
+              }
+            ],
+            cssClass: 'custom-alert'
+          });
+          await alert.present();
+          return;
+        } else {
+          // Tiempo expirado
+          const alert = await this.alertCtrl.create({
+            header: 'Tiempo de reserva expirado',
+            message: `El tiempo máximo de espera para tu reserva ha expirado (${tiempoMaximoEspera} minutos).\n\nPor favor contacta al personal.`,
+            buttons: [
+              {
+                text: 'CONFIRMAR',
+                cssClass: 'alert-button-confirm'
+              }
+            ],
+            cssClass: 'custom-alert'
+          });
+          await alert.present();
+          return;
+        }
+      }
+
+      // PRIORIDAD 2: Consultar si el cliente tiene una mesa asignada en lista_espera
       const { data: waitRow, error } = await this.supa.client
         .from('lista_espera')
         .select('id, estado, mesa_id')
@@ -417,6 +563,31 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
         cssClass: 'custom-alert'
       });
       await alert.present();
+    }
+  }
+
+  /**
+   * Obtiene el tiempo máximo de espera desde Supabase (configurable)
+   * Por defecto 45 minutos si no está configurado
+   */
+  private async obtenerTiempoMaximoEspera(): Promise<number> {
+    try {
+      // Intentar obtener desde una tabla de configuración en Supabase
+      const { data, error } = await this.supa.client
+        .from('configuracion')
+        .select('valor')
+        .eq('clave', 'tiempo_maximo_espera_reserva_minutos')
+        .maybeSingle();
+
+      if (!error && data && data.valor) {
+        return parseInt(data.valor, 10);
+      }
+
+      // Valor por defecto: 45 minutos
+      return 45;
+    } catch (error) {
+      console.warn('[obtenerTiempoMaximoEspera] Error al obtener configuración, usando valor por defecto:', error);
+      return 45;
     }
   }
 
@@ -563,7 +734,6 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
    * Solo permite acceso a clientes registrados
    */
   hacerPedidoDelivery() {
-    // Verificar que es cliente registrado
     if (!this.esClienteRegistrado) {
       this.toast.error('SOLO LOS CLIENTES REGISTRADOS PUEDEN HACER PEDIDOS DE REPARTIDOR', '', {
         positionClass: 'toast-center',
@@ -571,7 +741,6 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       });
       return;
     }
-    
     // Si es cliente registrado, navegar a la página de pedidos repartidor
     this.router.navigate(['/cliente/cliente-realiza-pedido'], { 
       queryParams: { tipo: 'delivery' } 
