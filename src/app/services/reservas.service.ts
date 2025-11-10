@@ -12,6 +12,7 @@ export interface Reserva {
   motivo_rechazo?: string | null;
   nombre_cliente?: string;
   email_cliente?: string;
+  mesa_id?: string | null; // ID de la mesa asignada (UUID)
   created_at?: string;
   updated_at?: string;
 }
@@ -243,7 +244,7 @@ export class ReservasService {
   /**
    * Cambia el estado de una reserva (para admin)
    */
-  async cambiarEstadoReserva(reservaId: string, nuevoEstado: 'confirmada' | 'rechazada', motivoRechazo?: string): Promise<void> {
+  async cambiarEstadoReserva(reservaId: string, nuevoEstado: 'confirmada' | 'rechazada', motivoRechazo?: string, mesaId?: string): Promise<void> {
     const updateData: any = { 
       estado: nuevoEstado,
       updated_at: new Date().toISOString()
@@ -252,6 +253,11 @@ export class ReservasService {
     // Si es rechazo, agregar el motivo
     if (nuevoEstado === 'rechazada' && motivoRechazo) {
       updateData.motivo_rechazo = motivoRechazo;
+    }
+
+    // Si es confirmación y se proporciona mesa_id, asignarla
+    if (nuevoEstado === 'confirmada' && mesaId) {
+      updateData.mesa_id = mesaId;
     }
 
     const { error } = await this.supa.client
@@ -267,23 +273,99 @@ export class ReservasService {
 
   /**
    * Confirma una reserva y envía email de confirmación
+   * @param reservaId ID de la reserva
+   * @param mesaId ID de la mesa asignada (opcional)
    */
-  async confirmarReserva(reservaId: string): Promise<{ ok: boolean; detail?: string }> {
+  async confirmarReserva(reservaId: string, mesaId?: string): Promise<{ ok: boolean; detail?: string }> {
     try {
-      // Obtener datos de la reserva
-      const reserva = await this.obtenerReservaPorId(parseInt(reservaId));
-      if (!reserva) {
+      // Obtener datos de la reserva antes de actualizar (para obtener datos del cliente)
+      const reservaInicial = await this.obtenerReservaPorId(parseInt(reservaId));
+      if (!reservaInicial) {
         throw new Error('Reserva no encontrada');
       }
 
-      // Cambiar estado a confirmada
-      await this.cambiarEstadoReserva(reservaId, 'confirmada');
+      // Cambiar estado a confirmada (con mesa si se proporciona)
+      await this.cambiarEstadoReserva(reservaId, 'confirmada', undefined, mesaId);
 
-      // Enviar email de confirmación
+      // Obtener la reserva actualizada para asegurarse de tener el mesa_id
+      const reserva = await this.obtenerReservaPorId(parseInt(reservaId));
+      if (!reserva) {
+        throw new Error('No se pudo obtener la reserva actualizada');
+      }
+
+      // Enviar email de confirmación con la reserva actualizada
       return await this.enviarEmailConfirmacion(reserva);
     } catch (error) {
       console.error('Error al confirmar reserva:', error);
       return { ok: false, detail: error instanceof Error ? error.message : String(error) };
+    }
+  }
+
+  /**
+   * Obtiene mesas disponibles para asignar a reservas
+   * Filtra mesas que:
+   * 1. Están libres (NO en estado 'reservaActiva' u 'ocupada')
+   * 2. No están asignadas a otras reservas confirmadas en el mismo horario
+   * 3. Tienen capacidad suficiente para los comensales
+   * 4. No están asignadas a lista_espera en estado 'asignado'
+   */
+  async obtenerMesasDisponiblesParaReserva(fecha: string, hora: string, cantidadComensales: number): Promise<Array<{ id: string; numero: number; capacidad: number }>> {
+    try {
+      // Obtener mesas libres con capacidad suficiente (excluir reservaActiva y ocupada)
+      const { data: mesasLibres, error: mesasError } = await this.supa.client
+        .from('mesas')
+        .select('id, numero, capacidad, estado')
+        .gte('capacidad', cantidadComensales)
+        .in('estado', ['libre']) // Solo mesas libres (no reservaActiva ni ocupada)
+        .order('numero', { ascending: true });
+
+      if (mesasError) throw mesasError;
+      if (!mesasLibres || mesasLibres.length === 0) return [];
+
+      // Verificar que no haya otras reservas confirmadas en el mismo horario para esas mesas
+      const { data: reservasConfirmadas, error: reservasError } = await this.supa.client
+        .from('reservas')
+        .select('mesa_id')
+        .eq('fecha', fecha)
+        .eq('hora', hora)
+        .eq('estado', 'confirmada')
+        .not('mesa_id', 'is', null);
+
+      if (reservasError) throw reservasError;
+
+      // Verificar mesas asignadas en lista_espera
+      const { data: mesasEnEspera, error: esperaError } = await this.supa.client
+        .from('lista_espera')
+        .select('mesa_id')
+        .eq('estado', 'asignado')
+        .not('mesa_id', 'is', null);
+
+      if (esperaError) throw esperaError;
+
+      // Crear Sets con los IDs de mesas ocupadas
+      const mesasOcupadasPorReservas = new Set(
+        (reservasConfirmadas || []).map((r: any) => r.mesa_id).filter(Boolean)
+      );
+
+      const mesasOcupadasPorEspera = new Set(
+        (mesasEnEspera || []).map((r: any) => r.mesa_id).filter(Boolean)
+      );
+
+      // Filtrar mesas que no están ocupadas en ese horario ni en lista de espera
+      const mesasDisponibles = mesasLibres
+        .filter((mesa: any) => {
+          return !mesasOcupadasPorReservas.has(mesa.id) && !mesasOcupadasPorEspera.has(mesa.id);
+        })
+        .map((mesa: any) => ({
+          id: mesa.id,
+          numero: mesa.numero,
+          capacidad: mesa.capacidad
+        }));
+
+      return mesasDisponibles;
+    } catch (error) {
+      console.error('Error al obtener mesas disponibles:', error);
+      throw error;
     }
   }
 
@@ -314,6 +396,24 @@ export class ReservasService {
    */
   private async enviarEmailConfirmacion(reserva: any): Promise<{ ok: boolean; detail?: string }> {
     try {
+      // Obtener información de la mesa si está asignada
+      let numeroMesa: number | null = null;
+      if (reserva.mesa_id) {
+        try {
+          const { data: mesaData, error: mesaError } = await this.supa.client
+            .from('mesas')
+            .select('numero')
+            .eq('id', reserva.mesa_id)
+            .single();
+          
+          if (!mesaError && mesaData) {
+            numeroMesa = mesaData.numero;
+          }
+        } catch (error) {
+          console.warn('No se pudo obtener número de mesa:', error);
+        }
+      }
+
       const { data, error } = await this.supa.client.functions.invoke('notificar-cliente', {
         body: {
           email: reserva.email_cliente,
@@ -325,7 +425,8 @@ export class ReservasService {
             fecha: reserva.fecha,
             hora: reserva.hora,
             cantidad_comensales: reserva.cantidad_comensales,
-            nota: reserva.nota
+            nota: reserva.nota,
+            numero_mesa: numeroMesa
           }
         }
       });

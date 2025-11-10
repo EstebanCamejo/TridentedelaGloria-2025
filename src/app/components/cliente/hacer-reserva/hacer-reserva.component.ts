@@ -24,10 +24,11 @@ import {
   IonSelect,
   IonSelectOption,
   IonBadge,
-  AlertController
+  AlertController,
+  IonModal
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { calendarOutline, timeOutline, peopleOutline, closeCircleOutline, documentTextOutline } from 'ionicons/icons';
+import { calendarOutline, timeOutline, peopleOutline, closeCircleOutline, documentTextOutline, closeOutline } from 'ionicons/icons';
 import { ReservasService, Reserva } from '../../../services/reservas.service';
 import { SupabaseService } from '../../../services/supabase.service';
 import { SesionService } from '../../../services/sesion.service';
@@ -60,7 +61,8 @@ import { SpinnerService } from '../../../services/spinner.service';
     IonDatetime,
     IonSelect,
     IonSelectOption,
-    IonBadge
+    IonBadge,
+    IonModal
   ],
   templateUrl: './hacer-reserva.component.html',
   styleUrls: ['./hacer-reserva.component.scss']
@@ -82,8 +84,11 @@ export class HacerReservaComponent implements OnInit {
   fechaMaxima: string = '';
   horaMinima: string = '';
   
-  // Horas disponibles para reservas (11:30 - 23:00)
+  // Horas disponibles para reservas (11:00 - 22:00, solo horas enteras)
   horasDisponibles: { value: string; label: string }[] = [];
+  
+  // Control del modal de fecha
+  fechaSeleccionadaTexto: string = '';
 
   constructor(
     private reservasService: ReservasService,
@@ -99,7 +104,8 @@ export class HacerReservaComponent implements OnInit {
       timeOutline, 
       peopleOutline,
       closeCircleOutline,
-      documentTextOutline
+      documentTextOutline,
+      closeOutline
     });
   }
 
@@ -146,38 +152,35 @@ export class HacerReservaComponent implements OnInit {
   }
 
   /**
-   * Inicializa las horas disponibles para reservas (11:30 - 23:00)
+   * Inicializa las horas disponibles para reservas (horas enteras desde 11:00 hasta 22:00)
+   * Formato de 12 horas con AM/PM para mostrar al usuario
    */
   inicializarHorasDisponibles() {
     this.horasDisponibles = [];
     
-    // Horarios de 11:30 a 23:00 (intervalos de 30 minutos)
+    // Horarios de 11:00 a 22:00 (solo horas enteras)
     const horasInicio = 11;
-    const minutosInicio = 30;
-    const horasFin = 23;
-    const minutosFin = 0;
+    const horasFin = 22;
     
     for (let hora = horasInicio; hora <= horasFin; hora++) {
-      for (let minuto = 0; minuto < 60; minuto += 30) {
-        // Saltar si es la primera iteración y no es 11:30
-        if (hora === horasInicio && minuto < minutosInicio) {
-          continue;
-        }
-        
-        // Parar si llegamos a 23:00
-        if (hora === horasFin && minuto > minutosFin) {
-          break;
-        }
-        
-        const horaStr = hora.toString().padStart(2, '0');
-        const minutoStr = minuto.toString().padStart(2, '0');
-        const valor = `${horaStr}:${minutoStr}`;
-        
-        // Formatear para mostrar (formato 24 horas)
-        const label = `${horaStr}:${minutoStr}`;
-        
-        this.horasDisponibles.push({ value: valor, label: label });
+      const horaStr = hora.toString().padStart(2, '0');
+      const valor = `${horaStr}:00`; // Valor en formato 24 horas para la BD
+      
+      // Convertir a formato 12 horas con AM/PM para mostrar
+      let hora12 = hora;
+      let periodo = 'am';
+      
+      if (hora === 12) {
+        hora12 = 12;
+        periodo = 'pm';
+      } else if (hora > 12) {
+        hora12 = hora - 12;
+        periodo = 'pm';
       }
+      
+      const label = `${hora12}:00${periodo}`;
+      
+      this.horasDisponibles.push({ value: valor, label: label });
     }
   }
 
@@ -227,6 +230,7 @@ export class HacerReservaComponent implements OnInit {
 
   /**
    * Convierte la fecha del ion-datetime al formato correcto
+   * Evita problemas de zona horaria trabajando siempre con la fecha local
    */
   formatearFechaParaValidacion(fecha: string): string {
     if (!fecha) return '';
@@ -236,9 +240,13 @@ export class HacerReservaComponent implements OnInit {
       return fecha;
     }
     
-    // Si es un ISO string, extraer solo la fecha
+    // Si es un ISO string o Date, extraer la fecha usando la zona horaria local
     const fechaObj = new Date(fecha);
-    return fechaObj.toISOString().split('T')[0];
+    // Usar métodos locales para evitar cambios de zona horaria
+    const año = fechaObj.getFullYear();
+    const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
+    const dia = fechaObj.getDate().toString().padStart(2, '0');
+    return `${año}-${mes}-${dia}`;
   }
 
   /**
@@ -437,6 +445,67 @@ export class HacerReservaComponent implements OnInit {
    */
   volver() {
     this.router.navigate(['/home-cliente']);
+  }
+
+  /**
+   * Abre el modal de selección de fecha
+   */
+  async abrirModalFecha(modal: IonModal) {
+    await modal.present();
+  }
+
+  /**
+   * Cierra el modal y actualiza el texto de la fecha seleccionada
+   */
+  async cerrarModalFecha(modal: IonModal) {
+    this.actualizarTextoFecha();
+    await modal.dismiss();
+  }
+
+  /**
+   * Confirma la selección de fecha
+   */
+  async confirmarFecha(modal: IonModal) {
+    this.actualizarTextoFecha();
+    await modal.dismiss();
+  }
+
+  /**
+   * Actualiza el texto mostrado de la fecha seleccionada
+   * Usa la zona horaria local para evitar cambios de día
+   */
+  actualizarTextoFecha() {
+    if (this.fecha) {
+      // Extraer la fecha usando métodos locales para evitar problemas de zona horaria
+      const fechaObj = new Date(this.fecha);
+      const año = fechaObj.getFullYear();
+      const mes = fechaObj.getMonth();
+      const dia = fechaObj.getDate();
+      
+      // Crear una nueva fecha en la zona horaria local
+      const date = new Date(año, mes, dia);
+      
+      this.fechaSeleccionadaTexto = date.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } else {
+      this.fechaSeleccionadaTexto = '';
+    }
+  }
+
+  /**
+   * Maneja el cambio de fecha del datetime
+   */
+  onFechaCambio(event: any) {
+    // El evento puede venir con diferentes formatos
+    const fechaValue = event.detail?.value || event.target?.value || this.fecha;
+    if (fechaValue) {
+      this.fecha = fechaValue;
+      this.actualizarTextoFecha();
+    }
   }
 }
 

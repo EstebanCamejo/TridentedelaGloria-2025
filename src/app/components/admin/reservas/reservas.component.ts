@@ -15,7 +15,8 @@ import {
   IonRefresherContent,
   IonCard,
   IonCardContent,
-  AlertController
+  AlertController,
+  ActionSheetController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -25,11 +26,12 @@ import {
   checkmarkCircleOutline,
   closeCircleOutline,
   refreshOutline,
-  personOutline
+  personOutline,
+  restaurantOutline
 } from 'ionicons/icons';
 import { ReservasService, Reserva } from '../../../services/reservas.service';
 import { SupabaseService } from '../../../services/supabase.service';
-import { SpinnerService } from 'src/app/services/spinner.service';
+import { SpinnerService } from '../../../services/spinner.service';
 import { ToastrService } from 'ngx-toastr';
 import type { RefresherCustomEvent } from '@ionic/angular';
 
@@ -67,8 +69,9 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
     private supa: SupabaseService,
     private router: Router,
     private toast: ToastrService,
-    private spinner: SpinnerService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private actionSheetController: ActionSheetController,
+    private spinner: SpinnerService
   ) {
     addIcons({ 
       calendarOutline, 
@@ -77,7 +80,8 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
       checkmarkCircleOutline,
       closeCircleOutline,
       refreshOutline,
-      personOutline
+      personOutline,
+      restaurantOutline
     });
   }
 
@@ -118,14 +122,64 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Confirma una reserva
+   * Confirma una reserva y permite asignar una mesa
    */
   async confirmarReserva(reserva: Reserva) {
     if (!reserva.id) return;
 
+    try {
+      // Obtener mesas disponibles para esta reserva
+      const mesasDisponibles = await this.reservasService.obtenerMesasDisponiblesParaReserva(
+        reserva.fecha,
+        reserva.hora,
+        reserva.cantidad_comensales
+      );
+
+      if (mesasDisponibles.length === 0) {
+        const alert = await this.alertController.create({
+          header: 'Sin mesas disponibles',
+          message: `No hay mesas disponibles para ${reserva.cantidad_comensales} comensales en el horario ${this.formatearFecha(reserva.fecha)} a las ${reserva.hora}.`,
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
+      }
+
+      // Crear action sheet con las mesas disponibles
+      const buttons: any[] = mesasDisponibles.map(mesa => ({
+        text: `Mesa ${mesa.numero} (Capacidad: ${mesa.capacidad})`,
+        icon: 'restaurant-outline',
+        handler: async () => {
+          await this.confirmarReservaConMesa(reserva.id!.toString(), mesa.id);
+        }
+      }));
+
+      buttons.push({
+        text: 'Cancelar',
+        role: 'cancel',
+        icon: 'close-outline'
+      });
+
+      const actionSheet = await this.actionSheetController.create({
+        header: 'Asignar Mesa',
+        subHeader: `Selecciona una mesa para la reserva del ${this.formatearFecha(reserva.fecha)} a las ${reserva.hora}`,
+        buttons: buttons
+      });
+
+      await actionSheet.present();
+    } catch (error) {
+      console.error('Error al obtener mesas disponibles:', error);
+      this.toast.error('Error al obtener mesas disponibles');
+    }
+  }
+
+  /**
+   * Confirma la reserva con la mesa seleccionada
+   */
+  private async confirmarReservaConMesa(reservaId: string, mesaId: string) {
     const alert = await this.alertController.create({
-      header: 'CONFIRMAR RESERVA',
-      message: `¿CONFIRMAR LA RESERVA DE ${this.obtenerNombreCliente(reserva).toUpperCase()} (${this.obtenerEmailCliente(reserva)}) PARA EL ${this.formatearFecha(reserva.fecha).toUpperCase()} A LAS ${reserva.hora}?`,
+      header: 'Confirmar Reserva',
+      message: `¿Confirmar la reserva y asignar la mesa seleccionada?`,
       buttons: [
         {
           text: 'CANCELAR',
@@ -135,8 +189,12 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
         {
           text: 'CONFIRMAR',
           handler: async () => {
+            // Cerrar el alert primero
             await alert.dismiss();
-            await this.confirmarReservaCompleta(reserva.id!.toString());
+            // Mostrar spinner inmediatamente
+            this.spinner.show({ immediate: true, minMs: 1000 });
+            // Ejecutar la confirmación
+            await this.confirmarReservaCompleta(reservaId, mesaId);
           }
         }
       ]
@@ -182,7 +240,11 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
               });
               return false;
             }
+            // Cerrar el alert primero
             await alert.dismiss();
+            // Mostrar spinner inmediatamente
+            this.spinner.show({ immediate: true, minMs: 1000 });
+            // Ejecutar el rechazo
             await this.rechazarReservaCompleta(reserva.id!.toString(), data.motivo.trim());
             return true;
           }
@@ -194,18 +256,20 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Confirma una reserva completa (estado + email)
+   * Confirma una reserva completa (estado + mesa + email)
    */
-  private async confirmarReservaCompleta(reservaId: string) {
+  private async confirmarReservaCompleta(reservaId: string, mesaId?: string) {
     try {
       this.cargandoConfirmar = true;
-      this.spinner.show({ immediate: true, minMs: 1000 });
-      const res = await this.reservasService.confirmarReserva(reservaId);
+      // El spinner ya se mostró antes de llamar a esta función
       
-      this.toast.success('RESERVA CONFIRMADA EXITOSAMENTE', '', {
-        positionClass: 'toast-center',
-        timeOut: 3000
-      });
+      const res = await this.reservasService.confirmarReserva(reservaId, mesaId);
+      
+      const mensaje = mesaId 
+        ? 'Reserva confirmada y mesa asignada exitosamente' 
+        : 'Reserva confirmada exitosamente';
+      
+      this.toast.success(mensaje);
       
       if (!res.ok) {
         this.toast.warning(`RESERVA CONFIRMADA, PERO EL CORREO NO SE ENVIÓ${res.detail ? `: ${res.detail.toUpperCase()}` : ''}`, '', {
@@ -234,7 +298,8 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   private async rechazarReservaCompleta(reservaId: string, motivoRechazo: string) {
     try {
       this.cargandoRechazar = true;
-      this.spinner.show({ immediate: true, minMs: 1000 });
+      // El spinner ya se mostró antes de llamar a esta función
+      
       const res = await this.reservasService.rechazarReserva(reservaId, motivoRechazo);
       
       this.toast.success('RESERVA RECHAZADA EXITOSAMENTE', '', {
