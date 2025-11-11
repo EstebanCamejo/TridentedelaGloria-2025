@@ -14,7 +14,7 @@ import { trashOutline } from 'ionicons/icons'; // 👈 Y ESTO
   selector: 'app-nuevo-plato',
   standalone: true,
   imports: [IonCard, IonHeader, CommonModule, FormsModule, IonGrid, IonRow, IonCol, IonButton, 
-    IonToolbar, IonTitle ,IonIcon],
+    IonToolbar, IonTitle ,IonIcon, IonContent],
   //providers: [ActionSheetController],
   templateUrl: './nuevo-plato.component.html',
   styleUrls: ['./nuevo-plato.component.scss'],

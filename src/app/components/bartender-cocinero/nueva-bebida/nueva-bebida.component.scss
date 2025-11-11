@@ -1,6 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap");
 
-:host { display:block; }
+:host { 
+  display:block;
+  width: 100%;
+}
 
 
 :root{
@@ -24,20 +27,20 @@
 }
 
 .wrapper {
-  max-width: var(--panel-max);
-  padding: clamp(8px, 1.6svh, 14px) clamp(10px, 4vw, 16px) clamp(10px, 1.8svh, 14px);
-  gap: clamp(6px, 1vh, 10px);
+  padding: 0 0 clamp(10px, 1.8svh, 14px);
+  gap: 0;
   margin-inline: auto;
-
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centra verticalmente */
-  align-items: center;     /* centra horizontalmente */
+  justify-content: flex-start;
+  align-items: center;
   min-height: 100vh; 
+  width: 100%;
 }
+
 .nuevo-plato-form{
-  width:100%;
-  max-width: 420px;
+  width: 100%;
+  max-width: 100%;
   background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
   border: 1px solid rgba(255,255,255,.06);
   border-radius: 18px;
@@ -47,10 +50,17 @@
   padding: 22px 18px 18px;
   position: relative;
   overflow: visible;
-  padding-top: calc(100px + var(--badge-clearance));
-  margin-top:  calc(var(--badge-clearance) * .35);
-  padding-bottom: clamp(8px, 1svh, 12px); /* antes era más grande */
+  padding-top: calc(80px + var(--badge-clearance));
+  padding-bottom: clamp(8px, 1svh, 12px);
   margin-bottom: 8px;  
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-sizing: border-box;
+  
+  @media (min-width: 768px) {
+    width: 90%;
+    max-width: 420px;
+  }
 }
 
 /* badge opcional */
@@ -74,18 +84,28 @@
 
 .form-group{ margin:0; }
 .form-group + .form-group{ margin-top: clamp(12px, 1.8vh, 18px); }
-.subTittle{
-  margin:10px 2px 6px; color:#f3e7da; font-family:"Inter",sans-serif;
-  font-weight:600; font-size:.95rem;
+
+.subTittle {
+  margin: 12px 2px 10px;
+  display: block;
+  color: #f3e7da;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: .95rem;
 }
-input[type="text"], input[type="email"], input[type="password"], input[type="number"]{
-  width:100%; height:46px; padding:0 12px; box-sizing:border-box; border-radius:12px;
-  border:1.5px solid rgba(255,221,190,.55);
-  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
-  color:#673a2c; font-size:1rem; outline:none;
-  transition:border-color .2s, box-shadow .2s, background .2s, transform .04s;
+
+.nuevo-plato-form input[type="text"],
+.nuevo-plato-form input[type="number"] {
+  color: #ffffff !important;
+  background: linear-gradient(180deg, var(--maroon-700), var(--maroon-800)) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
 }
-input::placeholder{ color:#a88978; }
+
+.nuevo-plato-form input::placeholder,
+.nuevo-plato-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important; /* Placeholder en blanco semi-transparente */
+}
+
 input:focus{
   border-color: var(--cream-200);
   box-shadow: 0 0 0 3px rgba(255,221,190,.35);
@@ -144,13 +164,34 @@ input:focus{
 
 .form-container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  min-height: calc(100vh - 56px); /* altura de header aprox. */
+  min-height: auto;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.form-container.rounded-top .nuevo-plato-form {
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
 }
 
 .client-header { 
-  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: calc(var(--safe-top) + 0px) 0 0px; // 🔥 Esto ya maneja el safe-area
+  background: #5d2222;
+  color: var(--cream-25);
+  backdrop-filter: blur(2px);
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 45px;
 }
 .client-header ion-toolbar {
   --background: #5d2222;
@@ -158,24 +199,25 @@ input:focus{
   box-shadow: 0 4px 8px rgba(61,43,43,.28);
 }
 
-/* Fondo del content; sin fullscreen ni padding superior extra */
 .client-content {
   --background: var(--cream-50);
   --padding-top: 0;
 }
 
-.client-header{
+.client-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: calc(var(--safe-top) + 10px) 0 10px; /* <- aire superior seguro */
+  padding: calc(var(--safe-top) + 0px) 0 0px;
   background: #5d2222;
   color: var(--cream-25);
   backdrop-filter: blur(2px);
   box-shadow: 0 4px 8px rgba(61,43,43,.28);
+  width: 100%;
 }
+
 .nav-pill{
-  width: min(520px, 92vw);
+  width: 100%;
   margin: 0 auto;
   padding: 12px 16px;
   background: #5d2222;
@@ -184,10 +226,9 @@ input:focus{
   font-family: "Inter", sans-serif;
   letter-spacing: .2px;
   font-size: 1.25rem;
+  border-radius: 0 0 18px 18px;
 }
-/* === Nuevo plato: igualar legibilidad al form de registro === */
 
-/* Títulos/labels dentro del card oscuro */
 .nuevo-plato-form .subTittle {
   color: #f3e7da;
 }
@@ -199,32 +240,29 @@ input:focus{
 .nuevo-plato-form input[type="password"],
 .nuevo-plato-form textarea {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  
+  color: #ffffff !important;
+  background: linear-gradient(180deg, var(--maroon-700), var(--maroon-800)) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
   height: 46px;
   padding: 0 12px;
-  box-sizing: border-box;
   border-radius: 12px;
-  border: 1.5px solid rgba(255,221,190,.55);
-  background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
-  color: #f3e7da;               /* texto claro como en “registro cliente” */
-  font-size: 1rem;
   outline: none;
-  transition: border-color .2s, box-shadow .2s, background .2s, transform .04s;
-}
-
-.nuevo-plato-form input::placeholder,
-.nuevo-plato-form textarea::placeholder {
-  color: #a88978;               /* placeholder crema suave */
 }
 
 .nuevo-plato-form input:focus,
 .nuevo-plato-form textarea:focus {
   border-color: var(--cream-200);
   box-shadow: 0 0 0 3px rgba(255,221,190,.35);
-  background: #fffaf2;          /* mismo foco que en registro */
-  color: #3b2a2a;               /* texto oscuro sobre fondo claro durante focus */
+  background: var(--maroon-600) !important;
+  color: #ffffff !important;
 }
 
-/* Si usás Ionic: ion-input / ion-textarea */
 .nuevo-plato-form ion-input,
 .nuevo-plato-form ion-textarea {
   --background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
@@ -235,21 +273,18 @@ input:focus{
   --border-radius: 12px;
 }
 
-/* Ajuste fino del texto/caret dentro del “native” (Ionic 7+) */
 .nuevo-plato-form ion-input::part(native),
 .nuevo-plato-form ion-textarea::part(native) {
   color: #f3e7da;
   caret-color: #ffe9d3;
 }
 
-/* Simulación de “focus” en Ionic: realzar borde y halo */
 .nuevo-plato-form ion-input.input-has-focus,
 .nuevo-plato-form ion-textarea.textarea-has-focus {
   box-shadow: 0 0 0 3px rgba(255,221,190,.35);
   border-color: var(--cream-200);
 }
 
-/* Si hay IonItem envolviendo al input, quitamos fondos raros */
 .nuevo-plato-form ion-item {
   --background: transparent;
   --color: #f3e7da;
@@ -257,3 +292,45 @@ input:focus{
   --border-color: rgba(255,221,190,.55);
   border-radius: 12px;
 }
+
+.nuevo-plato-form .form-group {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group {
+  margin-bottom: 10px;
+  margin: 0 0 20px 0;
+}
+
+.nuevo-plato-form input:focus {
+  color: #ffffff !important;
+  background: var(--maroon-600) !important;
+  border-color: rgba(255, 221, 190, 0.8) !important;
+  box-shadow: 0 0 0 3px rgba(255, 221, 190, 0.25) !important;
+}
+
+.rounded-top {
+  border-top-left-radius: 18px !important;
+  border-top-right-radius: 18px !important;
+}
+
+.nuevo-plato-form .form-group + .form-group {
+  margin-top: 0; /* Reset del margen superior ya que usamos margin-bottom */
+}
+
+ion-content {
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.wrapper > * {
+  margin-top: 0;
+}
+/*
+ion-content {
+  --overflow: hidden;
+}
+  */

@@ -5,11 +5,11 @@
 :host { display:block; }
 
 :host {
-  --swiper-navigation-color: white;   /* flechas */
-  --swiper-pagination-color: white;   /* bullet activo */
-  --swiper-pagination-bullet-inactive-color: gray; /* bullet inactivo */
-  --swiper-pagination-bullet-opacity: 0.7; /* opacidad bullets */
-  --swiper-navigation-opacity: 1;     /* opacidad flechas */
+  --swiper-navigation-color: white;
+  --swiper-pagination-color: white;
+  --swiper-pagination-bullet-inactive-color: gray;
+  --swiper-pagination-bullet-opacity: 0.7;
+  --swiper-navigation-opacity: 1;
 }
 
 :root{
@@ -30,11 +30,11 @@
 }
 
 .wrapper{
-  max-width: var(--panel-max);      /* antes 560 */
-  padding: clamp(8px, 1.6svh, 14px) /* arriba */
-           clamp(10px, 4vw, 16px)   /* laterales */
-           clamp(10px, 1.8svh, 14px);/* abajo */
-  gap: clamp(6px, 1vh, 10px);       /* menos aire entre bloques */
+  max-width: var(--panel-max);
+  padding: clamp(8px, 1.6svh, 14px)
+           clamp(10px, 4vw, 16px)
+           clamp(10px, 1.8svh, 14px);
+  gap: clamp(6px, 1vh, 10px);
   margin-inline: auto;
 }
 
@@ -52,11 +52,10 @@
   overflow: visible;
   padding-top: calc(100px + var(--badge-clearance));
   margin-top:  calc(var(--badge-clearance) * .35);
-  padding-bottom: clamp(8px, 1svh, 12px); /* antes era más grande */
+  padding-bottom: clamp(8px, 1svh, 12px);
   margin-bottom: 8px;  
 }
 
-/* badge opcional */
 .brand-badge{
   --size: clamp(96px, 22vw, 148px);
   position: absolute;
@@ -95,7 +94,6 @@ input:focus{
   background:#fffaf2;
 }
 
-/* Botones */
 .buttonLogin, .buttonRegister{
   width:100%; border-radius:14px; padding:.9rem 1rem;
   font-family:"Inter",sans-serif; font-weight:700; font-size:1.05rem;
@@ -106,14 +104,13 @@ input:focus{
 .buttonRegister{ background:transparent; color:#ffe4cc; border:2px solid rgba(255,221,190,.9); }
 .buttonRegister:hover{ background: rgba(255,221,190,.12); color:#1b0f0f; }
 
-/* Animaciones */
 @keyframes badgeDrop{
   0%{ transform: translateY(calc(var(--badge-y) - 200%)) scale(.9) rotate(-1.5deg); filter: blur(1px); opacity: 0; }
   55%{ transform: translateY(calc(var(--badge-y) + 14%)) scale(1.03); opacity: 1; }
   78%{ transform: translateY(calc(var(--badge-y) - 6%))  scale(.996); }
   100%{ transform: translateY(var(--badge-y)) scale(1); }
 }
-/* Avatar + botón subir foto (look de tu ejemplo) */
+
 .contenedor-subidas {
   display: flex; flex-direction: column; align-items: center; gap: 1px; margin-bottom: 7px;
 }
@@ -130,9 +127,9 @@ input:focus{
 }
 
 .btn-subir {
-  --background: #7b2f2f; /* bordo */ 
+  --background: #7b2f2f;
   --background-activated: #6a2727;
-  --color: #ffe9d3;      /* crema */
+  --color: #ffe9d3;
   --border-radius: 10px;
   --padding-start: 14px;
   --padding-end: 14px;
@@ -142,17 +139,50 @@ input:focus{
 }
 .btn-subir:hover, .btn-scanner:hover{ filter: brightness(1.04); }
 
-/* input file oculto para fallback web */
 .file-hidden { display:none; }
 
 .mySwiper {
   width: 100%;
   height: 250px;
+  flex: 0 0 auto;
+
+  --swiper-navigation-color: white !important;
+  --swiper-pagination-color: white !important;
+  --swiper-pagination-bullet-inactive-color: gray !important;
+  --swiper-pagination-bullet-opacity: 0.7 !important;
+  --swiper-navigation-opacity: 1 !important;
+
+  swiper-container {
+    --swiper-navigation-color: white !important;
+    --swiper-pagination-color: white !important;
+    --swiper-pagination-bullet-inactive-color: gray !important;
+    --swiper-pagination-bullet-opacity: 0.7 !important;
+    --swiper-navigation-opacity: 1 !important;
+  }
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  &::part(button-prev),
+  &::part(button-next) {
+    color: white !important;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    
+    &::after {
+      font-size: 16px;
+      font-weight: bold;
+    }
+  }
+
+  &::part(pagination) {
+    --swiper-pagination-bullet-inactive-color: gray;
+    --swiper-pagination-color: white;
   }
 }
 
@@ -180,16 +210,24 @@ input:focus{
 }
 
 .agregar-producto {
-    display: block;
-    background-color: #7b2f2f;
-    color: rgb(255, 255, 255);
-    font-size: 1.5rem;
-    padding: 0;
+  width: fit-content !important;
+  height: fit-content !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #7b2f2f;
+  color: rgb(255, 255, 255);
+  font-size: 1.5rem;
+  padding: 10px 20px;
+  min-height: 44px;
 
-    span {
-        position: relative;
-        top: -5px;
-    }
+  .agregar-texto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    line-height: 1;
+  }
 }
 
 .contenedor-agregar {
@@ -205,7 +243,7 @@ ion-title {
 }
 
 ion-card-title {
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: bold;
 }
 
@@ -213,11 +251,21 @@ ion-card-subtitle {
   font-size: 1.2rem;
 }
 
-.ion-card-centered-text {
-  font-size: 1.5rem;
+.ion-card-tiempo-elaboracion{
+  font-size: 1.6rem;
   font-weight: 200;
-  margin-top: 2rem;
+  margin-top: 0.8rem;
   font-weight: bold;
+  color: black;
+}
+
+.ion-card-centered-text {
+  font-size: 1.6rem;
+  font-weight: 200;
+  margin-top: 0.8rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: black;
 }
 
 .value {
@@ -241,3 +289,142 @@ ion-card-subtitle {
 .btn:active{ transform: scale(.96); }
 .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
+ion-segment {
+  --background: var(--cream-50);
+}
+
+ion-segment-button {
+  --color: var(--ink-soft);
+  --color-checked: var(--maroon-700);
+  --indicator-color: var(--maroon-600);
+}
+
+.products-swiper {
+  --swiper-navigation-color: var(--maroon-600);
+  --swiper-pagination-color: var(--maroon-600);
+  --swiper-pagination-bullet-inactive-color: var(--cream-100);
+  --swiper-pagination-bullet-size: 8px;
+  --swiper-pagination-bullet-horizontal-gap: 4px;
+}
+
+.products-swiper::part(button-prev),
+.products-swiper::part(button-next) {
+  background: rgba(123, 47, 47, 0.8);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: white;
+  
+  @media (max-width: 480px) {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+.products-swiper::part(button-prev)::after,
+.products-swiper::part(button-next)::after {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.products-swiper {
+  padding: 0 40px !important;
+  
+  @media (max-width: 480px) {
+    padding: 0 30px !important;
+  }
+}
+
+ion-content {
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --offset-top: 0 !important;
+  --offset-bottom: 0 !important;
+  display: flex;
+  flex-direction: column;
+  
+  .inner-scroll {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    justify-content: center;
+  }
+}
+
+.centrado {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 0 !important;
+}
+
+.products-swiper {
+  width: 100% !important;
+  max-width: 450px !important;
+  height: 75vh !important;
+  min-height: 400px !important;
+  max-height: 600px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  
+  swiper-container {
+    height: 100% !important;
+    width: 100% !important;
+  }
+  
+  swiper-slide {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+  }
+}
+
+.product-card {
+  width: 90% !important;
+  height: 95% !important;
+  max-height: 550px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 0 auto !important;
+  
+  .mySwiper {
+    height: 180px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  ion-card-header {
+    flex-shrink: 0 !important;
+    padding: 12px 16px !important;
+  }
+  
+  .contenedor-agregar {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+    padding: 0 16px 16px !important;
+  }
+}
+
+// Estilos adicionales para mejorar el centrado vertical
+ion-content {
+  .scroll-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+// Asegurar que no haya márgenes desiguales
+.product-card {
+  margin: 10px auto !important;
+}

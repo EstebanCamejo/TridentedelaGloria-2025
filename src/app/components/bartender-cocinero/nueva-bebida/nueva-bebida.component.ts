@@ -14,8 +14,8 @@ import { trashOutline } from 'ionicons/icons'; // 👈 Y ESTO
 @Component({
   selector: 'app-nueva-bebida',
   standalone: true,
-  imports: [IonCard, IonHeader, CommonModule, FormsModule, IonGrid, IonRow, IonCol, IonButton, 
-    IonToolbar, IonTitle,IonIcon ],
+  imports: [IonCard, IonHeader, CommonModule, FormsModule, IonGrid, IonRow, IonCol, IonButton,
+    IonToolbar, IonTitle, IonIcon, IonContent],
   //providers: [ActionSheetController],
   templateUrl: './nueva-bebida.component.html',
   styleUrls: ['./nueva-bebida.component.scss'],

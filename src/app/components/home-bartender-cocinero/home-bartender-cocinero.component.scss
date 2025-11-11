@@ -3,35 +3,33 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
-/* Deja que ion-header maneje el espacio superior */
-/* Color de fondo del header/toolbar y padding seguro arriba */
+
 .client-header { 
   padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
 }
+
 .client-header ion-toolbar {
   --background: #5d2222;
   --color: #ffffff;
   box-shadow: 0 4px 8px rgba(61,43,43,.28);
 }
 
-/* Fondo del content; sin fullscreen ni padding superior extra */
 .client-content {
   --background: var(--cream-50);
   --padding-top: 0;
 }
 
-
-/* Header fijo: respeta la barra de estado (batería, hora) */
 .client-header{
-  position: sticky;
+  position: static; /* Cambiamos de sticky a static */
   top: 0;
   z-index: 10;
-  padding: calc(var(--safe-top) + 10px) 0 10px; /* <- aire superior seguro */
+  padding: calc(var(--safe-top) + 10px) 0 10px;
   background: #5d2222;
   color: #ffffff;
   backdrop-filter: blur(2px);
   box-shadow: 0 4px 8px rgba(61,43,43,.28);
 }
+
 .nav-pill{
   width: min(520px, 92vw);
   margin: 0 auto;
@@ -44,18 +42,29 @@
   font-size: 1.25rem;
 }
 
-/* Layout central: reserva espacio inferior para no chocar con la barra del sistema ni el FAB */
-.client-wrap{
-  min-height: 100%;
-  display: grid;
-  place-items: center;
-  padding: 18px clamp(10px, 4vw, 22px)
-           calc(var(--safe-bottom) + 96px); /* deja aire abajo */
+/* Layout central mejorado */
+.bartender-cocinero-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
+
+.client-wrap{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centra verticalmente */
+  align-items: center;
+  padding: 20px clamp(10px, 4vw, 22px) 
+           calc(var(--safe-bottom) + 96px);
+  min-height: 0; /* Permite que flex funcione correctamente */
+}
+
 .client-stack{
   width: min(620px, 94vw);
   display: grid;
   gap: clamp(18px, 6svh, 100px);
+  margin: auto 0; /* Ayuda al centrado vertical */
 }
 
 /* Botones grandes */
@@ -77,10 +86,13 @@
   .cta{ height: clamp(96px, 22svh, 150px); }
 }
 
-/* ===== FAB Logout - REMOVIDO: no se usa en este componente ===== */
-
-
 /* (Extra) deja más aire si el dispositivo es súper bajo en alto */
 @media (max-height: 640px){
   .client-wrap{ padding-bottom: calc(var(--safe-bottom) + 112px); }
+}
+
+/* Asegurar que ion-content ocupe toda la altura */
+ion-content.client-content {
+  --overflow: hidden;
+  height: 100vh;
 }

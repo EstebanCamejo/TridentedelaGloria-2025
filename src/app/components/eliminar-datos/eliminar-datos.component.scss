@@ -1,0 +1,48 @@
+.contenedor-privacidad {
+  position: absolute;
+  top: 3rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #a88978;
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+  overflow: hidden;
+  
+  ion-content {
+    --background: #a88978;
+    
+    .contenido-interno {
+      padding: 20px;
+      padding-top: 10px;
+    }
+  }
+}
+
+ion-title {
+  margin-top: 35px;
+  gap: 20px;
+}
+
+ion-card-title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+ion-card-subtitle {
+  font-size: 1.2rem;
+}
+
+p {
+  text-align: justify;
+  font-size: 1rem;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2rem;
+}
+
+.signature {
+  text-align: center;
+}

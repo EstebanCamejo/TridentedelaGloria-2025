@@ -1,20 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { MenuService, PlatoTipo } from 'src/app/services/menu.service';
+
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, NgZone } from '@angular/core';
+import { MenuService } from 'src/app/services/menu.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { SupabaseService } from 'src/app/services/supabase.service';
-import {
-  IonContent, IonGrid, IonRow, IonCol,
-  IonButton, IonIcon, IonHeader, IonToolbar, IonTitle, IonCard } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { C } from '@angular/common/common_module.d-Qx8B6pmN';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline } from 'ionicons/icons';
-import { Pedido, PedidoDetalle } from '../../../models/pedido.model'
+import { Pedido } from '../../../models/pedido.model'
 import { register } from 'swiper/element/bundle';
 import { PedidosService } from 'src/app/services/pedidos.service';
 
@@ -28,9 +24,11 @@ let _swiperRegistered = false;
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class ClienteRealizaPedidoComponent  implements OnInit {
+export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
 
-   idCliente!: string; // ya no hardcodeado
+  @ViewChild('productsSwiper') productsSwiper!: ElementRef;
+
+  idCliente!: string;
   cantidadesProductos: { [idProducto: string]: number } = {};
   cantidadesProductosEnCarrito: Array<{
     id: number;
@@ -42,6 +40,8 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
   tiempoDeEspera: number = 0;
 
   menu: any[] = [];
+  menuFiltrado: any[] = [];
+  filtroActual: string = 'comida';
 
   cargando = false;
   pedidoRealizado = false;
@@ -52,26 +52,51 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
   modoEdicion = false;
   pedidoAEditar: number | null = null; 
 
+  // Variables para el control del acelerómetro
+  private lastX: number = 0;
+  private lastY: number = 0;
+  private lastZ: number = 0;
+  private isListening: boolean = false;
+  private motionHandler!: (event: DeviceMotionEvent) => void;
+  
+  // Configuración de sensibilidad (ajustable)
+  private readonly TILT_THRESHOLD_X = 6.0;    // Menos sensible para izquierda/derecha
+  private readonly TILT_THRESHOLD_Y = 4.0;    // Más sensible para adelante/atrás
+  private readonly SHAKE_THRESHOLD = 40;
+  private readonly SHAKE_TIMEOUT = 1000;
+  private readonly ACTION_COOLDOWN = 500;     // Más tiempo entre acciones
+
+  private readonly MIN_MOVEMENT = 0.6;        // Movimiento mínimo requerido
+  private readonly DOMINANCE_RATIO = 0.75;  
+  
+  private lastActionTime: number = 0;
+  private lastShakeTime: number = 0;
+  private shakeCount: number = 0;
+
+  //private frontalMovementCount: number = 0;
+
   constructor(
     private pedidosSvc: PedidosService, 
     private router: Router, 
     private route: ActivatedRoute,
     private menuService: MenuService, 
     private toastr: ToastrService,
-    private supa: SupabaseService
+    private supa: SupabaseService,
+    private ngZone: NgZone
   ) {
     addIcons({
       'checkmark-outline': checkmarkOutline
     });
-      if (!_swiperRegistered) { register(); _swiperRegistered = true; }
+    if (!_swiperRegistered) { register(); _swiperRegistered = true; }
   }
 
   async ngOnInit() {
     try {
-      this.idCliente = await this.menuService.getClienteIdActual(); // uuid string
+      this.idCliente = await this.menuService.getClienteIdActual();
       this.menu = await this.menuService.obtenerMenu();
+
+      this.filtrarMenu({ detail: { value: this.filtroActual } });
       
-      // Verificar si está en modo edición
       this.route.queryParams.subscribe(params => {
         if (params['editar'] === 'true' && params['pedidoId']) {
           this.modoEdicion = true;
@@ -79,6 +104,11 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
           this.cargarPedidoParaEditar(this.pedidoAEditar);
         }
       });
+
+      // Iniciar sensores después de que la vista esté lista
+      setTimeout(() => {
+        this.startMotionTracking();
+      }, 1500);
       
     } catch (err) {
       console.error(err);
@@ -86,6 +116,383 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    this.stopMotionTracking();
+    //this.frontalMovementCount = 0;
+  }
+
+
+
+  /**
+   * Inicia el seguimiento de movimientos del dispositivo
+   */
+  private startMotionTracking() {
+    console.log('🔍 Iniciando diagnóstico de sensores...');
+    
+    if (!window.DeviceMotionEvent) {
+      console.error('❌ DeviceMotionEvent NO está soportado en este navegador/dispositivo');
+      this.toastr.error('DeviceMotion no soportado en este dispositivo');
+      return;
+    }
+
+    console.log('✅ DeviceMotionEvent está soportado');
+    
+    // Verificar si tenemos acceso a los sensores
+    if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+      console.log('📱 Dispositivo iOS - solicitando permisos...');
+      (DeviceMotionEvent as any).requestPermission()
+        .then((response: string) => {
+          console.log('📱 Respuesta de permisos:', response);
+          if (response === 'granted') {
+            this.startListening();
+          } else {
+            this.toastr.error('Permisos de movimiento denegados');
+          }
+        })
+        .catch((error: any) => {
+          console.error('❌ Error en permisos:', error);
+        });
+    } else {
+      console.log('🤖 Dispositivo Android - iniciando sensores directamente');
+      this.startListening();
+    }
+  }
+
+  private startListening() {
+    console.log('🎯 Agregando event listener para devicemotion');
+    
+    window.addEventListener('devicemotion', (event) => {
+      console.log('📊 Evento de movimiento recibido:', {
+        x: event.accelerationIncludingGravity?.x,
+        y: event.accelerationIncludingGravity?.y,
+        z: event.accelerationIncludingGravity?.z
+      });
+      this.handleDeviceMotion(event);
+    });
+    
+    // También probemos deviceorientation
+    window.addEventListener('deviceorientation', (event) => {
+      console.log('🧭 Evento de orientación:', {
+        alpha: event.alpha,
+        beta: event.beta,
+        gamma: event.gamma
+      });
+    });
+  }
+
+  private stopMotionTracking() {
+    if (this.isListening) {
+      window.removeEventListener('devicemotion', this.motionHandler);
+      this.isListening = false;
+      console.log('🔴 Sensores de movimiento desactivados');
+    }
+  }
+
+  /**
+   * Maneja los eventos de movimiento del dispositivo
+   */
+  private handleDeviceMotion(event: DeviceMotionEvent) {
+    this.ngZone.run(() => {
+      const acceleration = event.accelerationIncludingGravity;
+      if (!acceleration) return;
+
+      const currentTime = Date.now();
+      
+      // Cool-down más estricto
+      if (currentTime - this.lastActionTime < this.ACTION_COOLDOWN) {
+        return;
+      }
+
+      const x = acceleration.x || 0;
+      const y = acceleration.y || 0;
+      const z = acceleration.z || 0;
+
+      // Inicializar últimos valores
+      if (this.lastX === 0 && this.lastY === 0 && this.lastZ === 0) {
+        this.lastX = x;
+        this.lastY = y;
+        this.lastZ = z;
+        return;
+      }
+
+      // Calcular diferencias absolutas
+      const deltaX = Math.abs(x - this.lastX);
+      const deltaY = Math.abs(y - this.lastY);
+      const deltaZ = Math.abs(z - this.lastZ);
+
+      // Calcular dirección (positivo/negativo)
+      const dirX = x - this.lastX;
+      const dirY = y - this.lastY;
+
+      console.log('📊 Movimiento detectado:', { 
+        deltaX: deltaX.toFixed(2), 
+        deltaY: deltaY.toFixed(2),
+        dirX: dirX.toFixed(2),
+        dirY: dirY.toFixed(2)
+      });
+
+      // 1. DETECCIÓN MEJORADA DE MOVIMIENTOS LATERALES
+      if (this.detectLateralMovementImproved(deltaX, deltaY, dirX)) {
+        this.lastActionTime = currentTime;
+        this.resetMotionValues();
+        return;
+      }
+
+      // 2. DETECCIÓN MEJORADA DE MOVIMIENTOS FRONTALES
+      if (this.detectFrontalMovementImproved(deltaY, deltaX, dirY)) {
+        this.lastActionTime = currentTime;
+        this.resetMotionValues();
+        return;
+      }
+
+      // 3. DETECCIÓN DE AGITACIÓN (igual que antes)
+      if (this.detectShake(deltaX, deltaY, deltaZ, currentTime)) {
+        this.resetToFirstProduct();
+        this.lastActionTime = currentTime;
+        this.resetMotionValues();
+        return;
+      }
+
+      // Actualizar últimos valores
+      this.lastX = x;
+      this.lastY = y;
+      this.lastZ = z;
+    });
+  }
+
+
+  /**
+   * Detecta movimiento lateral (izquierda/derecha) para cambio de fotos
+   */
+  private detectLateralMovementImproved(deltaX: number, deltaY: number, dirX: number): boolean {
+    // Requerir movimiento significativo en X y que sea dominante sobre Y
+    const isXLargeEnough = deltaX > this.TILT_THRESHOLD_X;
+    const isXDominant = deltaX > deltaY * (1 + this.DOMINANCE_RATIO);
+    const hasMinMovement = deltaX > this.MIN_MOVEMENT;
+
+    if (isXLargeEnough && isXDominant && hasMinMovement) {
+      if (dirX > 0) {
+        console.log('➡️ Movimiento DERECHA (mejorado)');
+        this.navigateToPreviousPhoto();
+      } else {
+        console.log('⬅️ Movimiento IZQUIERDA (mejorado)');
+        this.navigateToNextPhoto();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Detecta movimiento frontal (adelante/atrás) para cambio de productos
+   */
+  private detectFrontalMovementImproved(deltaY: number, deltaX: number, dirY: number): boolean {
+    // Requerir movimiento significativo en Y y que sea dominante sobre X
+    const isYLargeEnough = deltaY > this.TILT_THRESHOLD_Y;
+    const isYDominant = deltaY > deltaX * (1 + this.DOMINANCE_RATIO);
+    const hasMinMovement = deltaY > this.MIN_MOVEMENT;
+
+    if (isYLargeEnough && isYDominant && hasMinMovement) {
+      //this.frontalMovementCount++;
+      if (dirY > 0) {
+        console.log('⬇️ Movimiento ATRÁS (mejorado)');
+        this.navigateToPreviousProduct();
+      } else {
+        console.log('⬆️ Movimiento ADELANTE (mejorado)');
+        this.navigateToNextProduct();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Detecta agitación del dispositivo (shake)
+   */
+  private detectShake(deltaX: number, deltaY: number, deltaZ: number, currentTime: number): boolean {
+    const totalMovement = Math.abs(deltaX) + Math.abs(deltaY) + Math.abs(deltaZ);
+    
+    if (totalMovement > this.SHAKE_THRESHOLD) {
+      this.shakeCount++;
+      
+      // Detectar 2 shakes rápidos
+      if (this.shakeCount >= 2) {
+        if (currentTime - this.lastShakeTime < this.SHAKE_TIMEOUT) {
+          this.shakeCount = 0;
+          this.lastShakeTime = currentTime;
+          return true;
+        }
+      }
+      
+      this.lastShakeTime = currentTime;
+    }
+
+    // Resetear contador si pasa mucho tiempo
+    if (currentTime - this.lastShakeTime > this.SHAKE_TIMEOUT) {
+      this.shakeCount = 0;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Reinicia los valores de movimiento después de una acción
+   */
+  private resetMotionValues() {
+    // Delay un poco más largo para evitar acciones múltiples
+    setTimeout(() => {
+      this.lastX = 0;
+      this.lastY = 0;
+      this.lastZ = 0;
+      console.log('🔄 Valores de movimiento reseteados');
+    }, 300);
+  }
+
+
+
+  // ========== MÉTODOS DE NAVEGACIÓN ==========
+
+  /**
+   * Navega a la siguiente foto del producto actual
+   */
+  private navigateToNextPhoto() {
+    try {
+      console.log('📸 Movimiento: Siguiente foto');
+      const currentProductSwiper = this.getCurrentProductPhotoSwiper();
+      if (currentProductSwiper && !currentProductSwiper.isEnd) {
+        currentProductSwiper.slideNext();
+        this.showHapticFeedback();
+      }
+    } catch (error) {
+      console.error('Error al navegar a la siguiente foto:', error);
+    }
+  }
+
+  /**
+   * Navega a la foto anterior del producto actual
+   */
+  private navigateToPreviousPhoto() {
+    try {
+      console.log('📸 Movimiento: Foto anterior');
+      const currentProductSwiper = this.getCurrentProductPhotoSwiper();
+      if (currentProductSwiper && !currentProductSwiper.isBeginning) {
+        currentProductSwiper.slidePrev();
+        this.showHapticFeedback();
+      }
+    } catch (error) {
+      console.error('Error al navegar a la foto anterior:', error);
+    }
+  }
+
+  /**
+   * Navega al siguiente producto
+   */
+  private navigateToNextProduct() {
+    try {
+      console.log('🔄 Movimiento: Siguiente producto');
+      const mainSwiper = this.productsSwiper?.nativeElement?.swiper;
+      if (mainSwiper && !mainSwiper.isEnd) {
+        mainSwiper.slideNext();
+        this.showHapticFeedback();
+      }
+    } catch (error) {
+      console.error('Error al navegar al siguiente producto:', error);
+    }
+  }
+
+  /**
+   * Navega al producto anterior
+   */
+  private navigateToPreviousProduct() {
+    try {
+      console.log('🔄 Movimiento: Producto anterior');
+      const mainSwiper = this.productsSwiper?.nativeElement?.swiper;
+      if (mainSwiper && !mainSwiper.isBeginning) {
+        mainSwiper.slidePrev();
+        this.showHapticFeedback();
+      }
+    } catch (error) {
+      console.error('Error al navegar al producto anterior:', error);
+    }
+  }
+
+  /**
+   * Vuelve al primer producto del menú
+   */
+  private resetToFirstProduct() {
+    try {
+      console.log('🏠 Movimiento: Reset al primer producto');
+      const mainSwiper = this.productsSwiper?.nativeElement?.swiper;
+      if (mainSwiper) {
+        mainSwiper.slideTo(0);
+        this.showHapticFeedback('medium');
+        this.toastr.info('Volviendo al primer producto', '', {
+          timeOut: 2000,
+          positionClass: 'toast-center'
+        });
+      }
+    } catch (error) {
+      console.error('Error al resetear al primer producto:', error);
+    }
+  }
+
+  /**
+   * Proporciona feedback háptico (vibración) cuando está disponible
+   */
+  private showHapticFeedback(type: 'light' | 'medium' | 'heavy' = 'light') {
+    if (navigator.vibrate) {
+      const patterns = {
+        light: [50],
+        medium: [100],
+        heavy: [150]
+      };
+      navigator.vibrate(patterns[type]);
+    }
+  }
+
+  /**
+   * Obtiene el swiper de fotos del producto actualmente visible
+   */
+  private getCurrentProductPhotoSwiper(): any {
+    try {
+      const mainSwiper = this.productsSwiper?.nativeElement?.swiper;
+      if (!mainSwiper) {
+        console.warn('No se encontró el swiper principal');
+        return null;
+      }
+
+      const activeSlideIndex = mainSwiper.activeIndex;
+      const activeSlide = mainSwiper.slides[activeSlideIndex];
+      
+      if (!activeSlide) {
+        console.warn('No se encontró el slide activo');
+        return null;
+      }
+
+      // Buscar el swiper de fotos dentro del slide activo
+      const photoSwiperElement = activeSlide.querySelector('.mySwiper');
+      if (!photoSwiperElement) {
+        console.warn('No se encontró el swiper de fotos en el slide activo');
+        return null;
+      }
+
+      return photoSwiperElement.swiper || null;
+    } catch (error) {
+      console.error('Error al obtener el swiper de fotos:', error);
+      return null;
+    }
+  }
+
+
+
+  // Método para resetear el swiper al primer slide
+  resetSwiperToFirstSlide() {
+    if (this.productsSwiper && this.productsSwiper.nativeElement && this.productsSwiper.nativeElement.swiper) {
+      this.productsSwiper.nativeElement.swiper.slideTo(0);
+    }
+  }
+
+  // Resto de los métodos permanecen iguales...
   private toastOk(msg: string) {
     this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
   }
@@ -94,7 +501,6 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
     try {
       console.log(`[ClienteRealizaPedidoComponent] Cargando pedido ${pedidoId} para editar...`);
       
-      // Obtener detalles del pedido
       const { data: pedido, error: pedidoError } = await this.supa.client
         .from('pedidos')
         .select('*')
@@ -106,7 +512,6 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
         throw new Error('No se pudo cargar el pedido para editar');
       }
 
-      // Obtener detalles de los productos del pedido
       const { data: detalles, error: detallesError } = await this.supa.client
         .from('pedidos_detalles')
         .select('*')
@@ -116,22 +521,18 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
         throw new Error('No se pudieron cargar los detalles del pedido');
       }
 
-      // Cargar productos en el carrito
       this.cantidadesProductosEnCarrito = detalles.map((detalle: any) => ({
         id: detalle.idProducto,
         cantidad: detalle.cantidad,
-        precio_unitario: detalle.precioUnitario, // Usar precioUnitario (camelCase) como en la DB
-        tiempo_preparacion: detalle.tiempo_preparacion || detalle.tiempoPreparacion || 0 // Se calculará desde el menu
+        precio_unitario: detalle.precioUnitario,
+        tiempo_preparacion: detalle.tiempo_preparacion || detalle.tiempoPreparacion || 0
       }));
 
-      // Obtener tiempos de preparación desde la tabla menu
       await this.cargarTiemposPreparacion();
 
-      // Calcular totales
       this.precioAcumulado = pedido.total || 0;
       this.tiempoDeEspera = pedido.tiempo_estimado || 0;
 
-      // Sincronizar cantidades con la UI (para que se muestren los productos en los contadores)
       this.sincronizarCantidadesConUI();
 
       console.log(`[ClienteRealizaPedidoComponent] ✅ Pedido ${pedidoId} cargado para editar:`, this.cantidadesProductosEnCarrito);
@@ -145,10 +546,8 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
   }
 
   sincronizarCantidadesConUI() {
-    // Limpiar cantidades actuales
     this.cantidadesProductos = {};
     
-    // Sincronizar cantidades del carrito con los contadores visuales
     for (const item of this.cantidadesProductosEnCarrito) {
       this.cantidadesProductos[item.id.toString()] = item.cantidad;
     }
@@ -158,14 +557,12 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
 
   async cargarTiemposPreparacion() {
     try {
-      // Obtener IDs únicos de productos en el carrito
       const idsProductos = [...new Set(this.cantidadesProductosEnCarrito.map(item => item.id))];
       
       if (idsProductos.length === 0) return;
 
       console.log('[ClienteRealizaPedidoComponent] Cargando tiempos de preparación para productos:', idsProductos);
 
-      // Obtener tiempos desde la tabla menu
       const { data: menuItems, error } = await this.supa.client
         .from('menu')
         .select('id, tiempo_elaboracion')
@@ -176,20 +573,17 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
         return;
       }
 
-      // Crear mapa de tiempos por producto
       const tiemposMap = new Map();
       (menuItems || []).forEach(item => {
         tiemposMap.set(item.id, item.tiempo_elaboracion || 0);
       });
 
-      // Actualizar tiempos en el carrito
       this.cantidadesProductosEnCarrito.forEach(item => {
         const tiempoDesdeMenu = tiemposMap.get(item.id) || 0;
         item.tiempo_preparacion = tiempoDesdeMenu;
         console.log(`[ClienteRealizaPedidoComponent] Producto ${item.id}: tiempo ${tiempoDesdeMenu} min`);
       });
 
-      // Recalcular tiempo total
       this.tiempoDeEspera = Math.max(...this.cantidadesProductosEnCarrito.map(item => item.tiempo_preparacion), 0);
       console.log(`[ClienteRealizaPedidoComponent] Tiempo total recalculado: ${this.tiempoDeEspera} min`);
 
@@ -202,7 +596,6 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
     try {
       console.log(`[ClienteRealizaPedidoComponent] Actualizando pedido ${pedidoId}...`);
       
-      // 1. Eliminar detalles existentes del pedido
       const { error: deleteError } = await this.supa.client
         .from('pedidos_detalles')
         .delete()
@@ -210,7 +603,6 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
 
       if (deleteError) throw deleteError;
 
-      // 2. Calcular nuevo total y tiempo estimado
       let nuevoTotal = 0;
       let maxTiempo = 0;
 
@@ -229,26 +621,23 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
         throw new Error('El total del pedido debe ser mayor a 0');
       }
 
-      // 3. Actualizar el pedido principal
       const { error: updateError } = await this.supa.client
         .from('pedidos')
         .update({
           total: nuevoTotal,
           tiempo_estimado: maxTiempo,
-          estado: 'pendiente', // Volver a estado pendiente para que el mozo lo vea
+          estado: 'pendiente',
           updated_at: new Date().toISOString()
         })
         .eq('id', pedidoId);
 
       if (updateError) throw updateError;
 
-      // 4. Insertar nuevos detalles (sin tiempo_preparacion ya que no existe en la tabla)
       const nuevosDetalles = this.cantidadesProductosEnCarrito.map(item => ({
         idPedido: pedidoId,
         idProducto: item.id,
         cantidad: item.cantidad,
-        precioUnitario: item.precio_unitario // Usar precioUnitario (camelCase) como en la DB
-        // tiempo_preparacion no se guarda en pedidos_detalles, se calcula desde menu
+        precioUnitario: item.precio_unitario
       }));
 
       const { error: insertError } = await this.supa.client
@@ -271,63 +660,70 @@ export class ClienteRealizaPedidoComponent  implements OnInit {
     }
   }
 
-async finalizarPedido() {
-  if (this.cargando || this.pedidoRealizado) return;
-
-  if (!this.cantidadesProductosEnCarrito.length) {
-    this.toastr.info('Agregá al menos un producto.');
-    return;
+  filtrarMenu(event: any) {
+    this.filtroActual = event.detail.value;
+    this.menuFiltrado = this.menu.filter(producto => 
+      producto.categoria_menu === this.filtroActual
+    );
+    
+    // Resetear el swiper al primer slide cuando se cambia de categoría
+    setTimeout(() => {
+      this.resetSwiperToFirstSlide();
+    }, 100);
   }
 
-  try {
-    this.cargando = true;
+  async finalizarPedido() {
+    if (this.cargando || this.pedidoRealizado) return;
 
-    let res: any;
-
-    if (this.modoEdicion && this.pedidoAEditar) {
-      // Modo edición: actualizar pedido existente
-      console.log(`[ClienteRealizaPedidoComponent] Actualizando pedido ${this.pedidoAEditar}...`);
-      res = await this.actualizarPedidoExistente(this.pedidoAEditar);
-    } else {
-      // Modo nuevo: crear pedido nuevo
-      console.log('[ClienteRealizaPedidoComponent] Creando nuevo pedido...');
-      res = await this.menuService.crearPedido({
-        idCliente: this.idCliente,                 // uuid del usuario
-        productos: this.cantidadesProductosEnCarrito
-      });
+    if (!this.cantidadesProductosEnCarrito.length) {
+      this.toastr.info('Agregá al menos un producto.');
+      return;
     }
 
-    // espero que res traiga: { id: number, total: number, tiempoEstimado: number }
-    if (!res?.id) throw new Error('La API no devolvió un id de pedido.');
+    try {
+      this.cargando = true;
 
-    // ✅ marcar pedido actual (queda disponible en todos los tabs, p.ej. Juegos)
-    this.pedidosSvc.setPedidoActual({ id: Number(res.id) });
+      let res: any;
 
-    this.pedidoRealizado = true;
-    this.idPedido = Number(res.id);
-
-    // Mensaje de éxito diferente según el modo
-    if (this.modoEdicion) {
-      this.toastOk('¡Pedido actualizado y enviado nuevamente!');
-    } else {
-      this.toastOk('¡Pedido enviado!');
-    }
-
-    // Navegar a "pedido en curso" con state útil para pintar la UI al toque
-    this.router.navigate(['/cliente-pedido-en-curso'], {
-      state: {
-        pedidoId: this.idPedido,
-        total: res.total ?? 0,
-        tiempo: res.tiempoEstimado ?? null
+      if (this.modoEdicion && this.pedidoAEditar) {
+        console.log(`[ClienteRealizaPedidoComponent] Actualizando pedido ${this.pedidoAEditar}...`);
+        res = await this.actualizarPedidoExistente(this.pedidoAEditar);
+      } else {
+        console.log('[ClienteRealizaPedidoComponent] Creando nuevo pedido...');
+        res = await this.menuService.crearPedido({
+          idCliente: this.idCliente,
+          productos: this.cantidadesProductosEnCarrito
+        });
       }
-    });
 
-  } catch (e: any) {
-    this.toastr.error(e?.message || 'Error creando el pedido.');
-  } finally {
-    this.cargando = false;
+      if (!res?.id) throw new Error('La API no devolvió un id de pedido.');
+
+      this.pedidosSvc.setPedidoActual({ id: Number(res.id) });
+
+      this.pedidoRealizado = true;
+      this.idPedido = Number(res.id);
+
+      if (this.modoEdicion) {
+        this.toastOk('¡Pedido actualizado y enviado nuevamente!');
+      } else {
+        this.toastOk('¡Pedido enviado!');
+      }
+
+      this.router.navigate(['/cliente-pedido-en-curso'], {
+        state: {
+          pedidoId: this.idPedido,
+          total: res.total ?? 0,
+          tiempo: res.tiempoEstimado ?? null
+        }
+      });
+
+    } catch (e: any) {
+      this.toastr.error(e?.message || 'Error creando el pedido.');
+    } finally {
+      this.cargando = false;
+    }
   }
-}
+
   agregarProducto(
     idProducto: number,
     precioProducto: number,
@@ -354,9 +750,8 @@ async finalizarPedido() {
       });
     }
 
-    this.cantidadesProductos[idProducto] = 0; // reset del contador visual
+    this.cantidadesProductos[idProducto] = 0;
   }
-
 
   incrementarCantidad(productoId: string) {
     if (!this.cantidadesProductos[productoId]) {

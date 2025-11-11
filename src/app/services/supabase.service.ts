@@ -8,6 +8,8 @@ type RolUsuario = 'clienteReg' | 'clienteAnon' | 'mozo' | 'maitre' | 'dueno' | '
 import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
 type EstadoLE = 'noAtendido' | 'esperando' | 'asignado' | 'finalizado';
+import { SocialLogin } from '@capgo/capacitor-social-login';
+import { supabaseFacebook } from './facebook-supabase.service'; //importo otro servicio de Supabase con mismo Url y Key pero configurado para Facebook
 
 const capacitorAuthStorage = {
   getItem: (key: string) => Preferences.get({ key }).then(r => r.value ?? null),
@@ -1170,5 +1172,169 @@ export class SupabaseService {
     const tienePendientes = await this.tienePedidosSinPagar();
     return !tienePendientes; // Puede completar si NO tiene pendientes
   }
+
+  ////////// EMPIEZA CÓDIGO DE IVÁN ('signInWithFacebook', 'checkUserExists' y 'checkSocialLogin') //////////
+  /*
+  async signInWithFacebook() {
+    try {
+      const redirectUrl = 'https://noneidetic-unswerved-glenda.ngrok-free.dev/auth-callback';
+      console.log('Redirect URL:', redirectUrl);
+
+      const { data, error } = await this.client.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: redirectUrl,
+          scopes: 'email,public_profile',
+        },
+      });
+      
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error: any) {
+      console.error('Error signing in with Facebook:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Método para verificar si el usuario existe
+  async checkUserExists(email: string) {
+    const { data, error } = await this.client
+      .from('profiles')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    return { exists: !!data, error };
+  }
+  */
+
+  async checkSocialLogin(email: string, provider: string, provider_id: string) {
+    const { data, error } = await this.client
+      .from('usuarios')
+      .select('*')
+      .eq('email', email)
+      .eq('provider', provider)
+      .eq('provider_id', provider_id)
+      .maybeSingle(); // devuelve null si no hay coincidencia
+
+    if (error) {
+      console.error('[SupabaseService] Error al consultar usuarios:', error);
+      throw new Error('Error en la consulta a la base de datos.');
+    }
+
+    if (!data) {
+      console.warn('[SupabaseService] Usuario no registrado con login social.');
+      throw new Error('Usuario no registrado.');
+    }
+
+    return data;
+  }
+
+  async signInWithFacebook() {
+    try {
+      const result = await SocialLogin.login({
+        provider: 'facebook',
+        options: {
+          permissions: ['email', 'public_profile']
+        }
+      });
+
+      const accessToken = (result as any);
+
+      console.log('Facebook login accessToken:', accessToken.result);
+      console.log('Facebook login profile:', accessToken.result.profile);
+
+      const email = accessToken.result.profile.email;
+
+      console.log('Facebook login email:', email);
+
+      const { data: previewData, count: previewCount, error: previewqErr } = await this._supabase
+        .from('usuarios')
+        .select('*', { count: 'exact' })
+        .eq('email', email);
+
+      if (previewqErr) {
+        await this._supabase.auth.signOut();
+        throw previewqErr;
+      }
+
+      console.log('Resultados búsqueda:', previewData);
+      console.log('Count:', previewCount);
+
+      // Verifica si hay datos O si count es 0
+      if (!previewData || previewData.length === 0 || previewCount === 0) {
+        console.log("No se encontró ningún usuario registrado con ese email");
+        await this._supabase.auth.signOut();
+        throw new Error('NO_REGISTRADO');
+      }
+
+      console.log('idToken:', accessToken.result.idToken);
+
+      const { data, error } = await this._supabase.auth.signInWithIdToken({
+        provider: 'facebook',
+        token: accessToken.result.idToken,
+      });
+
+      console.log('data:', data)
+      console.log('error:', error)
+
+      if (error?.message.includes('Login cancelled')) {
+        return null;
+      }
+
+      // ✅ Esperar a que la sesión quede firme
+      const session = await this.waitForSession(3000);
+      if (!session?.user?.id) {
+        await this._supabase.auth.signOut();
+        throw new Error('No se pudo establecer la sesión. Intentá de nuevo.');
+      }
+
+      const auth_id = session.user.id;
+      
+      // Buscar el usuario app en tu tabla con más datos
+      const { data: rows, error: qErr } = await this._supabase
+        .from('usuarios')
+        .select('id, perfil, estado, nombres, apellidos, email, auth_id')
+        .eq('auth_id', auth_id)
+        .limit(1);
+
+      if (qErr) {
+        await this._supabase.auth.signOut();
+        throw qErr;
+      }
+
+      const u = rows?.[0];
+      const habilitado = u && (u.estado === 'aprobado' || u.estado === 'activo');
+      if (!habilitado) {
+        await this._supabase.auth.signOut();
+        const msg = u?.estado === 'rechazado'
+          ? 'Tu registro fue rechazado. Consultá al local.'
+          : 'Tu registro está pendiente de aprobación.';
+        throw new Error(msg);
+      }
+      
+      this.idUsuario = auth_id;
+
+      // Guardar datos del usuario en localStorage
+      if (u) {
+        const userData: UsuarioLocalData = {
+          id: u.id,
+          email: u.email || session.user.email || '',
+          nombre: u.nombres || '',
+          apellido: u.apellidos || null,
+          perfil: u.perfil || '',
+          auth_id: u.auth_id || auth_id
+        };
+        await this.saveUserDataToLocal(userData);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Facebook sign-in error:', error);
+      throw error;
+    }
+
+  }
+  ////////// TERMINA CÓDIGO DE IVÁN //////////
 
 }

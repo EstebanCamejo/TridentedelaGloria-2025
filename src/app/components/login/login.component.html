@@ -104,6 +104,17 @@
         <ion-button expand="block" fill="clear" (click)="goToRegister()">
           Registrarse
         </ion-button>
+
+        <ion-button expand="block" 
+        fill="outline" 
+        (click)="handleFacebookLogin()" 
+        class="facebook-button"
+        [disabled]="loading">
+          <ion-icon name="logo-facebook" slot="start"></ion-icon>
+          <span *ngIf="!facebookLoginLoading">Ingresar con Facebook</span>
+          <span *ngIf="facebookLoginLoading">Cargando...</span>
+        </ion-button>
+
       </form>
     </div>
   </div>

@@ -439,11 +439,19 @@ public spinnerVisible$ = this.spinner.visible$;
       if (!this.handledDeepLink) {
         this.showSplash = false;
 
-        // ⬇️ HABILITO spinner de rutas y salto la primera navegación (salida del splash)
         this.routeSpinnerEnabled = true;
         this.ignoreNextNav = true;
 
-        this.router.navigateByUrl('/login');
+        // ✅ NUEVO: verificamos usando Router.url, no window.location.pathname
+        const currentPath = this.router.url.split('?')[0];
+        const publicPaths = ['/politica-de-privacidad', '/eliminar-datos'];
+
+        // ✅ Y agregamos una espera mínima para asegurar que el router inicializó
+        setTimeout(() => {
+          if (!publicPaths.includes(currentPath)) {
+            this.router.navigateByUrl('/login');
+          }
+        }, 100); // 100 ms: suficiente para que el router tenga la ruta actual
       }
     }, 3000);
 

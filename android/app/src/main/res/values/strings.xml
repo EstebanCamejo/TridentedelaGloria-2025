@@ -4,4 +4,7 @@
     <string name="title_activity_main">El Tridente</string>
     <string name="package_name">io.ionic.starter</string>
     <string name="custom_url_scheme">io.ionic.starter</string>
+    <string name="facebook_app_id">4170745939861466</string>
+    <string name="fb_login_protocol_scheme">fb4170745939861466</string>
+    <string name="facebook_client_token">0c42feeb3c7024e678d14d5aa17c1ca1</string>
 </resources>

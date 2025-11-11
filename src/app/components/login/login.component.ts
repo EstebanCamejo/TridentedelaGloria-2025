@@ -1,3 +1,4 @@
+import { Browser } from '@capacitor/browser';
 import { Component } from '@angular/core';
 import { addIcons } from 'ionicons';
 import { personCircle, glasses, footsteps, restaurant, beer, body } from 'ionicons/icons';
@@ -27,6 +28,11 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { logoFacebook } from 'ionicons/icons';
+import { authService } from '../../services/facebook-auth.service';
+
+import { SocialLogin } from '@capgo/capacitor-social-login';
+import { AlertController } from '@ionic/angular';
 
 //import { SpinnerService } from 'src/app/services/spinner.service';
 
@@ -56,6 +62,7 @@ export class loginComponent {
   
   logoReady = false;
   loading = false; 
+  facebookLoginLoading = false;
   //cargando: boolean = false;
   
   email: string = ''; 
@@ -65,6 +72,7 @@ export class loginComponent {
     private auths: SupabaseService,
     private router: Router,
     private toastr: ToastrService,
+    private alertController: AlertController
      // private spinner: SpinnerService, 
   ) {}
 
@@ -98,10 +106,13 @@ export class loginComponent {
       restaurant,
       beer,
       body,
+      'logo-facebook': logoFacebook,
     });
   
     // Animación del logo
     setTimeout(() => (this.logoReady = true), 10);
+
+    console.log('Window location origin:', window.location.origin);
   }
 
   async login() {
@@ -210,6 +221,107 @@ console.log('Login OK');
   fastLoginCocinero()        { this.setCreds('cocinero'); }
   fastLoginBartender()       { this.setCreds('bartender'); }
   fastLoginCliente()         { this.setCreds('cliente'); }
+  
+  async handleFacebookLogin() {
+    try {
+      if (this.facebookLoginLoading) return;
+      this.facebookLoginLoading = true;
 
-    
+      const user = await this.auths.signInWithFacebook();
+
+      if (user == null) {
+        return;
+      }
+
+      console.log('Signed in with Facebook:', user);
+
+      console.log('Login Facebook OK');
+      
+      // 2) UID fresco (evita carreras con this.idUsuario)
+      const { data: authUser, error: auErr } = await this.auths.client.auth.getUser();
+      console.log('getSession =>', { data: authUser, error: auErr });
+      if (auErr) throw auErr;
+      const uid = authUser?.user?.id;
+      console.log(uid);
+      if (!uid) throw new Error('No se obtuvo el UID luego del login.');
+
+      // 3) INSERT directo en 'noAsignado'
+        console.log('Intentando INSERT en lista_espera…');
+      try {
+        const { data: inserted, error: insErr } = await this.auths.client
+          .from('lista_espera')
+          .insert([{
+            usuario_id: uid,
+            cantidad_comensales: 2,     
+            nota: null,
+            estado: 'noAtendido',
+            mesa_id: null,
+            numero_mesa: null,
+          }])
+          .select('id, estado')
+          .single();
+
+        if (insErr) throw insErr;
+        console.log('Inscripto a lista_espera:', inserted);
+      } catch (e: any) {
+        // Si tenés índice único de “una activa por usuario”, capturás 23505 y seguís
+        if (e?.code === '23505') {
+          console.warn('[lista_espera] ya tenía una activa, no inserto otra.');
+        } else {
+          console.warn('[lista_espera] insert falló (no bloquea login):', e);
+        }
+      }
+
+
+      this.toastr.success('Sesión iniciada correctamente', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000,
+      });
+
+      // limpiar campos antes de navegar
+      this.email = '';
+      this.password = '';
+
+      await this.router.navigate(['/home']);
+
+    } catch (error: any) {
+
+      if (error?.message === 'NO_REGISTRADO') {
+        // Mostrar tu cartel personalizado
+        await this.mostrarCartelUsuarioNoRegistrado();
+        return;
+      }
+
+      const msg = this.getErrorMessage(error);
+      this.toastr.error(msg, 'Error', {
+        positionClass: 'toast-center',
+        closeButton: true,
+        progressBar: true,
+        timeOut: 4000,
+      });
+      console.error('[login] error:', error);
+
+    } finally {
+      this.facebookLoginLoading = false;
+    }
+  }
+
+  async mostrarCartelUsuarioNoRegistrado() {
+    const alert = await this.alertController.create({
+      header: 'Usuario no registrado',
+      message: '  El ingreso con redes sociales es únicamente para usuarios ya registrados. Si sos cliente, registrate desde la opción "Registrarse" en la página de inicio. Si sos empleado, pedile a un administrador que te dé de alta como usuario en la aplicación.',
+      buttons: [
+        {
+          text: 'Aceptar',
+          role: 'confirm',
+          cssClass: 'alert-button-confirm'
+        }
+      ],
+      backdropDismiss: false, // evita que se cierre al tocar fuera del cartel
+      cssClass: 'custom-alert' // para personalizar estilo si querés
+    });
+
+    await alert.present();
+  }
+
 }

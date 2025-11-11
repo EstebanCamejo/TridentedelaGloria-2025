@@ -22,6 +22,8 @@ import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
 
+import { authService } from './app/services/facebook-auth.service';
+
 registerLocaleData(localeEsAr);
 
 registerLocaleData(localeEsAr);
@@ -54,5 +56,24 @@ bootstrapApplication(AppComponent, {
     provideFirestore(() => getFirestore()),*/
   ],
 });
+
+
+
+async function initializeApp() {
+  await authService.initializeSocialLogin();
+
+  // Listen to auth state changes
+  authService.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN') {
+      console.log('User signed in:', session.user);
+      // Redirect to authenticated area
+    } else if (event === 'SIGNED_OUT') {
+      console.log('User signed out');
+      // Redirect to login
+    }
+  });
+}
+
+initializeApp();
 
 

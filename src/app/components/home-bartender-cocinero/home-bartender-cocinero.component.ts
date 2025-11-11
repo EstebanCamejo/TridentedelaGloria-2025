@@ -36,7 +36,6 @@ export class HomeBartenderCocineroComponent implements OnInit, OnDestroy {
     this.email$ = this.supabase.authEmail$;
 
     this.perfil = this.sesion.usuarioBD!.perfil;
-    //this.obtenerPerfil();
   }
 
   async ngOnInit() {
@@ -61,30 +60,6 @@ export class HomeBartenderCocineroComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     // Cleanup adicional si es necesario
   }
-
-  /*
-  async obtenerPerfil() {
-    const { data, error } = await this.supabase.client
-      .from('usuarios')
-      .select('perfil')
-      .eq('id', this.idUsuario$)
-      .single();
-
-    console.log(`Id del usuario: ${this.idUsuario$}`)
-    console.log(`Perfil: ${data}`)
-    if (error) {
-      console.error('Error al obtener el perfil:', error.message);
-      return;
-    }
-
-    if (data) {
-      //console.log(`Perfil: ${this.perfil}`)
-      this.perfil = data.perfil;
-    } else {
-      console.warn('No se encontró el perfil del usuario');
-    }
-  }
-    */
 
   irAAgregarNuevoPlato() { this.router.navigate(['/bartender-cocinero/nuevo-plato']); }
   irAAgregarNuevaBebida() { this.router.navigate(['/bartender-cocinero/nueva-bebida']); }

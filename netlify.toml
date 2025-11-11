@@ -1,0 +1,14 @@
+[build]
+  publish = "dist"
+
+[[headers]]
+  for = "/eliminar-datos"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

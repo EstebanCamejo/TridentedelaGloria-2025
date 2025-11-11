@@ -12,6 +12,9 @@ import { ClientePedidoEnCursoComponent } from './components/cliente-pedido-en-cu
 import { ClienteJuegosComponent } from './components/cliente/cliente-juegos/cliente-juegos.component';
 import { PaginaResultadosEncuestasPage } from './components/pagina-resultados-encuestas/pagina-resultados-encuestas';
 import { ChatComponent } from './components/chat/chat.component';
+import { PoliticaDePrivacidadComponent } from './components/politica-de-privacidad/politica-de-privacidad.component';
+import { EliminarDatosComponent } from './components/eliminar-datos/eliminar-datos.component';
+import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 export const routes: Routes = [
   {
     path: '',
@@ -21,6 +24,11 @@ export const routes: Routes = [
   {
     path: 'login',
     component: loginComponent,
+    pathMatch: 'full',
+  },
+  { 
+    path: 'auth-callback', 
+    component: AuthCallbackComponent,
     pathMatch: 'full',
   },
   {
@@ -51,6 +59,16 @@ export const routes: Routes = [
   {
     path: 'home-bartender-cocinero',
     component: HomeBartenderCocineroComponent,
+    pathMatch: 'full',
+  },
+  {
+    path: 'politica-de-privacidad',
+    component: PoliticaDePrivacidadComponent,
+    pathMatch: 'full',
+  },
+  {
+    path: 'eliminar-datos',
+    component: EliminarDatosComponent,
     pathMatch: 'full',
   },
   {
