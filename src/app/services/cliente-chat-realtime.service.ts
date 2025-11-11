@@ -37,10 +37,10 @@ export class ClienteChatRealtimeService implements OnDestroy {
 
     console.log('[ClienteChatRealtimeService] Iniciando servicio de chat para cliente:', userId);
 
-    // Obtener las salas de chat del cliente actual
+    // 🆕 Obtener las salas de chat del cliente actual (mesa y delivery)
     const { data: salasCliente } = await this.supa.client
       .from('chat_rooms')
-      .select('id, mesa_numero')
+      .select('id, mesa_num, tipo_pedido, pedido_id')
       .eq('cliente_uid', userId);
 
     if (!salasCliente || salasCliente.length === 0) {
@@ -66,21 +66,34 @@ export class ClienteChatRealtimeService implements OnDestroy {
           return;
         }
 
-        // Solo notificar si el mensaje es de un mozo (no del propio cliente)
-        const { data: usuario } = await this.supa.client
-          .from('usuarios')
-          .select('perfil, nombres, apellidos')
-          .eq('id', mensaje.usuario_id)
-          .single();
-
-        if (usuario?.perfil !== 'mozo') {
-          // Es el propio cliente enviando mensaje, no notificar
+        // 🆕 Verificar si el mensaje es del propio cliente
+        if (mensaje.from_uid === userId) {
+          console.log('[ClienteChatRealtimeService] Mensaje propio del cliente, no notificar');
           return;
         }
 
-        // Obtener información de la mesa
-        const sala = salasCliente.find(s => s.id === mensaje.room_id);
-        const numeroMesa = sala?.mesa_numero || '?';
+        // Obtener información del usuario que envió el mensaje (mozo o delivery)
+        const { data: usuario } = await this.supa.client
+          .from('usuarios')
+          .select('perfil, nombres, apellidos')
+          .eq('auth_id', mensaje.from_uid)
+          .maybeSingle();
+
+        // 🆕 Verificar si es mozo o delivery (no notificar si es otro cliente)
+        if (!usuario || (usuario.perfil !== 'mozo' && usuario.perfil !== 'delivery')) {
+          console.log('[ClienteChatRealtimeService] Mensaje no es de mozo ni delivery, no notificar');
+          return;
+        }
+
+        // Obtener información de la sala para saber si es delivery o mesa
+        const { data: sala } = await this.supa.client
+          .from('chat_rooms')
+          .select('tipo_pedido, pedido_id, mesa_num')
+          .eq('id', mensaje.room_id)
+          .maybeSingle();
+
+        const esDelivery = sala?.tipo_pedido === 'delivery';
+        const numeroMesa = sala?.mesa_num || '?';
         
         // Formatear fecha con hora y minutos
         const fecha = new Date(mensaje.created_at);
@@ -92,27 +105,36 @@ export class ClienteChatRealtimeService implements OnDestroy {
           minute: '2-digit'
         });
 
-        // Formatear nombre del mozo
-        const nombreMozo = [usuario.nombres, usuario.apellidos].filter(Boolean).join(' ') || 'Mozo';
+        // Formatear nombre del remitente
+        const nombreRemitente = [usuario.nombres, usuario.apellidos].filter(Boolean).join(' ') || 
+                                (usuario.perfil === 'delivery' ? 'Repartidor' : 'Mozo');
+
+        // 🆕 Título y mensaje según tipo de remitente
+        const titulo = esDelivery ? '💬 Respuesta del repartidor' : '💬 Respuesta del mozo';
+        const cuerpo = esDelivery 
+          ? `${nombreRemitente} - Delivery #${sala?.pedido_id || '?'} - ${fechaFormateada}`
+          : `${nombreRemitente} - Mesa ${numeroMesa} - ${fechaFormateada}`;
 
         // Enviar notificación push al cliente
         await LocalNotifications.schedule({
           notifications: [{
             id: Date.now() % 2147483647,
-            title: '💬 Respuesta del mozo',
-            body: `${nombreMozo} - Mesa ${numeroMesa} - ${fechaFormateada}`,
+            title: titulo,
+            body: cuerpo,
             channelId: 'cliente_chat',
             smallIcon: 'ic_stat_notify',
             extra: {
               roomId: mensaje.room_id,
               mesaNumero: numeroMesa,
               mensajeId: mensaje.id,
-              mozoNombre: nombreMozo
+              remitenteNombre: nombreRemitente,
+              tipo: esDelivery ? 'delivery' : 'mozo',
+              pedidoId: sala?.pedido_id
             }
           }]
         });
 
-        console.log(`[ClienteChatRealtimeService] 🔔 Notificación enviada al cliente: ${nombreMozo} - Mesa ${numeroMesa} - ${fechaFormateada}`);
+        console.log(`[ClienteChatRealtimeService] 🔔 Notificación enviada al cliente: ${titulo} - ${cuerpo}`);
       })
       .subscribe();
 

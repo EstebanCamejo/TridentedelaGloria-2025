@@ -1,11 +1,11 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Confirmar Pagos</ion-title>
+    <ion-title>CONFIRMAR PAGOS</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-loading [isOpen]="loading" message="Cargando pagos pendientes..."></ion-loading>
+  <ion-loading [isOpen]="loading" message="CARGANDO PAGOS PENDIENTES..."></ion-loading>
 
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
@@ -17,58 +17,82 @@
     <div *ngIf="pagosPendientes.length > 0; else noPagos">
       <ion-card *ngFor="let pago of pagosPendientes" class="pago-card">
         <ion-card-header>
-          <div class="pago-header">
-            <ion-card-title>Mesa {{ pago.numero_mesa }}</ion-card-title>
-            <ion-badge color="warning" class="pago-badge">
-              <ion-icon name="time-outline"></ion-icon>
-              Pendiente
-            </ion-badge>
+          <ion-card-title class="mesa-title">MESA {{ pago.numero_mesa }}</ion-card-title>
+          <ion-card-subtitle class="mesa-subtitle">PAGO PENDIENTE DE CONFIRMACIÓN</ion-card-subtitle>
+          <div class="pago-badge">
+            <ion-icon name="time-outline"></ion-icon>
+            PENDIENTE
           </div>
         </ion-card-header>
 
         <ion-card-content>
           <!-- Información del cliente -->
           <div class="cliente-info">
-            <p><strong>Cliente:</strong> {{ pago.cliente_nombre }}</p>
-            <p><strong>Fecha:</strong> {{ pago.fecha_solicitud | date:'dd/MM/yyyy HH:mm' }}</p>
+            <div class="cliente-detail">
+              <span class="cliente-label">CLIENTE:</span>
+              <span class="cliente-value">{{ pago.cliente_nombre }}</span>
+            </div>
+            <div class="cliente-detail">
+              <span class="cliente-label">FECHA:</span>
+              <span class="cliente-value">{{ pago.fecha_solicitud | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
           </div>
 
           <!-- Detalle de pedidos -->
           <div class="pedidos-section">
-            <h4>Pedidos:</h4>
-            <ion-list>
-              <ion-item *ngFor="let pedido of pago.pedidos">
-                <ion-label>
-                  <h3>{{ pedido.nombre }}</h3>
-                  <p>{{ pedido.cantidad }} x ${{ pedido.precio_unitario | number:'1.2-2' }}</p>
-                </ion-label>
-                <div slot="end" class="subtotal">
+            <h4 class="section-subtitle">PEDIDOS:</h4>
+            <div class="pedidos-list">
+              <div *ngFor="let pedido of pago.pedidos" class="pedido-item">
+                <div class="pedido-info">
+                  <h3 class="pedido-nombre">{{ pedido.nombre }}</h3>
+                  <p class="pedido-detalle">{{ pedido.cantidad }} x ${{ pedido.precio_unitario | number:'1.2-2' }}</p>
+                </div>
+                <div class="pedido-subtotal">
                   ${{ pedido.subtotal | number:'1.2-2' }}
                 </div>
-              </ion-item>
-            </ion-list>
+              </div>
+            </div>
           </div>
 
           <!-- Información de propina -->
           <div *ngIf="pago.propina_monto > 0" class="propina-section">
-            <h4>Propina:</h4>
-            <p><strong>{{ getPropinaLabel(pago.propina_pct) }}</strong> ({{ pago.propina_pct }}%)</p>
-            <p class="propina-monto">${{ pago.propina_monto | number:'1.2-2' }}</p>
+            <h4 class="section-subtitle">PROPINA:</h4>
+            <div class="propina-info">
+              <div class="propina-detail">
+                <span class="propina-label">NIVEL DE SATISFACCIÓN:</span>
+                <span class="propina-value">{{ getPropinaLabel(pago.propina_pct) }}</span>
+              </div>
+              <div class="propina-detail">
+                <span class="propina-label">PORCENTAJE:</span>
+                <span class="propina-value">{{ pago.propina_pct }}%</span>
+              </div>
+              <div class="propina-detail">
+                <span class="propina-label">MONTO:</span>
+                <span class="propina-value">${{ pago.propina_monto | number:'1.2-2' }}</span>
+              </div>
+            </div>
           </div>
 
           <!-- Resumen de totales -->
           <div class="totales-section">
-            <div class="total-line">
-              <span>Subtotal:</span>
-              <span>${{ (pago.total - pago.propina_monto) | number:'1.2-2' }}</span>
-            </div>
-            <div *ngIf="pago.propina_monto > 0" class="total-line propina">
-              <span>Propina:</span>
-              <span>${{ pago.propina_monto | number:'1.2-2' }}</span>
-            </div>
-            <div class="total-line total-final">
-              <span><strong>TOTAL:</strong></span>
-              <span><strong>${{ pago.total | number:'1.2-2' }}</strong></span>
+            <h4 class="section-subtitle">RESUMEN DE TOTALES:</h4>
+            <div class="totales-list">
+              <div class="total-line subtotal">
+                <span class="total-label">SUBTOTAL:</span>
+                <span class="total-value">${{ (pago.subtotal ?? 0) | number:'1.2-2' }}</span>
+              </div>
+              <div *ngIf="pago.monto_descuento && pago.monto_descuento > 0" class="total-line descuento">
+                <span class="total-label">DESCUENTO:</span>
+                <span class="total-value">-${{ pago.monto_descuento | number:'1.2-2' }}</span>
+              </div>
+              <div *ngIf="pago.propina_monto > 0" class="total-line propina">
+                <span class="total-label">PROPINA:</span>
+                <span class="total-value">${{ pago.propina_monto | number:'1.2-2' }}</span>
+              </div>
+              <div class="total-line total-final">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-value">${{ pago.total | number:'1.2-2' }}</span>
+              </div>
             </div>
           </div>
 
@@ -82,7 +106,7 @@
             [disabled]="confirmandoPago[pago.id]"
             class="btn-confirmar">
             <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-            {{ confirmandoPago[pago.id] ? 'Confirmando...' : 'Confirmar Pago' }}
+            {{ confirmandoPago[pago.id] ? 'CONFIRMANDO...' : 'CONFIRMAR PAGO' }}
           </ion-button>
         </ion-card-content>
       </ion-card>
@@ -91,19 +115,23 @@
     <!-- Estado vacío -->
     <ng-template #noPagos>
       <div class="no-pagos">
-        <ion-icon name="receipt-outline" class="no-pagos-icon"></ion-icon>
-        <h3>No hay pagos pendientes</h3>
-        <p>Todos los pagos han sido confirmados</p>
+        <div class="empty-message">
+          <div class="empty-icon">🧾</div>
+          <div class="empty-title">¡NO HAY PAGOS PENDIENTES!</div>
+          <div class="empty-subtitle">TODOS LOS PAGOS HAN SIDO CONFIRMADOS</div>
+          <div class="empty-description">LOS CLIENTES HAN COMPLETADO SUS TRANSACCIONES EXITOSAMENTE</div>
+        </div>
       </div>
     </ng-template>
 
     <!-- Botón volver -->
     <ion-button 
       expand="block" 
-      fill="outline" 
+      fill="solid"
       (click)="volver()"
       class="btn-volver">
-      Volver
+      <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+      VOLVER
     </ion-button>
   </div>
 </ion-content>

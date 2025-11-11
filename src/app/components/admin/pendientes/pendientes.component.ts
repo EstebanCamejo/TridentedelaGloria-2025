@@ -11,6 +11,7 @@ import { checkmarkCircle, closeCircle, refresh } from 'ionicons/icons';
 import { ToastrService } from 'ngx-toastr';
 import { AdminPendientesService, PendingClient } from 'src/app/services/admin-pendientes.service';
 import { AlertController } from '@ionic/angular';
+import { SpinnerService } from 'src/app/services/spinner.service';
 
 @Component({
   selector: 'app-pendientes',
@@ -36,7 +37,8 @@ export class PendientesComponent implements OnInit, OnDestroy {
   constructor(
     private srv: AdminPendientesService,
     private toast: ToastrService,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private spinner: SpinnerService
   ) {
     addIcons({ checkmarkCircle, closeCircle, refresh });
   }
@@ -56,7 +58,10 @@ export class PendientesComponent implements OnInit, OnDestroy {
       this.items = await this.srv.list();
       this.filtered = this.items;
     } catch (e: any) {
-      this.toast.error(e?.message || 'Error cargando pendientes');
+      this.toast.error((e?.message || 'ERROR CARGANDO PENDIENTES').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.loading = false;
     }
@@ -82,51 +87,63 @@ export class PendientesComponent implements OnInit, OnDestroy {
     this.loadingId = it.id;
     try {
       await this.srv.approve(it.id, it.email, it.nombres, it.apellidos);
-      this.toast.success(`Aprobado: ${it.nombres} ${it.apellidos}`);
+      this.toast.success(`APROBADO: ${it.nombres.toUpperCase()} ${it.apellidos.toUpperCase()}`, '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
       await this.load(false);
     } catch (e: any) {
-      this.toast.error(e?.message || 'No se pudo aprobar');
+      this.toast.error((e?.message || 'NO SE PUDO APROBAR').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.loadingId = null;
     }
   }
   async confirmarAprobacion(it: PendingClient) {
     const alert = await this.alertCtrl.create({
-      header: 'Aprobar cliente',
-      message: `¿Seguro que querés aprobar a ${it.nombres} ${it.apellidos}?`,
+      header: 'APROBAR CLIENTE',
+      message: `¿SEGURO QUE QUERÉS APROBAR A ${it.nombres.toUpperCase()} ${it.apellidos.toUpperCase()}?`,
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: 'CANCELAR', role: 'cancel' },
         {
-          text: 'Aprobar',
+          text: 'APROBAR',
           role: 'confirm',
-          // handler: async () => {
-          //   if (this.loadingId) return;
-          //   this.loadingId = it.id;
-          //   try {
-          //     await this.srv.approve(it.id, it.email, it.nombres, it.apellidos);
-          //     this.toast.success(`Aprobado: ${it.nombres} ${it.apellidos}`);
-          //     await this.load(false);
-          //   } catch (e: any) {
-          //     this.toast.error(e?.message || 'No se pudo aprobar');
-          //   } finally {
-          //     this.loadingId = null;
-          //   }
-          // }
           handler: async () => {
             if (this.loadingId) return;
             this.loadingId = it.id;
+            
+            // Cerrar el diálogo primero
+            await alert.dismiss();
+            
+            // Mostrar spinner después de cerrar el diálogo
+            console.log('🔄 Mostrando spinner para aprobación...');
+            this.spinner.show({ immediate: true, minMs: 1000 });
+            
             try {
               const res = await this.srv.approve(it.id, it.email, it.nombres, it.apellidos);
-              this.toast.success(`Aprobado: ${it.nombres} ${it.apellidos}`);
+              this.toast.success(`APROBADO: ${it.nombres.toUpperCase()} ${it.apellidos.toUpperCase()}`, '', {
+                positionClass: 'toast-center',
+                timeOut: 3000
+              });
               if (!res.ok) {
-                this.toast.warning(`Aprobado, pero el email no se envió${res.detail ? `: ${res.detail}` : ''}`, 'Aviso', { timeOut: 6000 });
+                this.toast.warning(`APROBADO, PERO EL CORREO NO SE ENVIÓ${res.detail ? `: ${res.detail.toUpperCase()}` : ''}`, '', {
+                  positionClass: 'toast-center',
+                  timeOut: 6000
+                });
                 console.warn('notificar-cliente (aprobado) falló:', res);
               }
               await this.load(false);
             } catch (e: any) {
-              this.toast.error(e?.message || 'No se pudo aprobar');
+              this.toast.error((e?.message || 'NO SE PUDO APROBAR').toUpperCase(), '', {
+                positionClass: 'toast-center',
+                timeOut: 3000
+              });
             } finally {
+              console.log('✅ Ocultando spinner después de aprobación');
               this.loadingId = null;
+              this.spinner.hide();
             }
           }
         }
@@ -137,41 +154,47 @@ export class PendientesComponent implements OnInit, OnDestroy {
   
   async confirmarRechazo(it: PendingClient) {
     const alert = await this.alertCtrl.create({
-      header: 'Rechazar cliente',
-      message: `¿Seguro que querés rechazar a ${it.nombres} ${it.apellidos}?`,
+      header: 'RECHAZAR CLIENTE',
+      message: `¿SEGURO QUE QUERÉS RECHAZAR A ${it.nombres.toUpperCase()} ${it.apellidos.toUpperCase()}?`,
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: 'CANCELAR', role: 'cancel' },
         {
-          text: 'Rechazar',
+          text: 'RECHAZAR',
           role: 'destructive',
-          // handler: async () => {
-          //   if (this.loadingId) return;
-          //   this.loadingId = it.id;
-          //   try {
-          //     await this.srv.reject(it.id, it.email, it.nombres, it.apellidos);
-          //     this.toast.info(`Rechazado: ${it.nombres} ${it.apellidos}`);
-          //     await this.load(false);
-          //   } catch (e: any) {
-          //     this.toast.error(e?.message || 'No se pudo rechazar');
-          //   } finally {
-          //     this.loadingId = null;
-          //   }
-          // }
           handler: async () => {
             if (this.loadingId) return;
             this.loadingId = it.id;
+            
+            // Cerrar el diálogo primero
+            await alert.dismiss();
+            
+            // Mostrar spinner después de cerrar el diálogo
+            console.log('🔄 Mostrando spinner para rechazo...');
+            this.spinner.show({ immediate: true, minMs: 1000 });
+            
             try {
               const res = await this.srv.reject(it.id, it.email, it.nombres, it.apellidos);
-              this.toast.info(`Rechazado: ${it.nombres} ${it.apellidos}`);
+              this.toast.info(`RECHAZADO: ${it.nombres.toUpperCase()} ${it.apellidos.toUpperCase()}`, '', {
+                positionClass: 'toast-center',
+                timeOut: 3000
+              });
               if (!res.ok) {
-                this.toast.warning(`Rechazado, pero el email no se envió${res.detail ? `: ${res.detail}` : ''}`, 'Aviso', { timeOut: 6000 });
+                this.toast.warning(`RECHAZADO, PERO EL CORREO NO SE ENVIÓ${res.detail ? `: ${res.detail.toUpperCase()}` : ''}`, '', {
+                  positionClass: 'toast-center',
+                  timeOut: 6000
+                });
                 console.warn('notificar-cliente (rechazado) falló:', res);
               }
               await this.load(false);
             } catch (e: any) {
-              this.toast.error(e?.message || 'No se pudo rechazar');
+              this.toast.error((e?.message || 'NO SE PUDO RECHAZAR').toUpperCase(), '', {
+                positionClass: 'toast-center',
+                timeOut: 3000
+              });
             } finally {
+              console.log('✅ Ocultando spinner después de rechazo');
               this.loadingId = null;
+              this.spinner.hide();
             }
           }
         }

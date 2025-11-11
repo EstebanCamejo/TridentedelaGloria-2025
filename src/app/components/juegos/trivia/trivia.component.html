@@ -31,8 +31,8 @@
   class="primary"
   expand="block"
   (click)="claim()"
-  [disabled]="!finished || claiming || prizeClaimed">
-  <ion-label>{{ prizeClaimed ? 'Premio ya reclamado' : 'Reclamar descuento' }}</ion-label>
+  [disabled]="!finished || claiming || prizeClaimed || yaSeAplicoDescuento || !discount">
+  <ion-label>{{ (prizeClaimed || yaSeAplicoDescuento) ? 'Premio ya reclamado' : 'Reclamar descuento' }}</ion-label>
   <ion-spinner slot="end" *ngIf="claiming"></ion-spinner>
 </ion-button>
 

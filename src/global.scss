@@ -26,17 +26,16 @@
 @import "@ionic/angular/css/flex-utils.css";
 @import './theme/variables.scss';
 
+/* Leaflet CSS for maps */
+@import "leaflet/dist/leaflet.css";
+
 
 /**
  * Ionic Dark Mode
  * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
+ * Forzar modo oscuro siempre (tanto en tema claro como oscuro)
  */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+@import '@ionic/angular/css/palettes/dark.always.css';
 @import 'ngx-toastr/toastr';
 
 
@@ -62,15 +61,39 @@ ion-header {
   body {
     background-color: var(--ion-background-color);
   }
+  /* Toast centrado, grande y en mayúsculas */
   .toast-center {
-  top: 50% !important;
-  left: 50% !important;
-  bottom: auto !important;
-  right: auto !important;
-  transform: translate(-50%, -50%) !important;
-  position: fixed !important;
-  z-index: 99999 !important;
-}
+    top: 50% !important;
+    left: 50% !important;
+    bottom: auto !important;
+    right: auto !important;
+    transform: translate(-50%, -50%) !important;
+    position: fixed !important;
+    z-index: 99999 !important;
+    min-width: 280px !important;
+    max-width: 90vw !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 16px 20px !important;
+    border-radius: 12px !important;
+  }
+
+  /* Forzar mayúsculas en todos los toasts */
+  .toast-container .toast {
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .toast-container .toast-message {
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    letter-spacing: 0.5px !important;
+  }
 
 /* ===== Wallpaper global desde assets ===== */
 :root{

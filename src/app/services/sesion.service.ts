@@ -82,6 +82,22 @@ export class SesionService {
   esSupervisor(): boolean { return this.usuarioBD?.perfil === TipoUsuario.supervisor; }
   esBartender(): boolean  { return this.usuarioBD?.perfil === TipoUsuario.bartender; }
   esCocinero(): boolean   { return this.usuarioBD?.perfil === TipoUsuario.cocinero; }
+  esDelivery(): boolean   { return this.usuarioBD?.perfil === TipoUsuario.delivery; }
+  
+  /**
+   * Verifica si el usuario es un empleado (dueno, supervisor, maitre, mozo, cocinero, bartender, delivery)
+   * Útil para validar que solo empleados puedan hacer pedidos delivery
+   */
+  esEmpleado(): boolean {
+    const t = this.usuarioBD?.perfil;
+    return t === TipoUsuario.dueno ||
+           t === TipoUsuario.supervisor ||
+           t === TipoUsuario.maitre ||
+           t === TipoUsuario.mozo ||
+           t === TipoUsuario.cocinero ||
+           t === TipoUsuario.bartender ||
+           t === TipoUsuario.delivery;
+  }
 
   // Limpieza opcional (si alguna vez destruís el servicio)
   dispose() {

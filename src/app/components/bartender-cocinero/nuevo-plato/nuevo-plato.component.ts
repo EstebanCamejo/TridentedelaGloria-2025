@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import {
   IonContent, IonGrid, IonRow, IonCol,
-  IonButton, IonIcon, IonHeader, IonToolbar, IonTitle, IonCard } from '@ionic/angular/standalone';
+  IonButton, IonIcon, IonHeader, IonToolbar, IonCard } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -14,7 +15,7 @@ import { trashOutline } from 'ionicons/icons'; // 👈 Y ESTO
   selector: 'app-nuevo-plato',
   standalone: true,
   imports: [IonCard, IonHeader, CommonModule, FormsModule, IonGrid, IonRow, IonCol, IonButton, 
-    IonToolbar, IonTitle ,IonIcon, IonContent],
+    IonToolbar, IonIcon, IonContent],
   //providers: [ActionSheetController],
   templateUrl: './nuevo-plato.component.html',
   styleUrls: ['./nuevo-plato.component.scss'],
@@ -36,6 +37,7 @@ export class NuevoPlatoComponent {
   constructor(
     private router: Router, 
     private toastr: ToastrService,
+    private spinner: SpinnerService,
     private platos: MenuService,
   ) {addIcons({ trashOutline });}
 
@@ -58,7 +60,10 @@ export class NuevoPlatoComponent {
 
   async seleccionarFoto() {
     if (this.fotos.length >= 3) {
-      alert('Se debe subir exactamente 3 fotos.');
+      this.toastr.warning('SE DEBE SUBIR EXACTAMENTE 3 FOTOS', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
       return;
     }
 
@@ -72,7 +77,10 @@ export class NuevoPlatoComponent {
     this.fotos.push(image.dataUrl!);
 
     if (this.fotos.length === 3) {
-      alert('Ya cargaste las 3 fotos requeridas.');
+      this.toastr.info('YA CARGASTE LAS 3 FOTOS REQUERIDAS', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     }
   }
 
@@ -110,12 +118,12 @@ export class NuevoPlatoComponent {
         Object.values(registerForm.controls).forEach((c: any) => c.control?.markAsTouched?.());
     
     if (registerForm.invalid) {
-      this.toastError('Por favor, completá todos los campos correctamente.');
+      this.toastError('POR FAVOR, COMPLETÁ TODOS LOS CAMPOS CORRECTAMENTE');
       return;
     }
 
     if (this.fotos.length !== 3) {
-      this.toastError('Por favor, ingresar exactamente tres fotos para terminar.');
+      this.toastError('POR FAVOR, INGRESAR EXACTAMENTE TRES FOTOS PARA TERMINAR');
       return;
     }
 
@@ -123,10 +131,10 @@ export class NuevoPlatoComponent {
   }
 
   private toastOk(msg: string) {
-    this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
+    this.toastr.success(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
   }
   private toastError(msg: string) {
-    this.toastr.error(msg, 'Error', { positionClass: 'toast-center', closeButton: true, progressBar: true, timeOut: 4500 });
+    this.toastr.error(msg.toUpperCase(), '', { positionClass: 'toast-center', closeButton: true, progressBar: true, timeOut: 4500 });
   }
   private markAllAsTouched(form: NgForm) {
     Object.values(form.controls).forEach(c => c.markAsTouched());
@@ -136,10 +144,12 @@ export class NuevoPlatoComponent {
     console.log('[finalizarCargaPlato] Verificando existencia...');
 
     try {
+      this.spinner.show({ immediate: true, minMs: 500 });
       const existe = await this.platos.existePlato(this.nombre);
 
       if (existe) {
-        this.toastError(`El nombre "${this.nombre}" ya existe en el menú. Por favor, elegí otro.`);
+        this.toastError(`EL NOMBRE "${this.nombre.toUpperCase()}" YA EXISTE EN EL MENÚ. POR FAVOR, ELEGÍ OTRO.`);
+        this.spinner.hide();
         return;
       }
 
@@ -148,7 +158,12 @@ export class NuevoPlatoComponent {
       this.irAHomeBartenderCocinero();
 
     } catch (e: any) {
-      this.toastr.error(e?.message || 'Error verificando el menú.');
+      this.toastr.error((e?.message || 'ERROR VERIFICANDO EL MENÚ').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
+    } finally {
+      this.spinner.hide();
     }
   }
 
@@ -164,6 +179,7 @@ export class NuevoPlatoComponent {
 
     try {
       this.guardando = true;
+      this.spinner.show({ immediate: true, minMs: 1000 });
 
       const payload = {
         nombre: this.nombre,
@@ -175,11 +191,15 @@ export class NuevoPlatoComponent {
       };
 
       const res = await this.platos.crearPlatoConFotos(payload);
-      this.toastOk(`Plato creado: ${res.nombre}`);
+      this.toastOk(`PLATO CREADO: ${res.nombre.toUpperCase()}`);
     } catch (e: any) {
-      this.toastr.error(e?.message || 'No se pudo crear el plato.');
+      this.toastr.error((e?.message || 'NO SE PUDO CREAR EL PLATO').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
     } finally {
       this.guardando = false;
+      this.spinner.hide();
     }
   }
 

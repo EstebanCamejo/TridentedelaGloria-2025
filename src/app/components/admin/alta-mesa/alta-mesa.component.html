@@ -26,7 +26,10 @@
 
   <ion-item>
     <ion-label position="stacked">Tipo</ion-label>
-    <ion-select [(ngModel)]="tipo" (ionChange)="updateBtnDisabled()">
+    <ion-select [(ngModel)]="tipo" 
+                (ionChange)="updateBtnDisabled()"
+                okText="CONFIRMAR"
+                cancelText="CANCELAR">
       <ion-select-option value="estandar">Estándar</ion-select-option>
       <ion-select-option value="vip">VIP</ion-select-option>
       <ion-select-option value="mov_reducida">Movilidad reducida</ion-select-option>
@@ -97,45 +100,46 @@
 
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ mesaId ? 'Editar mesa' : 'Alta de mesa' }}</ion-title>
+    <ion-title>{{ mesaId ? 'EDITAR MESA #' + numero : 'ALTA DE MESA' }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="cancelar()">Cerrar</ion-button>
+      <ion-button (click)="cancelar()">CERRAR</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="pa-4">
-  <ion-item>
-    <ion-label position="stacked">Número de mesa</ion-label>
+  <ion-item *ngIf="!mesaId">
+    <ion-label position="stacked">NÚMERO DE MESA</ion-label>
     <ion-input type="number"
-               [readonly]="!!mesaId" 
                [(ngModel)]="numero"
                (ionInput)="updateBtnDisabled()"
-               placeholder="Ej: 12"
-               [readonly]="!!mesaId"></ion-input>
+               placeholder="EJ: 12"></ion-input>
   </ion-item>
 
   <ion-item>
-    <ion-label position="stacked">Capacidad (1 a 12)</ion-label>
+    <ion-label position="stacked">CAPACIDAD (1 A 12)</ion-label>
     <ion-input type="number"
                [(ngModel)]="capacidad"
                (ionInput)="updateBtnDisabled()"
-               placeholder="Ej: 4"></ion-input>
+               placeholder="EJ: 4"></ion-input>
   </ion-item>
 
   <ion-item>
-    <ion-label position="stacked">Tipo</ion-label>
-    <ion-select [(ngModel)]="tipo" (ionChange)="updateBtnDisabled()">
-      <ion-select-option value="estandar">Estándar</ion-select-option>
+    <ion-label position="stacked">TIPO</ion-label>
+    <ion-select [(ngModel)]="tipo" 
+                (ionChange)="updateBtnDisabled()"
+                okText="CONFIRMAR"
+                cancelText="CANCELAR">
+      <ion-select-option value="estandar">ESTÁNDAR</ion-select-option>
       <ion-select-option value="vip">VIP</ion-select-option>
-      <ion-select-option value="mov_reducida">Movilidad reducida</ion-select-option>
+      <ion-select-option value="mov_reducida">MOVILIDAD REDUCIDA</ion-select-option>
     </ion-select>
   </ion-item>
 
   <div style="padding:16px;">
     <ion-button *ngIf="!mesaId" expand="block" color="primary" (click)="tomarFoto()">
       <ion-icon name="camera" slot="start"></ion-icon>
-      Tomar foto de la mesa
+      TOMAR FOTO DE LA MESA
     </ion-button>
 
     <div style="padding:16px;">
@@ -145,14 +149,14 @@
         [disabled]="btnDisabled"
         (click)="guardar()">
         <ion-icon name="save" slot="start"></ion-icon>
-        {{ guardando ? 'Guardando...' : 'Guardar mesa' }}
+        {{ guardando ? 'GUARDANDO...' : 'GUARDAR MESA' }}
       </ion-button>
     </div>
     
     <div *ngIf= "!mesaId && fotoPreview" style="margin-top:12px; text-align:center;">
       <ion-img [src]="fotoPreview" alt="Foto de la mesa"
                style="max-width:160px; margin:0 auto; border-radius:12px;"></ion-img>
-      <div style="opacity:.75; margin-top:6px;">Previsualización</div>
+      <div style="opacity:.75; margin-top:6px;">PREVISUALIZACIÓN</div>
     </div>
   </div>
 

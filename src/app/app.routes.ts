@@ -7,6 +7,7 @@ import { RegistroClienteAnonimoComponent } from './components/registro-cliente-a
 import { RegistroClienteComponent } from './components/registro-cliente/registro-cliente.component';
 import { HomeBartenderCocineroComponent } from './components/home-bartender-cocinero/home-bartender-cocinero.component';
 import { HomeClienteComponent } from './components/home-cliente/home-cliente.component';
+import { HomeDeliveryComponent } from './components/home-delivery/home-delivery.component';
 import { IngresoClienteComponent } from './components/ingreso-cliente/ingreso-cliente.component';
 import { ClientePedidoEnCursoComponent } from './components/cliente-pedido-en-curso/cliente-pedido-en-curso.component';
 import { ClienteJuegosComponent } from './components/cliente/cliente-juegos/cliente-juegos.component';
@@ -99,6 +100,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/reservas',
+    loadComponent: () =>
+      import('./components/admin/reservas/reservas.component').then(
+        (m) => m.ReservasAdminComponent
+      ),
+  },
+  {
     path: 'admin/mesas/editar/:id',
     loadComponent: () =>
       import('./components/admin/alta-mesa/alta-mesa.component')
@@ -110,6 +118,13 @@ export const routes: Routes = [
       import(
         './components/admin/resultados-encuestas/resultados-encuestas.component'
       ).then((m) => m.ResultadosEncuestasComponent),
+  },
+  {
+    path: 'admin/delivery-pedidos',
+    loadComponent: () =>
+      import(
+        './components/admin/delivery-pedidos/delivery-pedidos.component'
+      ).then((m) => m.DeliveryPedidosComponent),
   },
   {
     path: 'bartender-cocinero/nuevo-plato',
@@ -147,6 +162,13 @@ export const routes: Routes = [
       import(
         './components/cliente/cliente-realiza-pedido/cliente-realiza-pedido.component'
       ).then((m) => m.ClienteRealizaPedidoComponent),
+  },
+  {
+    path: 'cliente/hacer-reserva',
+    loadComponent: () =>
+      import(
+        './components/cliente/hacer-reserva/hacer-reserva.component'
+      ).then((m) => m.HacerReservaComponent),
   },
   {
     path: 'cliente-detalle-cuenta',
@@ -248,10 +270,26 @@ export const routes: Routes = [
   path: 'cliente/chat/:pedidoId',
   loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent)
 },
-{
-  path: 'mozo/chat/:roomId',
-  loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent)
-},
+  {
+    path: 'mozo/chat/:roomId',
+    loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent)
+  },
+  {
+    path: 'delivery/chat/:roomId',
+    loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent)
+  },
+  {
+    path: 'home-delivery',
+    component: HomeDeliveryComponent,
+    pathMatch: 'full',
+  },
+  {
+    path: 'admin/delivery-confirmar-pago',
+    loadComponent: () =>
+      import(
+        './components/admin/delivery-confirmar-pago/delivery-confirmar-pago.component'
+      ).then((m) => m.DeliveryConfirmarPagoComponent),
+  },
 
   ////////////////////////////ESTEBAN//////////////////////////
   {

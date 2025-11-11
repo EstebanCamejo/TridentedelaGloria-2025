@@ -2,12 +2,14 @@ import { ChangeDetectorRef, Component, OnInit, inject, NgZone } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
          IonList, IonItem, IonLabel, IonBadge, IonAvatar, IonIcon,
-         IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
+         IonRefresher, IonRefresherContent, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, pencil, refresh, trash } from 'ionicons/icons';
 import { ModalController } from '@ionic/angular';
 import { AltaMesaComponent } from '../alta-mesa/alta-mesa.component';
 import { MesasService, MesaRow } from 'src/app/services/mesas.service';
+import { SpinnerService } from 'src/app/services/spinner.service';
+import { ToastrService } from 'ngx-toastr';
 import type { RefresherCustomEvent, ViewWillEnter } from '@ionic/angular';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
@@ -29,6 +31,7 @@ import { Router } from '@angular/router';
 export class MesasComponent implements OnInit , ViewWillEnter{
   private modalCtrl = inject(ModalController);
   private mesasSrv = inject(MesasService);
+  private alertCtrl = inject(AlertController);
 
   mesas: MesaRow[] = [];
   cargando = false;
@@ -46,7 +49,13 @@ export class MesasComponent implements OnInit , ViewWillEnter{
     </svg>`
   );
 
-  constructor( private cdr : ChangeDetectorRef, private zone: NgZone, private router: Router) {
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone,
+    private router: Router,
+    private spinner: SpinnerService,
+    private toast: ToastrService
+  ) {
     addIcons({ add, pencil, refresh, trash });
   }
 
@@ -63,16 +72,27 @@ export class MesasComponent implements OnInit , ViewWillEnter{
     console.time('[mesas] cargarMesas');
     try {
       this.cargando = true;
+      if (!ev) {
+        // Solo mostrar spinner si no es pull-to-refresh (que ya tiene su propio indicador)
+        this.spinner.show({ immediate: true });
+      }
       const list = await this.mesasSrv.listarMesas();
       this.zone.run(() => {
         this.mesas = [...list];            // <- nueva referencia
         this.cdr.markForCheck();
         console.log('[mesas] asignado this.mesas, len=', this.mesas.length);
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error('[mesas] cargarMesas error', e);
+      this.toast.error((e?.message || 'ERROR AL CARGAR LAS MESAS').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.cargando = false;
+      if (!ev) {
+        this.spinner.hide();
+      }
       // cerrar refresher de forma segura, si vino de pull-to-refresh
       try {
         // Ionic 7+: ev.detail.complete() es la forma recomendada
@@ -159,38 +179,84 @@ export class MesasComponent implements OnInit , ViewWillEnter{
     }
   }
 
-  async eliminarMesa(m: MesaRow) {
-    // confirmación simple (si preferís usar IonAlert, avísame y te paso el bloque)
-    const ok = confirm(`¿Eliminar definitivamente la mesa #${m.numero}?`);
-    if (!ok) return;
-  
-    // UI optimista: la saco de la lista ya mismo
-    const prev = this.mesas;
-    this.mesas = prev.filter(x => x.id !== m.id);
-  
-    try {
-      // llamada real al backend
-      await this.mesasSrv.eliminarMesa(m.id);
-  
-      // sincronizo por si hay latencia de replicación/caché
-      // (espera mínima y recarga segura)
-      await new Promise(r => setTimeout(r, 120));
-      //await this.cargarMesas();
-      await this.recargarVista();
-  
-    } catch (e: any) {
-      console.error('[mesas] eliminarMesa error', e);
-      // rollback si falló por RLS u otro motivo
-      this.mesas = prev;
-  
-      // mensajes típicos que vimos en tus logs
-      const msg = String(e?.message || e);
-      if (msg.toLowerCase().includes('rls') || msg.toLowerCase().includes('permission')) {
-        alert('No se pudo eliminar. Verificá permisos/RLS.');
-      } else {
-        alert('No se pudo eliminar la mesa.');
-      }
+  estadoTexto(estado: MesaRow['estado']): string {
+    switch (estado) {
+      case 'libre': return 'LIBRE';
+      case 'ocupada': return 'OCUPADA';
+      case 'reservada': return 'RESERVADA';
+      case 'bloqueada': return 'BLOQUEADA';
+      default: return String(estado).toUpperCase();
     }
+  }
+
+  async eliminarMesa(m: MesaRow) {
+    const alert = await this.alertCtrl.create({
+      header: 'CONFIRMAR ELIMINACIÓN',
+      message: `¿ELIMINAR DEFINITIVAMENTE LA MESA #${m.numero}?`,
+      buttons: [
+        {
+          text: 'CANCELAR',
+          role: 'cancel',
+          cssClass: 'alert-button-cancel'
+        },
+        {
+          text: 'CONFIRMAR',
+          role: 'destructive',
+          cssClass: 'alert-button-confirm',
+          handler: async () => {
+            // Cerrar el diálogo primero
+            await alert.dismiss();
+            
+            // UI optimista: la saco de la lista ya mismo
+            const prev = this.mesas;
+            this.mesas = prev.filter(x => x.id !== m.id);
+            
+            // Mostrar spinner
+            this.spinner.show({ immediate: true, minMs: 1000 });
+          
+            try {
+              // llamada real al backend
+              await this.mesasSrv.eliminarMesa(m.id);
+              
+              this.toast.success('MESA ELIMINADA EXITOSAMENTE', '', {
+                positionClass: 'toast-center',
+                timeOut: 3000
+              });
+          
+              // sincronizo por si hay latencia de replicación/caché
+              // (espera mínima y recarga segura)
+              await new Promise(r => setTimeout(r, 120));
+              //await this.cargarMesas();
+              await this.recargarVista();
+          
+            } catch (e: any) {
+              console.error('[mesas] eliminarMesa error', e);
+              // rollback si falló por RLS u otro motivo
+              this.mesas = prev;
+          
+              // mensajes típicos que vimos en tus logs
+              const msg = String(e?.message || e);
+              if (msg.toLowerCase().includes('rls') || msg.toLowerCase().includes('permission')) {
+                this.toast.error('NO SE PUDO ELIMINAR. VERIFICÁ PERMISOS/RLS', '', {
+                  positionClass: 'toast-center',
+                  timeOut: 4000
+                });
+              } else {
+                this.toast.error('NO SE PUDO ELIMINAR LA MESA', '', {
+                  positionClass: 'toast-center',
+                  timeOut: 3000
+                });
+              }
+            } finally {
+              this.spinner.hide();
+            }
+          }
+        }
+      ],
+      cssClass: 'custom-alert'
+    });
+    
+    await alert.present();
   }
   
 

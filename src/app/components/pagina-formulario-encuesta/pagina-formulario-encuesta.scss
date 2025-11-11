@@ -1,0 +1,63 @@
+/* ===== Ajustes para la calificación de limpieza ===== */
+
+/* Hacer que el ion-segment ocupe menos espacio horizontal */
+ion-segment {
+  --background: transparent;
+  max-width: 300px; /* Limitar el ancho máximo */
+  margin: 0 auto; /* Centrar el segmento */
+}
+
+/* Ajustar el espaciado entre botones del segmento */
+ion-segment-button {
+  min-width: 40px !important; /* Reducir el ancho mínimo de cada botón */
+  max-width: 50px !important; /* Limitar el ancho máximo */
+  flex: 0 0 auto !important; /* No permitir que se expandan */
+  
+  /* Ajustar el padding interno */
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+/* Asegurar que el texto de los botones sea visible */
+ion-segment-button ion-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+}
+
+/* Estilo para el botón seleccionado */
+ion-segment-button.segment-button-checked {
+  --color: var(--ion-color-primary-contrast);
+  --background: var(--ion-color-primary);
+}
+
+/* Ajustar el contenedor del ion-item para centrar el segmento */
+ion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+/* Hacer que el label esté centrado */
+ion-label[position="stacked"] {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* Ajustar el mensaje de ayuda */
+ion-item small {
+  text-align: center;
+  display: block;
+  margin-top: 8px;
+  opacity: 0.75;
+}
+/* Tamaño grande para títulos principales de la encuesta */
+ion-label.label-lg {
+  font-size: 22px !important;   /* 🆕 Tamaño más grande para distinguir como títulos */
+  font-weight: 700 !important;   /* Negrita para destacar */
+  line-height: 1.3 !important;   /* Mejora lectura */
+  color: var(--ion-color-dark, #000) !important; /* Color más oscuro para mejor contraste */
+  margin-bottom: 12px !important; /* Más espacio debajo del título */
+  display: block !important;
+}

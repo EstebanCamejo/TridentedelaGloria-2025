@@ -134,15 +134,35 @@ async getUltimoPedidoDelActual() {
 async crearPedido(pedido: {
   idCliente: string; // <-- era number
   productos: { id: number; cantidad: number; precio_unitario: number }[];
+  tipoPedido?: 'mesa' | 'delivery';
+  direccionDelivery?: { direccion: string; latitud?: number; longitud?: number };
 }): Promise<CrearPedidoResult> {
-  const { data: pedidoData, error: pedidoError } = await this.supabase.client
+  // Preparar datos del pedido
+  const pedidoData: any = {
+    idCliente: pedido.idCliente,
+    estado: 'pendiente',
+    tipo_pedido: pedido.tipoPedido || 'mesa'
+  };
+
+  // Si es delivery, agregar dirección y coordenadas
+  if (pedido.tipoPedido === 'delivery' && pedido.direccionDelivery) {
+    pedidoData.direccion_entrega = pedido.direccionDelivery.direccion;
+    if (pedido.direccionDelivery.latitud !== undefined) {
+      pedidoData.latitud = pedido.direccionDelivery.latitud;
+    }
+    if (pedido.direccionDelivery.longitud !== undefined) {
+      pedidoData.longitud = pedido.direccionDelivery.longitud;
+    }
+  }
+
+  const { data: pedidoInserted, error: pedidoError } = await this.supabase.client
     .from('pedidos')
-    .insert([{ idCliente: pedido.idCliente, estado: 'pendiente' }]) // idCliente = uuid string
+    .insert([pedidoData])
     .select('id')
     .single();
   if (pedidoError) throw pedidoError;
 
-  const idPedido = pedidoData.id as number;
+  const idPedido = pedidoInserted.id as number;
 
   const detalles = pedido.productos.map(p => ({
     idPedido,
@@ -330,7 +350,8 @@ async crearPedido(pedido: {
     console.log('🔍 Iniciando obtención de pedidos de cocina...');
 
     try {
-      // Consulta principal - SOLO pedidos confirmados por el mozo
+      // Consulta principal - SOLO pedidos confirmados por el mozo/admin
+      // NOTA: Incluye tanto pedidos de mesa como delivery
       const { data, error } = await this.supabase.client
         .from('pedidos')
         .select(`
@@ -339,6 +360,7 @@ async crearPedido(pedido: {
           estado,
           estado_sector_cocina,
           idCliente,
+          tipo_pedido,
           pedidos_detalles!inner (
             cantidad,
             menu!inner (
@@ -371,47 +393,36 @@ async crearPedido(pedido: {
         console.log(`📋 Pedido ${pedido.id}: estado=${pedido.estado}, estado_sector_cocina=${pedido.estado_sector_cocina}`);
       });
 
-      // Resto del código se mantiene igual...
-      const idClientes = data.map(pedido => pedido.idCliente).filter(id => id !== null);
-      console.log('👥 ID Clientes a buscar:', idClientes);
+      // 🆕 Separar pedidos de mesa y delivery
+      const pedidosMesa = data.filter(p => !p.tipo_pedido || p.tipo_pedido === 'mesa');
+      const pedidosDelivery = data.filter(p => p.tipo_pedido === 'delivery');
 
-      if (idClientes.length === 0) {
-        console.log('⚠️ No hay idClientes válidos para buscar mesas');
-        return data.map(pedido => ({
-          id: pedido.id,
-          estado: pedido.estado,
-          estado_sector_cocina: pedido.estado_sector_cocina,
-          created_at: pedido.created_at,
-          fecha: pedido.created_at,
-          numero_mesa: 0,
-          productos: pedido.pedidos_detalles.map((detalle: any) => ({
-            nombre: detalle.menu.nombre,
-            cantidad: detalle.cantidad
-          })),
-          detalles: []
-        }));
-      }
-
-      const { data: mesasData, error: mesasError } = await this.supabase.client
-        .from('lista_espera')
-        .select('usuario_id, numero_mesa')
-        .in('usuario_id', idClientes);
-
-      console.log('🪑 Resultado de búsqueda de mesas:', mesasData);
-
-      if (mesasError) {
-        console.error('Error al buscar mesas:', mesasError);
-        throw mesasError;
-      }
-
+      // Procesar pedidos de mesa (buscar mesas solo para estos)
+      const idClientesMesa = pedidosMesa.map(pedido => pedido.idCliente).filter(id => id !== null);
       const mesasMap = new Map();
-      mesasData?.forEach(mesa => {
-        if (!mesasMap.has(mesa.usuario_id)) {
-          mesasMap.set(mesa.usuario_id, []);
-        }
-        mesasMap.get(mesa.usuario_id).push(mesa.numero_mesa);
-      });
+      
+      if (idClientesMesa.length > 0) {
+        const { data: mesasData, error: mesasError } = await this.supabase.client
+          .from('lista_espera')
+          .select('usuario_id, numero_mesa')
+          .in('usuario_id', idClientesMesa);
 
+        console.log('🪑 Resultado de búsqueda de mesas:', mesasData);
+
+        if (mesasError) {
+          console.error('Error al buscar mesas:', mesasError);
+          throw mesasError;
+        }
+
+        mesasData?.forEach(mesa => {
+          if (!mesasMap.has(mesa.usuario_id)) {
+            mesasMap.set(mesa.usuario_id, []);
+          }
+          mesasMap.get(mesa.usuario_id).push(mesa.numero_mesa);
+        });
+      }
+
+      // Procesar todos los pedidos (mesa + delivery)
       const pedidosProcesados = data.map(pedido => {
         const productosCocina = pedido.pedidos_detalles
           .map((detalle: any) => ({
@@ -419,8 +430,12 @@ async crearPedido(pedido: {
             cantidad: detalle.cantidad
           }));
 
-        const mesasDelCliente = mesasMap.get(pedido.idCliente) || [];
-        const numero_mesa = mesasDelCliente.length > 0 ? mesasDelCliente[0] : 0;
+        // 🆕 Si es delivery, numero_mesa = 0 (no buscar mesa)
+        let numero_mesa = 0;
+        if (!pedido.tipo_pedido || pedido.tipo_pedido === 'mesa') {
+          const mesasDelCliente = mesasMap.get(pedido.idCliente) || [];
+          numero_mesa = mesasDelCliente.length > 0 ? mesasDelCliente[0] : 0;
+        }
 
         return {
           id: pedido.id,
@@ -429,6 +444,7 @@ async crearPedido(pedido: {
           created_at: pedido.created_at,
           fecha: pedido.created_at,
           numero_mesa: numero_mesa,
+          tipo_pedido: pedido.tipo_pedido || 'mesa', // 🆕 Agregar tipo_pedido
           productos: productosCocina,
           detalles: []
         };
@@ -451,7 +467,8 @@ async crearPedido(pedido: {
     console.log('🔍 Iniciando obtención de pedidos de bar...');
 
     try {
-      // Consulta principal - SOLO pedidos confirmados por el mozo
+      // Consulta principal - SOLO pedidos confirmados por el mozo/admin
+      // NOTA: Incluye tanto pedidos de mesa como delivery
       const { data, error } = await this.supabase.client
         .from('pedidos')
         .select(`
@@ -460,6 +477,7 @@ async crearPedido(pedido: {
           estado,
           estado_sector_bar,
           idCliente,
+          tipo_pedido,
           pedidos_detalles!inner (
             cantidad,
             menu!inner (
@@ -505,6 +523,7 @@ async crearPedido(pedido: {
           created_at: pedido.created_at,
           fecha: pedido.created_at,
           numero_mesa: 0,
+          tipo_pedido: pedido.tipo_pedido || 'mesa', // 🆕 Agregar tipo_pedido
           productos: pedido.pedidos_detalles.map((detalle: any) => ({
             nombre: detalle.menu.nombre,
             cantidad: detalle.cantidad
@@ -513,26 +532,36 @@ async crearPedido(pedido: {
         }));
       }
 
-      const { data: mesasData, error: mesasError } = await this.supabase.client
-        .from('lista_espera')
-        .select('usuario_id, numero_mesa')
-        .in('usuario_id', idClientes);
+      // 🆕 Separar pedidos de mesa y delivery
+      const pedidosMesa = data.filter(p => !p.tipo_pedido || p.tipo_pedido === 'mesa');
+      const pedidosDelivery = data.filter(p => p.tipo_pedido === 'delivery');
 
-      console.log('🪑 Resultado de búsqueda de mesas:', mesasData);
+      // Procesar pedidos de mesa (buscar mesas solo para estos)
+      const idClientesMesa = pedidosMesa.map(pedido => pedido.idCliente).filter(id => id !== null);
+      const mesasMap = new Map();
+      
+      if (idClientesMesa.length > 0) {
+        const { data: mesasData, error: mesasError } = await this.supabase.client
+          .from('lista_espera')
+          .select('usuario_id, numero_mesa')
+          .in('usuario_id', idClientesMesa);
 
-      if (mesasError) {
-        console.error('Error al buscar mesas:', mesasError);
-        throw mesasError;
+        console.log('🪑 Resultado de búsqueda de mesas:', mesasData);
+
+        if (mesasError) {
+          console.error('Error al buscar mesas:', mesasError);
+          throw mesasError;
+        }
+
+        mesasData?.forEach(mesa => {
+          if (!mesasMap.has(mesa.usuario_id)) {
+            mesasMap.set(mesa.usuario_id, []);
+          }
+          mesasMap.get(mesa.usuario_id).push(mesa.numero_mesa);
+        });
       }
 
-      const mesasMap = new Map();
-      mesasData?.forEach(mesa => {
-        if (!mesasMap.has(mesa.usuario_id)) {
-          mesasMap.set(mesa.usuario_id, []);
-        }
-        mesasMap.get(mesa.usuario_id).push(mesa.numero_mesa);
-      });
-
+      // Procesar todos los pedidos (mesa + delivery)
       const pedidosProcesados = data.map(pedido => {
         const productosBartender = pedido.pedidos_detalles
           .map((detalle: any) => ({
@@ -540,8 +569,12 @@ async crearPedido(pedido: {
             cantidad: detalle.cantidad
           }));
 
-        const mesasDelCliente = mesasMap.get(pedido.idCliente) || [];
-        const numero_mesa = mesasDelCliente.length > 0 ? mesasDelCliente[0] : 0;
+        // 🆕 Si es delivery, numero_mesa = 0 (no buscar mesa)
+        let numero_mesa = 0;
+        if (!pedido.tipo_pedido || pedido.tipo_pedido === 'mesa') {
+          const mesasDelCliente = mesasMap.get(pedido.idCliente) || [];
+          numero_mesa = mesasDelCliente.length > 0 ? mesasDelCliente[0] : 0;
+        }
 
         return {
           id: pedido.id,
@@ -550,6 +583,7 @@ async crearPedido(pedido: {
           created_at: pedido.created_at,
           fecha: pedido.created_at,
           numero_mesa: numero_mesa,
+          tipo_pedido: pedido.tipo_pedido || 'mesa', // 🆕 Agregar tipo_pedido
           productos: productosBartender,
           detalles: []
         };

@@ -94,21 +94,20 @@ export class QrHtml5Service {
   }
 
   /**
-   * Genera un QR de propina para una mesa específica
+   * Genera un QR de propina genérico (funciona en cualquier mesa)
    */
-  generarQRPropina(mesaId: string, porcentaje: number): string {
+  generarQRPropina(porcentaje: number): string {
     const qrData = {
       t: 'propina',
-      mesa_id: mesaId,
       pct: porcentaje
     };
     return JSON.stringify(qrData);
   }
 
   /**
-   * Genera QRs de propina para todos los niveles de satisfacción
+   * Genera QRs de propina genéricos para todos los niveles de satisfacción
    */
-  generarQRsPropina(mesaId: string): { nivel: string; porcentaje: number; qr: string }[] {
+  generarQRsPropina(): { nivel: string; porcentaje: number; qr: string }[] {
     const niveles = [
       { nivel: 'Excelente', porcentaje: 20 },
       { nivel: 'Muy Bueno', porcentaje: 15 },
@@ -119,7 +118,7 @@ export class QrHtml5Service {
 
     return niveles.map(nivel => ({
       ...nivel,
-      qr: this.generarQRPropina(mesaId, nivel.porcentaje)
+      qr: this.generarQRPropina(nivel.porcentaje)
     }));
   }
   

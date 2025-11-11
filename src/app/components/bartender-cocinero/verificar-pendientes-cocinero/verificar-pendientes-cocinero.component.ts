@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
+import { SpinnerService } from 'src/app/services/spinner.service';
+import { ToastrService } from 'ngx-toastr';
 import { MenuService, PlatoTipo } from 'src/app/services/menu.service';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
@@ -20,20 +22,32 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
   error: string | null = null;
   pedidosProcesando: Set<number> = new Set();
 
-  constructor(private service: MenuService, private router: Router) {
+  constructor(
+    private service: MenuService,
+    private router: Router,
+    private spinner: SpinnerService,
+    private toast: ToastrService
+  ) {
     addIcons({ arrowBackOutline });
   }
 
   async ngOnInit() {
     try {
+      this.cargando = true;
+      this.spinner.show({ immediate: true });
       console.log('🔄 Iniciando carga de pedidos de cocina...');
       this.pedidosCocina = await this.service.obtenerPedidosCocina();
       console.log('✅ Pedidos cargados en componente:', this.pedidosCocina);
     } catch (err) {
       console.error('💥 Error en componente:', err);
-      this.error = 'Error al cargar los pedidos';
+      this.error = 'ERROR AL CARGAR LOS PEDIDOS';
+      this.toast.error('ERROR AL CARGAR LOS PEDIDOS', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.cargando = false;
+      this.spinner.hide();
       console.log('🏁 Carga finalizada');
     }
   }
@@ -46,6 +60,7 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
 
     try {
       this.pedidosProcesando.add(pedido.id);
+      this.spinner.show({ immediate: true, minMs: 500 });
       
       // Si el pedido está en 'pedido en curso', cambiar a 'en preparación'
       if (pedido.estado === 'pedido en curso') {
@@ -169,9 +184,14 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
 
     } catch (error) {
       console.error('Error al procesar el pedido:', error);
-      this.error = 'Error al procesar el pedido';
+      this.error = 'ERROR AL PROCESAR EL PEDIDO';
+      this.toast.error('ERROR AL PROCESAR EL PEDIDO', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     } finally {
       this.pedidosProcesando.delete(pedido.id);
+      this.spinner.hide();
     }
   }
 
@@ -203,14 +223,27 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
     }
   }
 
-  handleRefresh(ev: CustomEvent) {
+  estadoTexto(estado: string): string {
+    return estado.toUpperCase();
+  }
+
+  async handleRefresh(ev: CustomEvent) {
     console.log('[VerificarPendientesCocineroComponent] Pull to refresh activado');
-    // Recargar pedidos
-    this.ngOnInit();
-    // Completar el refresh
-    setTimeout(() => {
+    try {
+      this.cargando = true;
+      // No mostrar spinner en pull-to-refresh
+      this.pedidosCocina = await this.service.obtenerPedidosCocina();
+    } catch (err) {
+      console.error('💥 Error en componente:', err);
+      this.error = 'ERROR AL CARGAR LOS PEDIDOS';
+      this.toast.error('ERROR AL CARGAR LOS PEDIDOS', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
+    } finally {
+      this.cargando = false;
       (ev.target as any).complete();
-    }, 1000);
+    }
   }
 
   /**

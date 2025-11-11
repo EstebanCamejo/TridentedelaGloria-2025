@@ -4,6 +4,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { SupabaseService } from 'src/app/services/supabase.service';
+import { SpinnerService } from 'src/app/services/spinner.service';
 
 // 👇 para cámara
 import { Capacitor } from '@capacitor/core';
@@ -17,7 +18,7 @@ import { IonButton, IonIcon } from '@ionic/angular/standalone';
   standalone: true,
   templateUrl: './registro-cliente-anonimo.component.html',
   styleUrls: ['./registro-cliente-anonimo.component.scss'],
-  imports: [CommonModule, FormsModule, IonButton, IonIcon,RegistroClienteAnonimoComponent],
+  imports: [CommonModule, FormsModule, IonButton, IonIcon],
 })
 export class RegistroClienteAnonimoComponent {
   // modelos template-driven
@@ -41,6 +42,7 @@ export class RegistroClienteAnonimoComponent {
     private auth: SupabaseService,
     private router: Router,
     private toastr: ToastrService,
+    private spinner: SpinnerService
   ) {}
 
   // ==== FOTO ====
@@ -90,10 +92,10 @@ export class RegistroClienteAnonimoComponent {
 
   // ==== UI helpers / validaciones que ya tenías ====
   private toastOk(msg: string) {
-    this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
+    this.toastr.success(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 3000, progressBar: true });
   }
   private toastError(msg: string) {
-    this.toastr.error(msg, 'Error', { positionClass: 'toast-center', closeButton: true, progressBar: true, timeOut: 4500 });
+    this.toastr.error(msg.toUpperCase(), '', { positionClass: 'toast-center', closeButton: true, progressBar: true, timeOut: 4500 });
   }
   private markAllAsTouched(form: NgForm) {
     Object.values(form.controls).forEach((c: any) => c.control?.markAsTouched?.());
@@ -103,12 +105,12 @@ export class RegistroClienteAnonimoComponent {
   }
   private mapRegisterError(error: any): string {
     const msg = (error?.message || '').toLowerCase(); const status = error?.status;
-    if (msg.includes('already registered') || msg.includes('exists')) return 'Ya existe una cuenta con este correo.';
-    if (msg.includes('invalid email')) return 'El correo ingresado no es válido.';
-    if (msg.includes('password') && (msg.includes('short') || msg.includes('length') || msg.includes('weak'))) return 'La contraseña no cumple los requisitos mínimos.';
-    if (status === 429 || msg.includes('rate limit')) return 'Demasiados intentos. Probá nuevamente en unos minutos.';
-    if (status === 0 || msg.includes('network') || msg.includes('fetch')) return 'Problema de conexión. Verificá tu internet e intentá otra vez.';
-    return 'No pudimos completar el registro. Intentá de nuevo.';
+    if (msg.includes('already registered') || msg.includes('exists')) return 'YA EXISTE UNA CUENTA CON ESTE CORREO';
+    if (msg.includes('invalid email')) return 'EL CORREO INGRESADO NO ES VÁLIDO';
+    if (msg.includes('password') && (msg.includes('short') || msg.includes('length') || msg.includes('weak'))) return 'LA CONTRASEÑA NO CUMPLE LOS REQUISITOS MÍNIMOS';
+    if (status === 429 || msg.includes('rate limit')) return 'DEMASIADOS INTENTOS. PROBÁ NUEVAMENTE EN UNOS MINUTOS';
+    if (status === 0 || msg.includes('network') || msg.includes('fetch')) return 'PROBLEMA DE CONEXIÓN. VERIFICÁ TU INTERNET E INTENTÁ OTRA VEZ';
+    return 'NO PUDIMOS COMPLETAR EL REGISTRO. INTENTÁ DE NUEVO';
   }
 
 async onSubmit(form: NgForm) {
@@ -117,23 +119,23 @@ async onSubmit(form: NgForm) {
 
   this.markAllAsTouched(form);
   if (form.invalid) {
-    this.toastError('Por favor completá todos los campos correctamente.');
+    this.toastError('POR FAVOR COMPLETÁ TODOS LOS CAMPOS CORRECTAMENTE');
     return;
   }
   if (this.password !== this.confirm) {
     this.passwordsMismatch = true;
-    this.toastError('Las contraseñas no coinciden.');
+    this.toastError('LAS CONTRASEÑAS NO COINCIDEN');
     return;
   }
   if (this.requirePhoto && !this.photoFile) {
-    this.toastError('Subí una foto de perfil para continuar.');
+    this.toastError('SUBÍ UNA FOTO DE PERFIL PARA CONTINUAR');
     return;
   }
   if (this.loading) return;
 
   this.loading = true;
+  this.spinner.show({ immediate: true });
   (document.activeElement as HTMLElement | null)?.blur?.(); // opcional, evita glitches con teclado en mobile
-  //this.cargando = true;   // 👈 muestra overlay
 
   try {
     // 1) Alta + (foto) + inserción
@@ -145,7 +147,7 @@ async onSubmit(form: NgForm) {
     // 2) Iniciar sesión automáticamente
     await this.auth.login(this.email, this.password);
 
-    this.toastOk('¡Bienvenido! Registro anónimo completado.');
+    this.toastOk('BIENVENIDO. REGISTRO ANÓNIMO COMPLETADO');
 
     // 3) limpiar UI
     this.nombre = this.email = this.password = this.confirm = '';
@@ -161,8 +163,9 @@ async onSubmit(form: NgForm) {
     this.toastError(msg);
     console.error('Registrar anónimo error:', error);
   } finally {
-    this.cargando = false;  // 👈 oculta overlay
+    this.cargando = false;
     this.loading = false;
+    this.spinner.hide();
   }
 }
 

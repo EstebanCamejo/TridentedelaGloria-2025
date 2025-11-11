@@ -36,8 +36,13 @@
             </div>
 
             <div class="actions">
-              <ion-button class="primary" expand="block" (click)="claim()" [disabled]="!discount">
-                Reclamar descuento
+              <ion-button 
+                class="primary" 
+                expand="block" 
+                (click)="claim()" 
+                [disabled]="!finished || claiming || prizeClaimed || yaSeAplicoDescuento || !discount">
+                <ion-label>{{ (prizeClaimed || yaSeAplicoDescuento) ? 'Premio ya reclamado' : 'Reclamar descuento' }}</ion-label>
+                <ion-spinner slot="end" *ngIf="claiming"></ion-spinner>
               </ion-button>
               <ion-button expand="block" routerLink="/cliente/cliente-juegos">
                 Volver

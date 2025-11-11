@@ -1,6 +1,9 @@
 <ion-header>
     <ion-toolbar>
-      <ion-title>Encuesta del cliente</ion-title>
+      <ion-title>
+        <span *ngIf="esDelivery">ENCUESTA DE REPARTIDOR</span>
+        <span *ngIf="!esDelivery">ENCUESTA DEL CLIENTE</span>
+      </ion-title>
     </ion-toolbar>
   </ion-header>
   
@@ -17,9 +20,13 @@
       </ion-card>
     </div>
   
-    <!-- Limpieza (1..5) -->
+    <!-- Limpieza (1..5) - Adaptado para repartidor -->
     <ion-item>
-      <ion-label position="stacked">Limpieza del salón</ion-label>
+      <ion-label position="stacked" class="label-lg">
+        <span *ngIf="esDelivery">ESTADO DEL EMPAQUE</span>
+        <span *ngIf="!esDelivery">LIMPIEZA DEL SALÓN</span>
+      </ion-label>
+
       <ion-segment [(ngModel)]="limpieza">
         <ion-segment-button [value]="1">1</ion-segment-button>
         <ion-segment-button [value]="2">2</ion-segment-button>
@@ -28,64 +35,99 @@
         <ion-segment-button [value]="5">5</ion-segment-button>
       </ion-segment>
       <small style="opacity:.75; display:block; margin-top:6px;" *ngIf="limpieza==null">
-        Seleccioná un valor de 1 a 5.
+        SELECCIONÁ UN VALOR DE 1 A 5
       </small>
     </ion-item>
-  
-    <!-- Aspecto valorado -->
+
+    <!-- Aspecto valorado - Adaptado para repartidor -->
     <ion-item>
-      <ion-label position="stacked">¿Qué valoraste más?</ion-label>
-      <ion-select placeholder="Elegí una opción" [(ngModel)]="aspecto_valorado">
-        <ion-select-option value="atencion">Atención del personal</ion-select-option>
-        <ion-select-option value="calidad_comida">Calidad de la comida</ion-select-option>
-        <ion-select-option value="tiempos_espera">Tiempos de espera</ion-select-option>
-        <ion-select-option value="ambiente_musica">Ambiente / Música</ion-select-option>
+      <ion-label position="stacked" class="label-lg">¿QUÉ VALORASTE MÁS?</ion-label>
+      <ion-select placeholder="ELEGÍ UNA OPCIÓN" [(ngModel)]="aspecto_valorado" okText="CONFIRMAR" cancelText="CANCELAR">
+        <!-- Opciones para mesa -->
+        <ng-container *ngIf="!esDelivery">
+          <ion-select-option value="atencion_personal">ATENCIÓN DEL PERSONAL</ion-select-option>
+          <ion-select-option value="calidad_comida">CALIDAD DE LA COMIDA</ion-select-option>
+          <ion-select-option value="tiempos_espera">TIEMPOS DE ESPERA</ion-select-option>
+          <ion-select-option value="ambiente_musica">AMBIENTE / MÚSICA</ion-select-option>
+        </ng-container>
+        <!-- Opciones para repartidor -->
+        <ng-container *ngIf="esDelivery">
+          <ion-select-option value="tiempo_entrega">TIEMPO DE ENTREGA</ion-select-option>
+          <ion-select-option value="calidad_comida">CALIDAD DE LA COMIDA</ion-select-option>
+          <ion-select-option value="atencion_repartidor">ATENCIÓN DEL REPARTIDOR</ion-select-option>
+          <ion-select-option value="temperatura_comida">TEMPERATURA DE LA COMIDA</ion-select-option>
+        </ng-container>
       </ion-select>
       <small style="opacity:.75; display:block; margin-top:6px;" *ngIf="!aspecto_valorado">
-        Elegí un aspecto valorado.
+        ELEGÍ UN ASPECTO VALORADO
       </small>
     </ion-item>
   
-    <!-- Servicios adicionales -->
+    <!-- Servicios adicionales - Adaptado para repartidor -->
     <ion-list>
-      <ion-item>
-        <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.wifi"></ion-checkbox>
-        <ion-label>Wi-Fi</ion-label>
-      </ion-item>
-      <ion-item>
-        <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.juegos"></ion-checkbox>
-        <ion-label>Zona de juegos</ion-label>
-      </ion-item>
-      <ion-item>
-        <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.menu_sin_tacc"></ion-checkbox>
-        <ion-label>Menú sin TACC</ion-label>
-      </ion-item>
-      <ion-item>
-        <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.bebidas_sin_azucar"></ion-checkbox>
-        <ion-label>Bebidas sin azúcar</ion-label>
-      </ion-item>
-      <ion-item>
-        <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.shows_en_vivo"></ion-checkbox>
-        <ion-label>Shows en vivo</ion-label>
-      </ion-item>
+      <!-- Servicios para mesa -->
+      <ng-container *ngIf="!esDelivery">
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.wifi"></ion-checkbox>
+          <ion-label>WI-FI</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.juegos"></ion-checkbox>
+          <ion-label>ZONA DE JUEGOS</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.menu_sin_tacc"></ion-checkbox>
+          <ion-label>MENÚ SIN TACC</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.bebidas_sin_azucar"></ion-checkbox>
+          <ion-label>BEBIDAS SIN AZÚCAR</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.shows_en_vivo"></ion-checkbox>
+          <ion-label>SHOWS EN VIVO</ion-label>
+        </ion-item>
+      </ng-container>
+      <!-- Servicios para repartidor -->
+      <ng-container *ngIf="esDelivery">
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.empaque_adecuado"></ion-checkbox>
+          <ion-label>EMPAQUE ADECUADO</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.comunicacion_repartidor"></ion-checkbox>
+          <ion-label>COMUNICACIÓN CON REPARTIDOR</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.menu_sin_tacc"></ion-checkbox>
+          <ion-label>MENÚ SIN TACC</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.bebidas_sin_azucar"></ion-checkbox>
+          <ion-label>BEBIDAS SIN AZÚCAR</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-checkbox slot="start" [(ngModel)]="servicios_adicionales.puntualidad"></ion-checkbox>
+          <ion-label>PUNTUALIDAD EN LA ENTREGA</ion-label>
+        </ion-item>
+      </ng-container>
     </ion-list>
   
     <!-- Comentario opcional -->
     <ion-item>
-      <ion-label position="stacked">Comentario (opcional)</ion-label>
-      <ion-textarea rows="4" autoGrow="true" [(ngModel)]="mensaje" placeholder="Escribí tu comentario..."></ion-textarea>
+      <ion-label position="stacked">COMENTARIO (OPCIONAL)</ion-label>
+      <ion-textarea rows="4" autoGrow="true" [(ngModel)]="mensaje" placeholder="ESCRIBÍ TU COMENTARIO..."></ion-textarea>
       <small style="opacity:.75; display:block; margin-top:6px;">
-        {{ (mensaje?.trim()?.length || 0) }} / {{ maxComentario }}
+        {{ (mensaje.trim().length || 0) }} / {{ maxComentario }}
       </small>
     </ion-item>
   
     <div style="height:16px"></div>
   
     <ion-button expand="block" color="primary" [disabled]="formularioInvalido" (click)="enviar()">
-      Enviar encuesta
+      ENVIAR ENCUESTA
     </ion-button>
   
-    <!-- PASO 3.3 — overlay de carga -->
-    <ion-loading [isOpen]="loading" message="Guardando..." spinner="lines"></ion-loading>
+    <!-- SPINNER REMOVIDO - Solo toast de confirmación -->
   </ion-content>
   

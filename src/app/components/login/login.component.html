@@ -68,7 +68,7 @@
           </ion-input>
         </ion-item>
         <div class="error" *ngIf="f.submitted && emailCtrl.invalid">
-          {{ emailCtrl.errors?.['required'] ? 'El correo es obligatorio.' : 'Ingresá un correo válido.' }}
+          {{ emailCtrl.errors?.['required'] ? 'EL CORREO ES OBLIGATORIO' : 'INGRESÁ UN CORREO VÁLIDO' }}
         </div>
 
         <!-- PASSWORD -->
@@ -88,8 +88,8 @@
         <div class="error" *ngIf="f.submitted && passCtrl.invalid">
           {{
             passCtrl.errors?.['required']
-              ? 'La contraseña es obligatoria.'
-              : 'La contraseña debe tener al menos 8 caracteres.'
+              ? 'LA CONTRASEÑA ES OBLIGATORIA'
+              : 'LA CONTRASEÑA DEBE TENER AL MENOS 8 CARACTERES'
           }}
         </div>
 
@@ -119,8 +119,8 @@
     </div>
   </div>
 
-  <!-- FAB: accesos rápidos por rol (igual a la app base; sin handlers nuevos por ahora) -->
-  <ion-fab class="fab-up" vertical="bottom" horizontal="end" slot="fixed">
+  <!-- FAB DERECHO: Accesos rápidos para EMPLEADOS -->
+  <ion-fab class="fab-up fab-employees" vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button>
       <ion-icon name="person-circle"></ion-icon>
     </ion-fab-button>
@@ -150,8 +150,38 @@
         <ion-icon name="beer"></ion-icon>
       </ion-fab-button>
   
-      <!-- Cliente -->
-      <ion-fab-button color="success" (click)="fastLoginCliente()" title="Cliente">
+      <!-- Repartidor -->
+      <ion-fab-button color="danger" (click)="fastLoginDelivery()" title="Repartidor">
+        <ion-icon name="bicycle-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+
+  <!-- FAB IZQUIERDO: Accesos rápidos para CLIENTES -->
+  <ion-fab class="fab-up fab-clients" vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button color="success">
+      <ion-icon name="people-outline"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="end">
+      <!-- Clientes Registrados -->
+      <ion-fab-button color="success" (click)="fastLoginClienteReg1()" title="Cliente Registrado 1">
+        <ion-icon name="body"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="success" (click)="fastLoginClienteReg2()" title="Cliente Registrado 2">
+        <ion-icon name="body"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="success" (click)="fastLoginClienteReg3()" title="Cliente Registrado 3">
+        <ion-icon name="body"></ion-icon>
+      </ion-fab-button>
+  
+      <!-- Clientes Anónimos -->
+      <ion-fab-button color="light" (click)="fastLoginClienteAnon1()" title="Cliente Anónimo 1">
+        <ion-icon name="body"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="light" (click)="fastLoginClienteAnon2()" title="Cliente Anónimo 2">
+        <ion-icon name="body"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="light" (click)="fastLoginClienteAnon3()" title="Cliente Anónimo 3">
         <ion-icon name="body"></ion-icon>
       </ion-fab-button>
     </ion-fab-list>

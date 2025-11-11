@@ -72,7 +72,7 @@
 <ion-header class="client-header">
   <ion-toolbar>
     <div class="nav-pill">
-      Bienvenido a El Tridente de la gloria 
+      BIENVENIDO A EL TRIDENTE DE LA GLORIA 
     </div>
   </ion-toolbar>
 </ion-header>
@@ -82,12 +82,12 @@
     <div class="client-stack">
       <ion-button class="cta btn-scan" fill="solid" expand="block" size="large" (click)="inscribirme()">
         <ion-icon slot="start" name="qr-code-outline"></ion-icon>
-        Inscribirme a la lista de espera
+        INSCRIBIRME A LA LISTA DE ESPERA
       </ion-button>
 
       <ion-button class="cta btn-history" fill="solid" expand="block" size="large" (click)="verEncuestas()">
         <ion-icon slot="start" name="albums-outline"></ion-icon>
-        Ver encuestas anteriores
+        VER ENCUESTAS ANTERIORES
       </ion-button>
     </div>
   </div>
@@ -102,11 +102,11 @@
   >
     <ng-template>
       <div class="card">
-        <h3>¡Tu mesa está lista!</h3>
-        <p *ngIf="mesa_numero">Tu número de mesa es: <span class="badge">{{ mesa_numero }}</span></p>
-        <p>¡Gracias por elegirnos!</p>
+        <h3>¡TU MESA ESTÁ LISTA!</h3>
+        <p *ngIf="mesa_numero">TU NÚMERO DE MESA ES: <span class="badge">{{ mesa_numero }}</span></p>
+        <p>¡GRACIAS POR ELEGIRNOS!</p>
         <div class="actions">
-          <ion-button expand="block" (click)="cerrarModal()">Cerrar</ion-button>
+          <ion-button expand="block" (click)="cerrarModal()">CERRAR</ion-button>
         </div>
       </div>
     </ng-template>
@@ -122,10 +122,10 @@
   >
     <ng-template>
       <div class="card">
-        <h3>¡Estás en la lista de espera!</h3>
-        <p>El maître te asignará una mesa pronto. Te avisaremos cuando esté disponible.</p>
+        <h3>¡ESTÁS EN LA LISTA DE ESPERA!</h3>
+        <p>EL MAÎTRE TE ASIGNARÁ UNA MESA PRONTO. TE AVISAREMOS CUANDO ESTÉ DISPONIBLE.</p>
         <div class="actions">
-          <ion-button expand="block" (click)="cerrarModal()">Entendido</ion-button>
+          <ion-button expand="block" (click)="cerrarModal()">ENTENDIDO</ion-button>
         </div>
       </div>
     </ng-template>
@@ -141,18 +141,18 @@
   >
     <ng-template>
       <div class="card">
-        <h3>Lista de espera</h3>
+        <h3>LISTA DE ESPERA</h3>
         <label class="field">
-          <span>Cantidad de personas</span>
+          <span>CANTIDAD DE PERSONAS</span>
           <input type="number" min="1" max="12" [(ngModel)]="cant" />
         </label>
         <label class="field">
-          <span>Nota (opcional)</span>
-          <input type="text" placeholder="Cochecito, silla alta…" [(ngModel)]="nota" />
+          <span>NOTA (OPCIONAL)</span>
+          <input type="text" placeholder="COCHECITO, SILLA ALTA…" [(ngModel)]="nota" />
         </label>
         <div class="actions two">
-          <ion-button fill="outline" (click)="cerrarModal()">Cancelar</ion-button>
-          <ion-button (click)="confirmarInscripcion()">Confirmar</ion-button>
+          <ion-button fill="outline" (click)="cerrarModal()">CANCELAR</ion-button>
+          <ion-button (click)="confirmarInscripcion()">CONFIRMAR</ion-button>
         </div>
       </div>
     </ng-template>

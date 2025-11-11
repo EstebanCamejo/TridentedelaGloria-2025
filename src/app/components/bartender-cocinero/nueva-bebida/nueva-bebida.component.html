@@ -1,92 +1,90 @@
-<ion-content>
-  <div class="wrapper"> 
-    
-    <ion-header class="client-header">
-      <ion-toolbar>
-        <div class="nav-pill">
-          Ingresar los datos de la bebida
-        </div>
-      </ion-toolbar>
-    </ion-header>
+<div class="wrapper"> 
+  
+  <ion-header class="client-header">
+    <ion-toolbar>
+      <div class="nav-pill">
+        INGRESAR LOS DATOS DE LA BEBIDA
+      </div>
+    </ion-toolbar>
+  </ion-header>
 
-    <div class="form-container rounded-top">
-      <form class="nuevo-plato-form"
-          (ngSubmit)="onSubmit(registerForm)"
-          #registerForm="ngForm"
-          novalidate>
-        <!-- Nombre -->
-        <div class="form-group">
-          <label for="nombre" class="subTittle">Nombre</label>
-          <input id="nombre"
-                name="nombre"
-                type="text"
-                [(ngModel)]="nombre"
-                #nombreModel="ngModel"
-                required
-                pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]+" 
-                maxlength="30"
-                placeholder="Nombre" />
-          <small *ngIf="showError(nombreModel, registerForm)"
-                style="color:#ffd1d1;font-weight:600;">
-            El nombre es obligatorio y no puede contener más de 30 caracteres.
-          </small>
-        </div>
+  <div class="form-container">
+    <form class="nuevo-plato-form"
+        (ngSubmit)="onSubmit(registerForm)"
+        #registerForm="ngForm"
+        novalidate>
+      <!-- Nombre -->
+      <div class="form-group">
+        <label for="nombre" class="subTittle">NOMBRE</label>
+        <input id="nombre"
+              name="nombre"
+              type="text"
+              [(ngModel)]="nombre"
+              #nombreModel="ngModel"
+              required
+              pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s'\-]+"
+              placeholder="NOMBRE" />
+        <small *ngIf="showError(nombreModel, registerForm)"
+              style="color:#ffd1d1;font-weight:600;">
+          EL NOMBRE ES OBLIGATORIO Y SOLO PUEDE CONTENER CARACTERES ALFABÉTICOS Y ALGUNOS CARACTERES ESPECIALES
+        </small>
+      </div>
 
-        <!-- Descripción -->
-        <div class="form-group">
-          <label for="descripcion" class="subTittle">Descripción</label>
-          <input id="descripcion"
-                name="descripcion"
-                type="text"
-                [(ngModel)]="descripcion"
-                #descripcionModel="ngModel"
-                required
-                pattern=".{10,}"
-                maxlength="120"
-                placeholder="Descripción" />
-          <small *ngIf="showError(descripcionModel, registerForm)"
-                style="color:#ffd1d1;font-weight:600;">
-            Ingresá una descripción válida de máximo 120 caracteres.
-          </small>
-        </div>
+      <!-- Descripción -->
+      <div class="form-group">
+        <label for="descripcion" class="subTittle">DESCRIPCIÓN</label>
+        <input id="descripcion"
+              name="descripcion"
+              type="text"
+              [(ngModel)]="descripcion"
+              #descripcionModel="ngModel"
+              required
+              pattern=".{10,}"
+              maxlength="300"
+              placeholder="DESCRIPCIÓN" />
+        <small *ngIf="showError(descripcionModel, registerForm)"
+              style="color:#ffd1d1;font-weight:600;">
+          INGRESÁ UNA DESCRIPCIÓN VÁLIDA
+        </small>
+      </div>
 
-        <!-- Tiempo de elaboración -->
-        <div class="form-group">
-          <label for="tiempoElaboracion" class="subTittle">Tiempo de elaboración (en minutos)</label>
-          <input id="tiempoElaboracion"
-                name="tiempoElaboracion"
-                type="text"
-                [(ngModel)]="tiempoElaboracion"
-                #tiempoElaboracionModel="ngModel"
-                required
-                inputmode="numeric"
-                pattern="^[0-9]{1,2}$"
-                maxlength="2"
-                placeholder="Tiempo de elaboración" />
-          <small *ngIf="showError(tiempoElaboracionModel, registerForm)"
-                style="color:#ffd1d1;font-weight:600;">
-            El tiempo de elaboración debe ser numérico y no puede ser mayor a 99 minutos.
-          </small>
-        </div>
+      <!-- Tiempo de elaboración -->
+      <div class="form-group">
+        <label for="tiempo-elaboracion" class="subTittle">TIEMPO DE ELABORACIÓN (EN MINUTOS)</label>
+        <input id="tiempo-elaboracion"
+              name="tiempo-elaboracion"
+              type="text"
+              [(ngModel)]="tiempoElaboracion"
+              #tiempoElaboracionModel="ngModel"
+              required
+              inputmode="numeric"
+              pattern="^[0-9]{1,2}$"
+              maxlength="2"
+              placeholder="TIEMPO DE ELABORACIÓN" />
+        <small *ngIf="showError(descripcionModel, registerForm)"
+              style="color:#ffd1d1;font-weight:600;">
+          EL TIEMPO DE ELABORACIÓN DEBE SER NUMÉRICO Y NO PUEDE SER MAYOR A 99 MINUTOS
+        </small>
+      </div>
 
-          <!-- Precio -->
-        <div class="form-group">
-          <label for="precio" class="subTittle">Precio</label>
-          <input id="precio"
-                name="precio"
-                type="text"
-                [(ngModel)]="precio"
-                #precioModel="ngModel"
-                required
-                inputmode="numeric"
-                pattern="^\d+(\.\d{1,2})?$"
-                maxlength="10"
-                placeholder="Precio" />
-          <small *ngIf="showError(precioModel, registerForm)"
-                style="color:#ffd1d1;font-weight:600;">
-            El precio solo puede contener números con hasta dos decimales y no puede contener más de 10 caracteres.
-          </small>
-        </div>
+        <!-- Precio -->
+      <div class="form-group">
+        <label for="precio" class="subTittle">PRECIO</label>
+        <input id="precio"
+              name="precio"
+              type="text"
+              [(ngModel)]="precio"
+              #precioModel="ngModel"
+              required
+              inputmode="numeric"
+              pattern="^\d+(\.\d{1,2})?$"
+              maxlength="10"
+              placeholder="PRECIO" />
+        <small *ngIf="showError(descripcionModel, registerForm)"
+              style="color:#ffd1d1;font-weight:600;">
+          EL PRECIO SOLO PUEDE CONTENER NÚMEROS CON HASTA DOS DECIMALES Y NO PUEDE CONTENER MÁS DE 10 CARACTERES
+        </small>
+      </div>
 
         <input 
               type="file" 
@@ -97,7 +95,7 @@
               #fileInput />
         <ion-button expand="full" (click)="fileInput.click()" 
                     [disabled]="fotos.length >= 3">
-          Agregar fotos
+          AGREGAR FOTOS
         </ion-button>
 
         <ion-grid>
@@ -117,10 +115,10 @@
           </ion-row>
         </ion-grid>
 
-        <ion-button expand="full" 
-              type="submit">
-          Confirmar (3 fotos)
-        </ion-button>
+
+      <ion-button expand="full" type="submit">
+        CONFIRMAR (3 FOTOS)
+      </ion-button>
 
         <div *ngIf="errorMsg" style="margin-top:8px;color:#ffd1d1;font-weight:600;">
           {{ errorMsg }}
@@ -129,4 +127,3 @@
     </div>
 
   </div>
-</ion-content>

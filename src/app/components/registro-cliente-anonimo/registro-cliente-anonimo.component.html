@@ -20,7 +20,7 @@
       <input id="nombre" name="nombre" type="text"
              [(ngModel)]="nombre" #nombreModel="ngModel" required
              placeholder="Nombre" />
-      <small *ngIf="showError(nombreModel, f)" class="msg-error">El nombre es obligatorio.</small>
+      <small *ngIf="showError(nombreModel, f)" class="msg-error">EL NOMBRE ES OBLIGATORIO</small>
     </div>
 
     <!-- Correo -->
@@ -29,7 +29,7 @@
       <input id="email" name="email" type="email"
              [(ngModel)]="email" #emailModel="ngModel" required email
              placeholder="correo@ejemplo.com" />
-      <small *ngIf="showError(emailModel, f)" class="msg-error">Ingresá un correo válido.</small>
+      <small *ngIf="showError(emailModel, f)" class="msg-error">INGRESÁ UN CORREO VÁLIDO</small>
     </div>
 
     <!-- Contraseña -->
@@ -39,7 +39,7 @@
              [(ngModel)]="password" #passwordModel="ngModel" required minlength="8"
              placeholder="Mínimo 8 caracteres" />
       <small *ngIf="showError(passwordModel, f)" class="msg-error">
-        La contraseña debe tener al menos 8 caracteres.
+        LA CONTRASEÑA DEBE TENER AL MENOS 8 CARACTERES
       </small>
     </div>
 
@@ -49,13 +49,13 @@
       <input id="confirm" name="confirm" type="password"
              [(ngModel)]="confirm" #confirmModel="ngModel" required minlength="8"
              placeholder="Vuelva a escribir la contraseña" />
-      <small *ngIf="showError(confirmModel, f)" class="msg-error">Repetí la contraseña.</small>
+      <small *ngIf="showError(confirmModel, f)" class="msg-error">REPETÍ LA CONTRASEÑA</small>
       <small *ngIf="passwordsMismatch && (f.submitted || confirmModel.touched)" class="msg-error-strong">
-        Las contraseñas no coinciden.
+        LAS CONTRASEÑAS NO COINCIDEN
       </small>
     </div>
 
-    <button type="submit" class="buttonLogin">{{ loading ? 'Registrando…' : 'Registrarse' }}</button>
+    <button type="submit" class="buttonLogin">{{ loading ? 'REGISTRANDO…' : 'REGISTRARSE' }}</button>
 
     <div *ngIf="errorMsg" class="msg-error-strong" style="margin-top:8px">{{ errorMsg }}</div>
   </form>

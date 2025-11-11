@@ -1,6 +1,6 @@
 <ion-header>
     <ion-toolbar>
-      <ion-title>Mesa</ion-title>
+      <ion-title>MESA</ion-title>
     </ion-toolbar>
   </ion-header>
   
@@ -8,12 +8,12 @@
     <ng-container *ngIf="!cargando && mesa; else cargandoTpl">
       <ion-item>
         <ion-label>
-          <h2>Mesa #{{ mesa.numero }}</h2>
-          <p>Capacidad: {{ mesa.capacidad }}</p>
-          <p>Tipo: {{ mesa.tipo }}</p>
+          <h2>MESA #{{ mesa.numero }}</h2>
+          <p>CAPACIDAD: {{ mesa.capacidad }}</p>
+          <p>TIPO: {{ mesa.tipo.toUpperCase() }}</p>
         </ion-label>
         <ion-badge [color]="mesa.estado === 'libre' ? 'success' : (mesa.estado === 'ocupada' ? 'danger' : 'medium')">
-          {{ mesa.estado | titlecase }}
+          {{ estadoTexto(mesa.estado) }}
         </ion-badge>
       </ion-item>
   
@@ -23,12 +23,12 @@
   
       <!-- Botones futuros (asignar, marcar ocupada, etc.) -->
       <!--
-      <ion-button expand="block" color="primary" style="margin-top:20px;">Asignar</ion-button>
+      <ion-button expand="block" color="primary" style="margin-top:20px;">ASIGNAR</ion-button>
       -->
     </ng-container>
   
     <ng-template #cargandoTpl>
-      Cargando información de la mesa...
+      CARGANDO INFORMACIÓN DE LA MESA...
     </ng-template>
   </ion-content>
   

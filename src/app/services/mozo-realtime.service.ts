@@ -84,7 +84,14 @@ export class MozoRealtimeService implements OnDestroy {
 
         // 🔍 Filtrar solo pedidos con estado 'pendiente' (nuevos pedidos o pedidos reenviados)
         // Y que tengan un total válido (mayor a 0)
+        // NOTA: Excluir pedidos delivery (solo notificar pedidos de mesa)
         if (pedido.estado === 'pendiente') {
+          // Filtrar pedidos delivery - solo procesar pedidos de mesa o sin tipo_pedido
+          if (pedido.tipo_pedido === 'delivery') {
+            console.log('[MozoRealtimeService] ⚠️ Pedido delivery detectado, saltando notificación (solo procesamos pedidos de mesa)');
+            return;
+          }
+          
           if (!pedido.total || pedido.total <= 0) {
             console.log('[MozoRealtimeService] ⚠️ Pedido pendiente sin total válido, saltando notificación. Total:', pedido.total);
             return;
@@ -94,7 +101,7 @@ export class MozoRealtimeService implements OnDestroy {
           const esPedidoReenviado = oldPedido.estado === 'rechazado por mozo';
           const tipoMensaje = esPedidoReenviado ? 'Pedido modificado y reenviado' : 'Nuevo pedido';
           
-          console.log(`[MozoRealtimeService] ✅ ${tipoMensaje} pendiente detectado con total válido!`);
+          console.log(`[MozoRealtimeService] ✅ ${tipoMensaje} pendiente de mesa detectado con total válido!`);
 
         // Obtener número de mesa del cliente
         const { data: listaEspera, error: errorMesa } = await this.supa.client
@@ -117,7 +124,7 @@ export class MozoRealtimeService implements OnDestroy {
             notifications: [{
               id: Date.now() % 2147483647,
               title: esPedidoReenviado ? `🔄 Pedido modificado - Mesa ${mesaNumero || '?'}` : `🍽️ Nuevo pedido - Mesa ${mesaNumero || '?'}`,
-              body: esPedidoReenviado ? `Cliente modificó y reenvió el pedido. Total: $${pedido.total || 0}` : `Total: $${pedido.total || 0} - Requiere confirmación`,
+              body: esPedidoReenviado ? `Cliente modificó y reenvió el pedido. Requiere confirmación.` : `Nuevo pedido recibido. Requiere confirmación.`,
               channelId: 'mozo_pedidos',
               smallIcon: 'ic_stat_notify',
               extra: { 
@@ -142,7 +149,14 @@ export class MozoRealtimeService implements OnDestroy {
         const estadoPreparacionParcial = pedido.estado === 'en preparación parcial' && oldPedido.estado !== 'en preparación parcial';
         
         // 🔍 EXCLUIR notificaciones de "Pedido listo" cuando el estado es 'entregado'
+        // 🔍 EXCLUIR pedidos delivery (solo procesar pedidos de mesa)
         if ((estadoCambioAGeneral || estadoCocinaCambio || estadoBarCambio || estadoPreparacionParcial) && pedido.estado !== 'entregado') {
+          // Filtrar pedidos delivery - solo procesar pedidos de mesa o sin tipo_pedido
+          if (pedido.tipo_pedido === 'delivery') {
+            console.log('[MozoRealtimeService] ⚠️ Pedido delivery listo detectado, saltando notificación (solo procesamos pedidos de mesa)');
+            return;
+          }
+
           console.log('[MozoRealtimeService] ✅ Cambio de estado detectado:', { 
             estadoCambioAGeneral, 
             estadoCocinaCambio, 
@@ -188,7 +202,7 @@ export class MozoRealtimeService implements OnDestroy {
               notifications: [{
                 id: Date.now() % 2147483647,
                 title: `🍽️ Pedido listo - Mesa ${mesaNumero || '?'}`,
-                body: `Total: $${pedido.total || 0} - Listo para entregar`,
+              body: `Pedido listo para entregar.`,
                 channelId: 'mozo_pedidos',
                 smallIcon: 'ic_stat_notify',
                 extra: { 
@@ -207,7 +221,14 @@ export class MozoRealtimeService implements OnDestroy {
         } // Cerrar el if para pedidos listos
 
         // 🔍 Notificar cuando el cliente acepta el pedido (estado 'entregado')
+        // 🔍 EXCLUIR pedidos delivery (solo procesar pedidos de mesa)
         if (pedido.estado === 'entregado' && oldPedido.estado === 'pendiente aceptación') {
+          // Filtrar pedidos delivery - solo procesar pedidos de mesa o sin tipo_pedido
+          if (pedido.tipo_pedido === 'delivery') {
+            console.log('[MozoRealtimeService] ⚠️ Pedido delivery entregado detectado, saltando notificación (solo procesamos pedidos de mesa)');
+            return;
+          }
+
           console.log('[MozoRealtimeService] ✅ Cliente aceptó el pedido entregado');
 
           // Obtener número de mesa del cliente
@@ -254,7 +275,14 @@ export class MozoRealtimeService implements OnDestroy {
         }
 
         // 🔍 Notificar cuando el cliente marca el pedido como pendiente de confirmación de pago
+        // 🔍 EXCLUIR pedidos delivery (solo procesar pedidos de mesa)
         if (pedido.estado === 'pendiente confirmacion pago' && oldPedido.estado !== 'pendiente confirmacion pago') {
+          // Filtrar pedidos delivery - solo procesar pedidos de mesa o sin tipo_pedido
+          if (pedido.tipo_pedido === 'delivery') {
+            console.log('[MozoRealtimeService] ⚠️ Pedido delivery con pago pendiente detectado, saltando notificación (solo procesamos pedidos de mesa)');
+            return;
+          }
+
           console.log('[MozoRealtimeService] 💳 Cliente realizó pago - esperando confirmación del mozo');
 
           // Obtener número de mesa del cliente
@@ -277,7 +305,7 @@ export class MozoRealtimeService implements OnDestroy {
               notifications: [{
                 id: Date.now() % 2147483647,
               title: `💳 PAGO REALIZADO - Mesa ${mesaNumero || '?'}`,
-              body: `Cliente realizó el pago. Total: $${pedido.total || 0} - Requiere confirmación del mozo`,
+              body: `Cliente realizó el pago. Requiere confirmación del mozo.`,
                 channelId: 'mozo_pedidos',
                 smallIcon: 'ic_stat_notify',
                 extra: { 

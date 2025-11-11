@@ -5,11 +5,13 @@ import {
   IonButton, IonIcon, IonTitle, IonToolbar, IonHeader } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart} from 'ionicons/icons';
+import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart, calendarOutline, bicycleOutline, receiptOutline} from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { ToastrService } from 'ngx-toastr';
-import { AdminRealtimeService } from 'src/app/services/admin-realtime.service'; 
+import { SpinnerService } from 'src/app/services/spinner.service';
+import { AdminRealtimeService } from 'src/app/services/admin-realtime.service';
+import { AdminReservasRealtimeService } from 'src/app/services/admin-reservas-realtime.service'; 
 
 @Component({
   selector: 'app-home-admin',
@@ -26,18 +28,21 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
   constructor(
     private router: Router, 
     private supa: SupabaseService, 
-    private toast: ToastrService, 
+    private toast: ToastrService,
+    private spinner: SpinnerService,
     private route: ActivatedRoute,
-    private adminRt: AdminRealtimeService
+    private adminRt: AdminRealtimeService,
+    private adminReservasRt: AdminReservasRealtimeService
   ) {
-    addIcons({ checkmarkDoneCircle, personAdd, restaurant, statsChart, create });    
+    addIcons({ 
+      checkmarkDoneCircle, personAdd, restaurant, statsChart, create, calendarOutline, bicycleOutline, receiptOutline });    
   }
 
   async ngOnInit() {
 
     const from = this.route.snapshot.queryParamMap.get('from');
     if (from === 'alta-usuario') {
-      this.toast.success('Empleado creado correctamente', '', {
+      this.toast.success('EMPLEADO CREADO CORRECTAMENTE', '', {
         positionClass: 'toast-center',
         timeOut: 2200
       });
@@ -72,9 +77,16 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
   
     if (!me || !['dueno','supervisor'].includes(me.perfil as string)) return;
   
-    // Al tocar la notificación → ir a Pendientes
-    LocalNotifications.addListener('localNotificationActionPerformed', async () => {
-      this.router.navigate(['/admin/pendientes']);
+    // Al tocar la notificación → ir a Pendientes o Reservas según el tipo
+    LocalNotifications.addListener('localNotificationActionPerformed', async (notification) => {
+      console.log('[HomeAdminComponent] 🔔 Notificación tocada:', notification);
+      
+      const extra = notification.notification?.extra;
+      if (extra?.tipo === 'nueva_reserva') {
+        this.router.navigate(['/admin/reservas']);
+      } else {
+        this.router.navigate(['/admin/pendientes']);
+      }
     });
   
     // 3) Realtime: INSERT en usuarios con estado='pendiente'
@@ -104,8 +116,8 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
         await LocalNotifications.schedule({
           notifications: [{
             id: now % 1000000000,
-            title: 'Nuevo cliente pendiente',
-            body: `${nombre} espera aprobación`,
+            title: 'NUEVO CLIENTE PENDIENTE',
+            body: `${nombre.toUpperCase()} ESPERA APROBACIÓN`,
             channelId: 'default',
             extra: { route: '/admin/pendientes' }
           }]
@@ -113,19 +125,32 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
       })
       .subscribe();
 
-    // Inicializar servicio de notificaciones para administradores
+    // Inicializar servicios de notificaciones para administradores
     await this.adminRt.init();
+    await this.adminReservasRt.init();
   }
   
 
   ngOnDestroy() {
     if (this.rtChannel) this.supa.client.removeChannel(this.rtChannel as any);
     this.adminRt.dispose();
+    this.adminReservasRt.dispose();
   }
 
   irAListaDeEspera() { this.router.navigate(['/admin/pendientes']); }
   irAAltaUsuarios()  { this.router.navigate(['/admin/alta-usuario']); }
   irAResultados()    { this.router.navigate(['/pagina-resultados-encuestas']); }
   irAMesas()         { this.router.navigate(['/admin/mesas']);}
+  irAReservas()      { this.router.navigate(['/admin/reservas']);}
+  irADeliveryPedidos() { 
+    console.log('[HomeAdminComponent] Navegando a delivery-pedidos...');
+    this.router.navigate(['/admin/delivery-pedidos']).catch(err => {
+      console.error('[HomeAdminComponent] Error al navegar a delivery-pedidos:', err);
+    });
+  }
+  
+  irADeliveryConfirmarPago() { 
+    this.router.navigate(['/admin/delivery-confirmar-pago']); 
+  }
 
 }

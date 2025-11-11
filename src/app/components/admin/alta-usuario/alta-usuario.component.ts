@@ -9,6 +9,7 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 import { addIcons } from 'ionicons';
 import { camera, barcodeOutline } from 'ionicons/icons';
 import { Router } from '@angular/router';
+import { SpinnerService } from 'src/app/services/spinner.service';
 // QR DNI
 import {
   BarcodeScanner,
@@ -45,14 +46,19 @@ export class AltaUsuarioComponent {
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  constructor(private toastr: ToastrService, private supa: SupabaseService, private router: Router) {
+  constructor(
+    private toastr: ToastrService,
+    private supa: SupabaseService,
+    private router: Router,
+    private spinner: SpinnerService
+  ) {
     addIcons({ camera, barcodeOutline });
   }
 
   // ===== utilidades =====
   private isNative(): boolean { return Capacitor.isNativePlatform(); }
-  private toastOk(msg: string)    { this.toastr.success(msg, '', { positionClass: 'toast-center', timeOut: 2500 }); }
-  private toastError(msg: string) { this.toastr.error(msg, 'Error', { positionClass: 'toast-center', timeOut: 4000 }); }
+  private toastOk(msg: string)    { this.toastr.success(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 2500 }); }
+  private toastError(msg: string) { this.toastr.error(msg.toUpperCase(), '', { positionClass: 'toast-center', timeOut: 4000 }); }
 
   showError(ctrl: any, form: NgForm): boolean {
     return !!ctrl?.invalid && (ctrl?.touched || form?.submitted);
@@ -79,10 +85,10 @@ export class AltaUsuarioComponent {
   // ===== Cámara: foto comprimida =====
   async tomarFoto() {
     try {
-      if (!this.isNative()) { this.toastError('La cámara requiere dispositivo móvil.'); return; }
+      if (!this.isNative()) { this.toastError('LA CÁMARA REQUIERE DISPOSITIVO MÓVIL'); return; }
 
       const perms = await Camera.requestPermissions({ permissions: ['camera'] });
-      if (perms.camera !== 'granted') { this.toastError('Habilitá la cámara.'); return; }
+      if (perms.camera !== 'granted') { this.toastError('HABILITÁ LA CÁMARA'); return; }
 
       const img = await Camera.getPhoto({
         resultType: CameraResultType.Base64,
@@ -92,7 +98,7 @@ export class AltaUsuarioComponent {
         allowEditing: false,
       });
 
-      if (!img?.base64String) { this.toastError('No se obtuvo la foto.'); return; }
+      if (!img?.base64String) { this.toastError('NO SE OBTUVO LA FOTO'); return; }
 
       const mime = img.format ? `image/${img.format}` : 'image/jpeg';
       this.photoBase64 = `data:${mime};base64,${img.base64String}`;
@@ -134,7 +140,7 @@ export class AltaUsuarioComponent {
         perm = await BarcodeScanner.requestPermissions();
       }
       if (!perm.camera || perm.camera === 'denied') {
-        this.toastError('Sin permisos de cámara.');
+        this.toastError('SIN PERMISOS DE CÁMARA');
         return;
       }
   
@@ -157,17 +163,17 @@ export class AltaUsuarioComponent {
         f === BarcodeFormat.Pdf417 || String(f).toUpperCase() === 'PDF417';
   
       const b = barcodes.find(x => isPdf417((x as any).format));
-      if (!b?.rawValue) { this.toastError('No se pudo leer el DNI.'); return; }
-  
+      if (!b?.rawValue) { this.toastError('NO SE PUDO LEER EL DNI'); return; }
+
       const { apellidos, nombres, dni } = this.parseArgDniPdf417(b.rawValue);
       if (apellidos) this.apellido = apellidos;
       if (nombres)   this.nombre   = nombres;
       if (dni)       this.dni      = dni;
-  
-      this.toastOk('Datos del DNI cargados.');
+
+      this.toastOk('DATOS DEL DNI CARGADOS');
     } catch (e) {
       console.warn('Scan cancelado/error:', e);
-      this.toastError('No se pudo escanear el DNI.');
+      this.toastError('NO SE PUDO ESCANEAR EL DNI');
     }
   }
   
@@ -193,16 +199,16 @@ export class AltaUsuarioComponent {
     const perfil    = (this.perfil  || null) as 'maitre'|'mozo'|'cocinero'|'bartender'|null;
     const photoBase64 = this.photoBase64 || null;
 
-    const fail = (msg: string) => { this.errorMsg = msg; this.toastError(msg); };
+    const fail = (msg: string) => { this.errorMsg = msg.toUpperCase(); this.toastError(msg); };
 
-    if (!apellidos) { fail('El apellido es obligatorio.'); this.loading = false; return; }
-    if (!nombres)   { fail('El nombre es obligatorio.');  this.loading = false; return; }
-    if (!this.isDniValido(dni)) { fail('DNI inválido (7–8 dígitos).'); this.loading = false; return; }
-    if (!/^\d{11}$/.test(cuil) || !this.cuilValido) { fail('CUIL inválido (11 dígitos + verificador).'); this.loading = false; return; }
-    if (!email || !email.includes('@')) { fail('Ingresá un correo válido.'); this.loading = false; return; }
-    if (!password || password.length < 8) { fail('La contraseña debe tener al menos 8 caracteres.'); this.loading = false; return; }
-    if (password !== confirm) { fail('Las contraseñas no coinciden.'); this.loading = false; return; }
-    if (!perfil) { fail('Seleccioná un perfil.'); this.loading = false; return; }
+    if (!apellidos) { fail('EL APELLIDO ES OBLIGATORIO'); this.loading = false; return; }
+    if (!nombres)   { fail('EL NOMBRE ES OBLIGATORIO');  this.loading = false; return; }
+    if (!this.isDniValido(dni)) { fail('DNI INVÁLIDO (7-8 DÍGITOS)'); this.loading = false; return; }
+    if (!/^\d{11}$/.test(cuil) || !this.cuilValido) { fail('CUIL INVÁLIDO (11 DÍGITOS + VERIFICADOR)'); this.loading = false; return; }
+    if (!email || !email.includes('@')) { fail('INGRESÁ UN CORREO VÁLIDO'); this.loading = false; return; }
+    if (!password || password.length < 8) { fail('LA CONTRASEÑA DEBE TENER AL MENOS 8 CARACTERES'); this.loading = false; return; }
+    if (password !== confirm) { fail('LAS CONTRASEÑAS NO COINCIDEN'); this.loading = false; return; }
+    if (!perfil) { fail('SELECCIONÁ UN PERFIL'); this.loading = false; return; }
     // La foto no es obligatoria; si querés forzarla, descomentá:
     // if (!photoBase64) { fail('La foto es obligatoria.'); this.loading = false; return; }
 
@@ -210,10 +216,11 @@ export class AltaUsuarioComponent {
     console.log('[UI] listo payload', payload);
 
     try {
+      this.spinner.show({ immediate: true, minMs: 1000 });
       const out = await this.supa.altaEmpleadoViaFunctionDirect(payload);
       console.log('[UI] function OK', out);
 
-     // this.toastOk('Empleado creado correctamente.');
+     // this.toastOk('EMPLEADO CREADO CORRECTAMENTE');
       // limpiar form
       this.apellido = this.nombre = this.dni = this.cuil =
       this.email = this.password = this.confirm = '';
@@ -228,11 +235,12 @@ export class AltaUsuarioComponent {
 
     } catch (e: any) {
       console.error('[UI] error en onSubmit', e);
-      this.errorMsg = e?.message || 'No se pudo crear el empleado.';
+      this.errorMsg = (e?.message || 'NO SE PUDO CREAR EL EMPLEADO').toUpperCase();
       this.toastError(this.errorMsg);
 
     } finally {
       this.loading = false;
+      this.spinner.hide();
     }
   }
 }

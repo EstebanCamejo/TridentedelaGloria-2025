@@ -1,7 +1,7 @@
 <ion-header class="client-header">
   <ion-toolbar>
-    <div class="nav-pill">
-      Productos del sector Cocina
+    <div class="nav-pill title-large">
+      PEDIDOS DE COCINA
     </div>
   </ion-toolbar>
 </ion-header>
@@ -13,7 +13,7 @@
 
   <div *ngIf="cargando" class="cargando">
     <ion-spinner name="crescent"></ion-spinner>
-    <p>Cargando pedidos...</p>
+    <p>CARGANDO PEDIDOS...</p>
   </div>
   
   <div *ngIf="error" class="error-message">
@@ -21,26 +21,34 @@
   </div>
 
   <div *ngIf="!cargando && pedidosCocina.length === 0" class="sin-pedidos">
-    No hay pedidos pendientes de cocina.
+    <div class="empty-message">
+      <div class="empty-icon">🍽️</div>
+      <div class="empty-title">¡NO HAY PEDIDOS DE COCINA!</div>
+      <div class="empty-subtitle">NO HAY PEDIDOS PENDIENTES DE COCINA</div>
+      <div class="empty-description">TODOS LOS PEDIDOS HAN SIDO PROCESADOS EXITOSAMENTE</div>
+    </div>
   </div>
 
   <div class="pedidos-container">
     <ion-card *ngFor="let pedido of pedidosCocina" class="pedido-card">
       <ion-card-header class="card-header">
-        <ion-card-title class="mesa-title">Mesa {{ pedido.numero_mesa }}</ion-card-title>
+        <ion-card-title class="mesa-title">
+          <span *ngIf="pedido.tipo_pedido === 'delivery'">REPARTIDOR #{{ pedido.id }}</span>
+          <span *ngIf="pedido.tipo_pedido !== 'delivery'">MESA {{ pedido.numero_mesa }}</span>
+        </ion-card-title>
         <ion-card-subtitle class="fecha-subtitle">
-          {{ pedido.fecha | date:'medium' }}
+          {{ pedido.fecha | date:'dd/MM/yy HH:mm:ss' }}
         </ion-card-subtitle>
         <ion-badge 
           [class]="getBadgeClass(pedido.estado)" 
           class="estado-badge">
-          {{ pedido.estado }}
+          {{ estadoTexto(pedido.estado) }}
         </ion-badge>
       </ion-card-header>
 
       <ion-card-content class="card-content">
         <div class="productos-section">
-          <h3 class="productos-title">Productos del sector:</h3>
+          <h3 class="productos-title">PRODUCTOS DEL SECTOR:</h3>
           <div class="productos-list">
             <div *ngFor="let prod of pedido.productos" class="producto-item">
               <span class="producto-nombre">{{ prod.nombre }}</span>
@@ -57,10 +65,10 @@
         [disabled]="pedido.estado === 'listo para entregar' || estaSectorListo(pedido) || estaProcesando(pedido.id)">
         <ion-spinner *ngIf="estaProcesando(pedido.id)" name="crescent"></ion-spinner>
         <span *ngIf="!estaProcesando(pedido.id)">
-          {{ pedido.estado === 'pedido en curso' ? 'Aceptar productos' : 
-             pedido.estado === 'en preparación' ? 'Listo para entregar' : 
-             pedido.estado === 'en preparación parcial' ? 'Listo para entregar' : 
-             pedido.estado === 'listo para entregar' ? 'Listo para entregar' : 'Aceptar productos' }}
+          {{ pedido.estado === 'pedido en curso' ? 'ACEPTAR PRODUCTOS' : 
+             pedido.estado === 'en preparación' ? 'LISTO PARA ENTREGAR' : 
+             pedido.estado === 'en preparación parcial' ? 'LISTO PARA ENTREGAR' : 
+             pedido.estado === 'listo para entregar' ? 'LISTO PARA ENTREGAR' : 'ACEPTAR PRODUCTOS' }}
         </span>
       </ion-button>
 

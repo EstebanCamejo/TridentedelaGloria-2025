@@ -46,45 +46,61 @@ export class BartenderCocineroRealtimeService implements OnDestroy {
         });
 
         // 🔍 Filtrar cuando el estado es 'pedido en curso' (ignorar old si es undefined)
-        if (pedido.estado === 'pedido en curso') {
-          console.log('[BartenderCocineroRealtimeService] ✅ Pedido confirmado por mozo!', pedido);
+        // 🆕 También detectar cuando cambia de 'pendiente' a 'pedido en curso' (admin acepta delivery)
+        const esNuevoPedidoEnCurso = pedido.estado === 'pedido en curso' && 
+          (oldPedido.estado === 'pendiente' || oldPedido.estado === undefined || oldPedido.estado !== 'pedido en curso');
+        
+        if (esNuevoPedidoEnCurso) {
+          console.log('[BartenderCocineroRealtimeService] ✅ Pedido confirmado!', pedido);
 
-        // Obtener número de mesa del cliente
-        const { data: listaEspera, error: errorMesa } = await this.supa.client
-          .from('lista_espera')
-          .select('numero_mesa')
-          .eq('usuario_id', pedido.idCliente)
-          .eq('estado', 'asignado')
-          .single();
+          // 🆕 Detectar si es delivery o mesa
+          const esDelivery = pedido.tipo_pedido === 'delivery';
+          let titulo = '';
+          let body = `Total: $${pedido.total || 0} - Tiempo: ${pedido.tiempo_estimado || 0} min`;
 
-        if (errorMesa) {
-          console.error('[BartenderCocineroRealtimeService] Error al obtener mesa:', errorMesa);
-        }
+          if (esDelivery) {
+            // Para delivery, mostrar "Delivery #ID"
+            titulo = `🍽️ Nuevo pedido en curso - Delivery #${pedido.id}`;
+            console.log('[BartenderCocineroRealtimeService] 🚚 Pedido delivery detectado');
+          } else {
+            // Para mesa, obtener número de mesa
+            const { data: listaEspera, error: errorMesa } = await this.supa.client
+              .from('lista_espera')
+              .select('numero_mesa')
+              .eq('usuario_id', pedido.idCliente)
+              .eq('estado', 'asignado')
+              .maybeSingle();
 
-        const mesaNumero = listaEspera?.numero_mesa || 0;
-        console.log('[BartenderCocineroRealtimeService] Mesa encontrada:', mesaNumero);
+            if (errorMesa) {
+              console.error('[BartenderCocineroRealtimeService] Error al obtener mesa:', errorMesa);
+            }
 
-        try {
-          // Programar notificación LOCAL (como maitre-cliente)
-          await LocalNotifications.schedule({
-            notifications: [{
-              id: Date.now() % 2147483647,
-              title: `🍽️ Nuevo pedido en curso - Mesa ${mesaNumero || '?'}`,
-              body: `Total: $${pedido.total || 0} - Tiempo: ${pedido.tiempo_estimado || 0} min`,
-              channelId: 'bartender_cocinero',
-              smallIcon: 'ic_stat_notify',
-              extra: { 
-                route: '/bartender-cocinero/home',
-                pedidoId: pedido.id,
-                mesaNumero
-              }
-            }]
-          });
+            const mesaNumero = listaEspera?.numero_mesa || 0;
+            console.log('[BartenderCocineroRealtimeService] Mesa encontrada:', mesaNumero);
+            titulo = `🍽️ Nuevo pedido en curso - Mesa ${mesaNumero || '?'}`;
+          }
 
-          console.log('[BartenderCocineroRealtimeService] 🔔 Notificación LOCAL enviada');
-        } catch (error) {
-          console.error('[BartenderCocineroRealtimeService] Error al enviar notificación:', error);
-        }
+          try {
+            // Programar notificación LOCAL (como maitre-cliente)
+            await LocalNotifications.schedule({
+              notifications: [{
+                id: Date.now() % 2147483647,
+                title: titulo,
+                body: body,
+                channelId: 'bartender_cocinero',
+                smallIcon: 'ic_stat_notify',
+                extra: { 
+                  route: '/bartender-cocinero/home',
+                  pedidoId: pedido.id,
+                  tipo: esDelivery ? 'delivery' : 'mesa'
+                }
+              }]
+            });
+
+            console.log('[BartenderCocineroRealtimeService] 🔔 Notificación LOCAL enviada');
+          } catch (error) {
+            console.error('[BartenderCocineroRealtimeService] Error al enviar notificación:', error);
+          }
         } // Cerrar el if
       })
       .subscribe((status) => {

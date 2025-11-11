@@ -1,6 +1,10 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Chat</ion-title>
+    <ion-title class="title-large">
+      <span *ngIf="esDeliveryChat && esModoDelivery">CHAT CON CLIENTE</span>
+      <span *ngIf="esDeliveryChat && !esModoDelivery">CHAT CON REPARTIDOR</span>
+      <span *ngIf="!esDeliveryChat">CHAT CON MOZO</span>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -15,15 +19,26 @@
       <div #bottom></div>
     </ng-container>
     <ng-template #vacio>
-      <div class="empty">Todavía no hay mensajes.</div>
+      <div class="empty">
+        <div class="empty-message">
+          <div class="empty-icon">💬</div>
+          <div class="empty-title">¡CHAT VACÍO!</div>
+          <div class="empty-subtitle">NO HAY MENSAJES TODAVÍA</div>
+          <div class="empty-description">
+            <span *ngIf="esDeliveryChat && esModoDelivery">INICIÁ LA CONVERSACIÓN CON EL CLIENTE</span>
+            <span *ngIf="esDeliveryChat && !esModoDelivery">INICIÁ LA CONVERSACIÓN CON EL REPARTIDOR</span>
+            <span *ngIf="!esDeliveryChat">INICIÁ LA CONVERSACIÓN CON TU MOZO</span>
+          </div>
+        </div>
+      </div>
     </ng-template>
   </div>
 
   <!-- footer visual fijo -->
   <div class="composer-footer" slot="fixed">
     <div class="composer">
-      <input [(ngModel)]="nuevo" (focus)="scrollDownSoon()" placeholder="Escribe tu mensaje…" />
-      <button class="send-btn" (click)="enviar()" [disabled]="!nuevo?.trim()">
+      <input [(ngModel)]="nuevo" (focus)="scrollDownSoon()" placeholder="ESCRIBÍ TU MENSAJE…" />
+      <button class="send-btn" (click)="enviar()" [disabled]="!nuevo.trim()">
         <ion-icon name="send-outline"></ion-icon>
       </button>
     </div>

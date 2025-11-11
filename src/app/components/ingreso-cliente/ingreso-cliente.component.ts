@@ -113,6 +113,7 @@ import { SupabaseService, UsuarioLocalData } from 'src/app/services/supabase.ser
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { checkmarkCircleOutline, hourglassOutline, peopleOutline } from 'ionicons/icons';
+import { SpinnerService } from 'src/app/services/spinner.service';
 
 type EstadoLE = 'noAtendido' | 'esperando' | 'asignado' | 'finalizado';
 addIcons({ qrCodeOutline, albumsOutline, checkmarkCircleOutline, hourglassOutline, peopleOutline });
@@ -137,6 +138,7 @@ export class IngresoClienteComponent implements OnInit {
     private supa: SupabaseService,
     private router: Router,
     private toast: ToastController,
+    private spinner: SpinnerService,
   ) {
     addIcons({ qrCodeOutline, albumsOutline });
   }
@@ -174,7 +176,7 @@ export class IngresoClienteComponent implements OnInit {
       this.isReady = true;
     } catch (error) {
       console.error('❌ Error al verificar sesión en ingreso-cliente:', error);
-      this.msg('Error de sesión. Por favor, inicia sesión nuevamente.', true);
+      this.msg('ERROR DE SESIÓN. POR FAVOR, INICIA SESIÓN NUEVAMENTE', true);
       // Redirigir al login si no hay sesión válida
       this.router.navigate(['/login']);
     }
@@ -269,7 +271,7 @@ async inscribirme() {
   // Verificar que el componente esté listo
   if (!this.isReady) {
     console.log('❌ Componente no está listo');
-    this.msg('El componente aún se está inicializando. Intenta nuevamente.', true);
+    this.msg('EL COMPONENTE AÚN SE ESTÁ INICIALIZANDO. INTENTA NUEVAMENTE', true);
     return;
   }
 
@@ -280,7 +282,7 @@ async inscribirme() {
       this.supa.idUsuario = this.userData.auth_id;
     } else if (!this.supa.idUsuario) {
       console.log('❌ No hay idUsuario disponible');
-      throw new Error('No hay datos de usuario disponibles');
+      throw new Error('NO HAY DATOS DE USUARIO DISPONIBLES');
     }
     
     console.log('🔄 Obteniendo estado de espera...');
@@ -311,7 +313,7 @@ async inscribirme() {
     this.ui = 'form';
   } catch (e: any) {
     console.error('❌ Error en inscribirme():', e);
-    this.msg(e?.message || 'Error al consultar tu estado.', true);
+    this.msg((e?.message || 'ERROR AL CONSULTAR TU ESTADO').toUpperCase(), true);
   }
   
   console.log('=== FIN inscribirme() ===');
@@ -323,7 +325,7 @@ async inscribirme() {
     
     if (!Number.isInteger(this.cant) || this.cant < 1 || this.cant > 12) {
       console.log('❌ Cantidad inválida:', this.cant);
-      this.msg('Ingresá una cantidad válida (1–12).', true);
+      this.msg('INGRESÁ UNA CANTIDAD VÁLIDA (1–12)', true);
       return;
     }
     
@@ -334,20 +336,24 @@ async inscribirme() {
         this.supa.idUsuario = this.userData.auth_id;
       } else if (!this.supa.idUsuario) {
         console.log('❌ No hay idUsuario disponible');
-        throw new Error('No hay datos de usuario disponibles');
+        throw new Error('NO HAY DATOS DE USUARIO DISPONIBLES');
       }
       
       console.log('🔄 Inscribiendo en lista de espera...');
       console.log('Cantidad:', this.cant, 'Nota:', this.nota);
       
-      await this.supa.joinWaitlist(this.cant, this.nota?.trim() || undefined);
-      
-      console.log('✅ Inscripción exitosa');
-      this.ui = 'none';
-      this.msg('¡Listo! Quedaste en la lista de espera.');
+      this.spinner.show();
+      try {
+        await this.supa.joinWaitlist(this.cant, this.nota?.trim() || undefined);
+        console.log('✅ Inscripción exitosa');
+        this.ui = 'none';
+        this.msg('¡LISTO! QUEDASTE EN LA LISTA DE ESPERA');
+      } finally {
+        this.spinner.hide();
+      }
     } catch (e: any) {
       console.error('❌ Error en confirmarInscripcion():', e);
-      this.msg(e?.message || 'No se pudo inscribir.', true);
+      this.msg((e?.message || 'NO SE PUDO INSCRIBIR').toUpperCase(), true);
     }
     
     console.log('=== FIN confirmarInscripcion() ===');
@@ -360,10 +366,10 @@ async inscribirme() {
 
   private async msg(text: string, error=false) {
     const t = await this.toast.create({
-      message: text,
+      message: text.toUpperCase(),
       duration: 1800,
-      position: 'top',
-      cssClass: error ? 'snack danger' : 'snack ok'
+      position: 'middle',
+      cssClass: error ? 'toast-center snack danger' : 'toast-center snack ok'
     });
     await t.present();
   }

@@ -1,4 +1,4 @@
-:host { --composer-h: 64px; }
+:host { --composer-h: 80px; } /* 🆕 Aumentado de 64px a 80px para más espacio */
 
 .chat-content {
   --background: transparent;
@@ -6,7 +6,7 @@
 
 /* Lista con padding inferior para dejar ver el footer */
 .list {
-  padding: 12px 12px calc(var(--composer-h) + env(safe-area-inset-bottom) + 10px);
+  padding: 12px 12px calc(var(--composer-h) + env(safe-area-inset-bottom) + 20px); /* 🆕 Más padding inferior */
   display: grid;
   gap: 8px;
 }
@@ -21,36 +21,43 @@
   backdrop-filter: blur(8px);
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: 12px; /* 🆕 Padding superior para más espacio */
+  padding-bottom: calc(env(safe-area-inset-bottom) + 8px); /* 🆕 Más padding inferior para evitar gesto de volver atrás */
+  z-index: 1000; /* 🆕 Asegurar que esté por encima */
 }
 
 /* Contenedor del input + botón */
 .composer {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  height: var(--composer-h);
+  gap: 10px; /* 🆕 Más gap entre input y botón */
+  padding: 8px 16px; /* 🆕 Más padding horizontal */
+  min-height: var(--composer-h);
 }
 
-/* Input redondeado */
+/* Input redondeado - ÁREA AUMENTADA */
 .composer input {
   flex: 1;
-  height: 42px;
-  border-radius: 22px;
-  padding: 0 14px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  min-height: 56px; /* 🆕 Aumentado de 42px a 56px para área más grande */
+  height: 56px; /* 🆕 Altura fija más grande */
+  border-radius: 28px; /* 🆕 Border radius proporcional */
+  padding: 0 18px; /* 🆕 Más padding horizontal */
+  border: 2px solid rgba(0, 0, 0, 0.15); /* 🆕 Borde más visible */
   background: #fff;
-  font-size: 0.95rem;
+  font-size: 1rem; /* 🆕 Texto ligeramente más grande */
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
   outline: none;
   color: black;
+  touch-action: manipulation; /* 🆕 Evitar gestos no deseados */
+  -webkit-tap-highlight-color: transparent; /* 🆕 Quitar highlight al tocar */
 }
 
-/* Botón enviar */
+/* Botón enviar - AUMENTADO para ser proporcional al input */
 .send-btn {
-  height: 42px;
-  width: 42px;
+  min-height: 56px; /* 🆕 Aumentado de 42px a 56px para coincidir con el input */
+  height: 56px; /* 🆕 Altura fija */
+  min-width: 56px; /* 🆕 Aumentado de 42px a 56px */
+  width: 56px; /* 🆕 Ancho fijo */
   border-radius: 50%;
   background: #5d2222; /* maroon */
   color: #fbf3e4;
@@ -60,10 +67,17 @@
   border: none;
   box-shadow: 0 2px 8px rgba(93, 34, 34, 0.3);
   transition: transform 0.2s ease, opacity 0.2s;
+  touch-action: manipulation; /* 🆕 Evitar gestos no deseados */
+  -webkit-tap-highlight-color: transparent; /* 🆕 Quitar highlight al tocar */
+  flex-shrink: 0; /* 🆕 Evitar que se comprima */
 }
 .send-btn:active {
   transform: scale(0.94);
   opacity: 0.85;
+}
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* burbujas */
@@ -95,9 +109,69 @@
   margin-top: 4px;
   text-align: right;
 }
+/* Título grande y visible */
+.title-large {
+  font-size: 1.8rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+
+/* Estado vacío/cargando - OCUPA TODA LA PANTALLA */
 .empty {
-  margin: 24px auto;
-  opacity: 0.7;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  text-align: center;
+  padding: 2rem;
+}
+
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  width: 90%;
+  max-width: 600px;
+  background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(30,30,30,0.98));
+  border: 3px solid rgba(255,255,255,0.2);
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 2px 8px rgba(255,255,255,0.1);
+}
+
+.empty-icon {
+  font-size: 5rem;
+  filter: drop-shadow(0 4px 8px rgba(255,255,255,0.3));
+}
+
+.empty-title {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-shadow: 0 4px 12px rgba(255,255,255,0.3), 0 0 20px rgba(255,255,255,0.2);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.empty-subtitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #f0f0f0;
+  opacity: 0.95;
+  letter-spacing: 1px;
+  margin-top: 0.5rem;
+}
+
+.empty-description {
+  font-size: 1.2rem;
+  color: #d0d0d0;
+  opacity: 0.9;
   font-style: italic;
-  color: black;
+  margin-top: 0.5rem;
 }

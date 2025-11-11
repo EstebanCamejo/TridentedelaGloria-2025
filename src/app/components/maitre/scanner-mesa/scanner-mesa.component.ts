@@ -241,6 +241,7 @@ import { BarcodeScanner, BarcodeFormat, PermissionStatus } from '@capacitor-mlki
 
 import { QrService } from 'src/app/services/qr.service';
 import { MesasService } from 'src/app/services/mesas.service';
+import { SpinnerService } from 'src/app/services/spinner.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 
 @Component({
@@ -262,6 +263,7 @@ export class ScannerMesaComponent implements OnDestroy {
     private mesas: MesasService,
     private toast: ToastrService,
     private router: Router,
+    private spinner: SpinnerService,
     private supa: SupabaseService,
   ) { addIcons({ 'qr-code': qrCode }); }
 
@@ -296,7 +298,10 @@ export class ScannerMesaComponent implements OnDestroy {
       this.googleReady = true;
       return true;
     } catch {
-      this.toast.error('No se pudo preparar el lector (Servicios de Google).');
+      this.toast.error('NO SE PUDO PREPARAR EL LECTOR (SERVICIOS DE GOOGLE)', '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
       return false;
     }
   }
@@ -307,7 +312,10 @@ export class ScannerMesaComponent implements OnDestroy {
 
     try {
       if (!this.usandoNativo) {
-        this.toast.info('Probalo en el dispositivo. En web no hay vista de cámara.');
+        this.toast.info('PROBALO EN EL DISPOSITIVO. EN WEB NO HAY VISTA DE CÁMARA', '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
         return;
       }
 
@@ -315,6 +323,9 @@ export class ScannerMesaComponent implements OnDestroy {
       
       // 🎬 NUEVO: Preparar sesión ANTES de abrir la cámara
       await this.supa.prepareForCameraUse();
+      
+      // Mostrar spinner
+      this.spinner.show({ immediate: true });
       
       // limpiar residuos previos
       await this.cleanupScan();
@@ -324,14 +335,21 @@ export class ScannerMesaComponent implements OnDestroy {
       if (perms.camera !== 'granted') {
         perms = await BarcodeScanner.requestPermissions();
         if (perms.camera !== 'granted') {
-          this.toast.error('Habilitá la cámara para escanear el código.');
+          this.toast.error('HABILITÁ LA CÁMARA PARA ESCANEAR EL CÓDIGO', '', {
+            positionClass: 'toast-center',
+            timeOut: 3000
+          });
+          this.spinner.hide();
           return;
         }
       }
 
       // preparar módulo (Android)
       const okGoogle = await this.prepararModuloGoogle();
-      if (!okGoogle) return;
+      if (!okGoogle) {
+        this.spinner.hide();
+        return;
+      }
 
       // abre cámara (UI nativa) y espera resultado
       const { barcodes } = await BarcodeScanner.scan({
@@ -348,20 +366,41 @@ export class ScannerMesaComponent implements OnDestroy {
       }
 
       const raw = barcodes?.[0]?.rawValue || '';
-      if (!raw) { this.toast.error('No se detectó ningún QR.'); return; }
+      if (!raw) {
+        this.toast.error('NO SE DETECTÓ NINGÚN QR', '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
+        this.spinner.hide();
+        return;
+      }
 
       //const parsed = this.qr.parseMesaQR(raw);
       // if (!parsed || parsed.t !== 'mesa' || !parsed.id) {
-      //   this.toast.error('Este QR no pertenece a una mesa.');
+      //   this.toast.error('ESTE QR NO PERTENECE A UNA MESA', '', {
+      //     positionClass: 'toast-center',
+      //     timeOut: 3000
+      //   });
+      //   this.spinner.hide();
       //   return;
       // // }
 
       // const mesa = await this.mesas.getMesaById(parsed.id);
-      // if (!mesa) { this.toast.error('La mesa referida por el QR no existe.'); return; }
+      // if (!mesa) {
+      //   this.toast.error('LA MESA REFERIDA POR EL QR NO EXISTE', '', {
+      //     positionClass: 'toast-center',
+      //     timeOut: 3000
+      //   });
+      //   this.spinner.hide();
+      //   return;
+      // }
 
       // this.lastMesa = { id: mesa.id, numero: mesa.numero };
 
-      // this.toast.success(`Mesa #${mesa.numero} detectada correctamente.`);
+      // this.toast.success(`MESA #${mesa.numero} DETECTADA CORRECTAMENTE`, '', {
+      //   positionClass: 'toast-center',
+      //   timeOut: 3000
+      // });
 
       // // cerramos cámara y oyentes ANTES de navegar
       // await this.cleanupScan();
@@ -369,12 +408,16 @@ export class ScannerMesaComponent implements OnDestroy {
 
     } catch (e: any) {
       console.error('[scan] error:', e);
-      this.toast.error(e?.message || 'No se pudo leer el QR.');
+      this.toast.error((e?.message || 'NO SE PUDO LEER EL QR').toUpperCase(), '', {
+        positionClass: 'toast-center',
+        timeOut: 4000
+      });
     } finally {
       // seguridad: cerramos/limpiamos y re-habilitamos el botón
       await this.cleanupScan();
       await this.sleep(150);
       this.escaneando = false;
+      this.spinner.hide();
     }
   }
  
