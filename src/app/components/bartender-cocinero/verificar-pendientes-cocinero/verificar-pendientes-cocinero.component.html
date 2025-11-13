@@ -4,6 +4,19 @@
       PEDIDOS DE COCINA
     </div>
   </ion-toolbar>
+
+  <!-- tira con fondo sólido/blur -->
+  <div class="seg-strip">
+    <ion-segment
+      [value]="tab" (ionChange)="onTabChange($event)" mode="ios" class="top-segment">
+      <ion-segment-button value="pendientes">
+        <ion-label>PENDIENTES</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="listos">
+        <ion-label>LISTOS</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
 </ion-header>
 
 <ion-content class="cocina-content">
@@ -11,75 +24,197 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <div *ngIf="cargando" class="cargando">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>CARGANDO PEDIDOS...</p>
-  </div>
-  
-  <div *ngIf="error" class="error-message">
-    {{ error }}
-  </div>
+  <div class="wrap" [ngSwitch]="tab">
 
-  <div *ngIf="!cargando && pedidosCocina.length === 0" class="sin-pedidos">
-    <div class="empty-message">
-      <div class="empty-icon">🍽️</div>
-      <div class="empty-title">¡NO HAY PEDIDOS DE COCINA!</div>
-      <div class="empty-subtitle">NO HAY PEDIDOS PENDIENTES DE COCINA</div>
-      <div class="empty-description">TODOS LOS PEDIDOS HAN SIDO PROCESADOS EXITOSAMENTE</div>
-    </div>
-  </div>
+    <!-- ====== TAB PENDIENTES ====== -->
+    <ng-container *ngSwitchCase="'pendientes'">
+      <div *ngIf="cargando" class="cargando">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>CARGANDO PEDIDOS...</p>
+      </div>
+      
+      <div *ngIf="error" class="error-message">
+        {{ error }}
+      </div>
 
-  <div class="pedidos-container">
-    <ion-card *ngFor="let pedido of pedidosCocina" class="pedido-card">
-      <ion-card-header class="card-header">
-        <ion-card-title class="mesa-title">
-          <span *ngIf="pedido.tipo_pedido === 'delivery'">REPARTIDOR #{{ pedido.id }}</span>
-          <span *ngIf="pedido.tipo_pedido !== 'delivery'">MESA {{ pedido.numero_mesa }}</span>
-        </ion-card-title>
-        <ion-card-subtitle class="fecha-subtitle">
-          {{ pedido.fecha | date:'dd/MM/yy HH:mm:ss' }}
-        </ion-card-subtitle>
-        <ion-badge 
-          [class]="getBadgeClass(pedido.estado)" 
-          class="estado-badge">
-          {{ estadoTexto(pedido.estado) }}
-        </ion-badge>
-      </ion-card-header>
-
-      <ion-card-content class="card-content">
-        <div class="productos-section">
-          <h3 class="productos-title">PRODUCTOS DEL SECTOR:</h3>
-          <div class="productos-list">
-            <div *ngFor="let prod of pedido.productos" class="producto-item">
-              <span class="producto-nombre">{{ prod.nombre }}</span>
-              <span class="producto-cantidad">x{{ prod.cantidad }}</span>
-            </div>
-          </div>
+      <div *ngIf="!cargando && pedidosPendientes.length === 0" class="sin-pedidos">
+        <div class="empty-message">
+          <div class="empty-icon">✅</div>
+          <div class="empty-title">¡NO HAY PEDIDOS PENDIENTES!</div>
         </div>
-      </ion-card-content>
+      </div>
 
-      <ion-button 
-        expand="full" 
-        class="aceptar-btn"
-        (click)="aceptarPedido(pedido)"
-        [disabled]="pedido.estado === 'listo para entregar' || estaSectorListo(pedido) || estaProcesando(pedido.id)">
-        <ion-spinner *ngIf="estaProcesando(pedido.id)" name="crescent"></ion-spinner>
-        <span *ngIf="!estaProcesando(pedido.id)">
-          {{ pedido.estado === 'pedido en curso' ? 'ACEPTAR PRODUCTOS' : 
-             pedido.estado === 'en preparación' ? 'LISTO PARA ENTREGAR' : 
-             pedido.estado === 'en preparación parcial' ? 'LISTO PARA ENTREGAR' : 
-             pedido.estado === 'listo para entregar' ? 'LISTO PARA ENTREGAR' : 'ACEPTAR PRODUCTOS' }}
-        </span>
-      </ion-button>
+      <div class="pedidos-container">
+        <swiper-container
+          #swiperPendientes
+          class="pedidos-swiper"
+          slides-per-view="1"
+          space-between="20"
+          centered-slides="true"
+          pagination="false"
+          navigation="false"
+          speed="300"
+          (swiperslidechange)="onSlideChangePendientes($event)">
+          <swiper-slide *ngFor="let pedido of pedidosPendientes">
+            <ion-card class="pedido-card">
+              <ion-card-header class="card-header">
+                <ion-card-title class="mesa-title">
+                  <span *ngIf="pedido.tipo_pedido === 'delivery'">REPARTIDOR #{{ pedido.id }}</span>
+                  <span *ngIf="pedido.tipo_pedido !== 'delivery'">MESA {{ pedido.numero_mesa }}</span>
+                </ion-card-title>
+                <ion-card-subtitle class="fecha-subtitle">
+                  {{ pedido.fecha | date:'dd/MM/yy HH:mm:ss' }}
+                </ion-card-subtitle>
+                <ion-badge 
+                  [class]="getBadgeClass(pedido.estado)" 
+                  class="estado-badge">
+                  {{ estadoTexto(pedido.estado) }}
+                </ion-badge>
+              </ion-card-header>
 
-    </ion-card>
+              <ion-card-content class="card-content">
+                <div class="productos-section">
+                  <h3 class="productos-title">PRODUCTOS DEL SECTOR:</h3>
+                  <div class="productos-list">
+                    <div *ngFor="let prod of pedido.productos" class="producto-item">
+                      <span class="producto-nombre">{{ prod.nombre }}</span>
+                      <span class="producto-cantidad">x{{ prod.cantidad }}</span>
+                    </div>
+                  </div>
+                </div>
+              </ion-card-content>
+
+              <ion-button 
+                expand="full" 
+                class="aceptar-btn"
+                (click)="aceptarPedido(pedido)"
+                [disabled]="pedido.estado === 'listo para entregar' || estaSectorListo(pedido) || estaProcesando(pedido.id)">
+                <ion-spinner *ngIf="estaProcesando(pedido.id)" name="crescent"></ion-spinner>
+                <span *ngIf="!estaProcesando(pedido.id)">
+                  {{ pedido.estado === 'pedido en curso' ? 'ACEPTAR PRODUCTOS' : 
+                     pedido.estado === 'en preparación' ? 'LISTO PARA ENTREGAR' : 
+                     pedido.estado === 'en preparación parcial' ? 'LISTO PARA ENTREGAR' : 
+                     pedido.estado === 'listo para entregar' ? 'LISTO PARA ENTREGAR' : 'ACEPTAR PRODUCTOS' }}
+                </span>
+              </ion-button>
+            </ion-card>
+          </swiper-slide>
+        </swiper-container>
+        
+        <!-- Paginación personalizada -->
+        <div *ngIf="pedidosPendientes.length > 0" class="custom-pagination">
+          <button 
+            class="pagination-btn"
+            (click)="goToPreviousPendientes(swiperPendientes)"
+            [disabled]="currentSlidePendientes === 0">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+          <div class="pagination-counter">
+            {{ currentSlidePendientes + 1 }}/{{ pedidosPendientes.length }}
+          </div>
+          <button 
+            class="pagination-btn"
+            (click)="goToNextPendientes(swiperPendientes)"
+            [disabled]="currentSlidePendientes === pedidosPendientes.length - 1">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ====== TAB LISTOS ====== -->
+    <ng-container *ngSwitchCase="'listos'">
+      <div *ngIf="cargando" class="cargando">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>CARGANDO PEDIDOS...</p>
+      </div>
+      
+      <div *ngIf="error" class="error-message">
+        {{ error }}
+      </div>
+
+      <div *ngIf="!cargando && pedidosListos.length === 0" class="sin-pedidos">
+        <div class="empty-message">
+          <div class="empty-icon">✅</div>
+          <div class="empty-title">¡NO HAY PEDIDOS LISTOS!</div>
+        </div>
+      </div>
+
+      <div class="pedidos-container">
+        <swiper-container
+          #swiperListos
+          class="pedidos-swiper"
+          slides-per-view="1"
+          space-between="20"
+          centered-slides="true"
+          pagination="false"
+          navigation="false"
+          speed="300"
+          (swiperslidechange)="onSlideChangeListos($event)">
+          <swiper-slide *ngFor="let pedido of pedidosListos">
+            <ion-card class="pedido-card">
+              <ion-card-header class="card-header">
+                <ion-card-title class="mesa-title">
+                  <span *ngIf="pedido.tipo_pedido === 'delivery'">REPARTIDOR #{{ pedido.id }}</span>
+                  <span *ngIf="pedido.tipo_pedido !== 'delivery'">MESA {{ pedido.numero_mesa }}</span>
+                </ion-card-title>
+                <ion-card-subtitle class="fecha-subtitle">
+                  {{ pedido.fecha | date:'dd/MM/yy HH:mm:ss' }}
+                </ion-card-subtitle>
+                <ion-badge 
+                  [class]="getBadgeClass(pedido.estado)" 
+                  class="estado-badge">
+                  {{ estadoTexto(pedido.estado) }}
+                </ion-badge>
+              </ion-card-header>
+
+              <ion-card-content class="card-content">
+                <div class="productos-section">
+                  <h3 class="productos-title">PRODUCTOS DEL SECTOR:</h3>
+                  <div class="productos-list">
+                    <div *ngFor="let prod of pedido.productos" class="producto-item">
+                      <span class="producto-nombre">{{ prod.nombre }}</span>
+                      <span class="producto-cantidad">x{{ prod.cantidad }}</span>
+                    </div>
+                  </div>
+                </div>
+              </ion-card-content>
+
+              <ion-button 
+                expand="full" 
+                class="aceptar-btn"
+                (click)="aceptarPedido(pedido)"
+                [disabled]="pedido.estado === 'listo para entregar' || estaSectorListo(pedido) || estaProcesando(pedido.id)">
+                <ion-spinner *ngIf="estaProcesando(pedido.id)" name="crescent"></ion-spinner>
+                <span *ngIf="!estaProcesando(pedido.id)">
+                  LISTO PARA ENTREGAR
+                </span>
+              </ion-button>
+            </ion-card>
+          </swiper-slide>
+        </swiper-container>
+        
+        <!-- Paginación personalizada -->
+        <div *ngIf="pedidosListos.length > 0" class="custom-pagination">
+          <button 
+            class="pagination-btn"
+            (click)="goToPreviousListos(swiperListos)"
+            [disabled]="currentSlideListos === 0">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+          <div class="pagination-counter">
+            {{ currentSlideListos + 1 }}/{{ pedidosListos.length }}
+          </div>
+          <button 
+            class="pagination-btn"
+            (click)="goToNextListos(swiperListos)"
+            [disabled]="currentSlideListos === pedidosListos.length - 1">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
   </div>
-
-  <!-- Botón flotante de volver -->
-  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
-    <ion-fab-button (click)="volver()">
-      <ion-icon name="arrow-back-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
 
 </ion-content>

@@ -15,7 +15,6 @@
         novalidate>
       <!-- Nombre -->
       <div class="form-group">
-        <label for="nombre" class="subTittle">NOMBRE</label>
         <input id="nombre"
               name="nombre"
               type="text"
@@ -32,16 +31,15 @@
 
       <!-- Descripción -->
       <div class="form-group">
-        <label for="descripcion" class="subTittle">DESCRIPCIÓN</label>
-        <input id="descripcion"
+        <textarea id="descripcion"
               name="descripcion"
-              type="text"
               [(ngModel)]="descripcion"
               #descripcionModel="ngModel"
               required
               pattern=".{10,}"
               maxlength="300"
-              placeholder="DESCRIPCIÓN" />
+              rows="5"
+              placeholder="DESCRIPCION"></textarea>
         <small *ngIf="showError(descripcionModel, registerForm)"
               style="color:#ffd1d1;font-weight:600;">
           INGRESÁ UNA DESCRIPCIÓN VÁLIDA
@@ -50,7 +48,6 @@
 
       <!-- Tiempo de elaboración -->
       <div class="form-group">
-        <label for="tiempoElaboracion" class="subTittle">TIEMPO DE ELABORACIÓN (EN MINUTOS)</label>
         <input id="tiempoElaboracion"
               name="tiempoElaboracion"
               type="text"
@@ -60,7 +57,7 @@
               inputmode="numeric"
               pattern="^[0-9]{1,2}$"
               maxlength="2"
-              placeholder="TIEMPO DE ELABORACIÓN" />
+              placeholder="TIEMPO" />
         <small *ngIf="showError(tiempoElaboracionModel, registerForm)"
               style="color:#ffd1d1;font-weight:600;">
           EL TIEMPO DE ELABORACIÓN DEBE SER NUMÉRICO Y NO PUEDE SER MAYOR A 99 MINUTOS
@@ -69,7 +66,6 @@
 
         <!-- Precio -->
       <div class="form-group">
-        <label for="precio" class="subTittle">PRECIO</label>
         <input id="precio"
               name="precio"
               type="text"
@@ -98,9 +94,9 @@
           AGREGAR FOTOS
         </ion-button>
 
-        <ion-grid>
+        <ion-grid *ngIf="fotos.length > 0">
           <ion-row>
-            <ion-col size="4" *ngFor="let foto of fotos; let i = index">
+            <ion-col size="5" *ngFor="let foto of fotos; let i = index">
               <ion-card class="thumb-card">
                 <img [src]="foto" class="thumb-img" />
                 <ion-button
@@ -117,7 +113,7 @@
 
       <ion-button expand="full" 
             type="submit">
-        CONFIRMAR (3 FOTOS)
+        CONFIRMAR
       </ion-button>
 
         <div *ngIf="errorMsg" style="margin-top:8px;color:#ffd1d1;font-weight:600;">

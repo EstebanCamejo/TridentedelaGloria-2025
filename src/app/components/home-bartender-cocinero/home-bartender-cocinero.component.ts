@@ -21,7 +21,7 @@ import { BartenderCocineroRealtimeService } from 'src/app/services/bartender-coc
 export class HomeBartenderCocineroComponent implements OnInit, OnDestroy {
 
   idUsuario$!: string;
-  email$!: Observable<string | null>;
+  nombre$!: string | null;
   perfil!: string; 
 
   constructor(
@@ -33,7 +33,7 @@ export class HomeBartenderCocineroComponent implements OnInit, OnDestroy {
     console.log('[HomeBartenderCocineroComponent] 🏗️ Constructor ejecutado');
     addIcons({ addCircleOutline, listCircleOutline });
     this.idUsuario$ = this.supabase.idUsuario;
-    this.email$ = this.supabase.authEmail$;
+    this.nombre$ = this.sesion.usuarioBD?.nombres || null;
 
     this.perfil = this.sesion.usuarioBD!.perfil;
   }

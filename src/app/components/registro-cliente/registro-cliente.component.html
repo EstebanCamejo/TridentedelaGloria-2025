@@ -7,16 +7,15 @@
 
     <!-- == Header del form: avatar + acciones == -->
     <div class="subidas">
-      <div class="avatar-ctr">
+      <div class="avatar-ctr" (click)="subirFotoClick()">
         <img [src]="photoPreview || 'assets/imagenes/agregar-usuario.png'" alt="foto-perfil" />
+        <div class="overlay-btn">
+          <ion-icon name="camera"></ion-icon>
+          <span>SUBIR FOTO</span>
+        </div>
       </div>
 
       <div class="acciones">
-        <ion-button class="btn-subir" type="button" (click)="subirFotoClick()">
-          <ion-icon name="camera"></ion-icon>
-          <span>SUBIR FOTO</span>
-        </ion-button>
-
         <ion-button class="btn-scanner" type="button" (click)="escanearDNI()">
           <ion-icon name="barcode-outline"></ion-icon>
           <span>ESCANEAR DNI</span>
@@ -28,10 +27,27 @@
              class="file-hidden" (change)="onFileSelected($event)">
     </div>
 
+    <!-- Modal para previsualizar y confirmar foto -->
+    <ion-modal [isOpen]="showPhotoModal" (didDismiss)="closePhotoModal()">
+      <ng-template>
+        <div class="photo-modal">
+          <div class="modal-header">
+            <h2>CONFIRMAR FOTO</h2>
+          </div>
+          <div class="modal-content">
+            <img [src]="tempPhotoPreview || photoPreview" alt="Vista previa" />
+          </div>
+          <div class="modal-actions">
+            <ion-button fill="outline" (click)="cancelPhoto()">CANCELAR</ion-button>
+            <ion-button (click)="confirmPhoto()">CONFIRMAR</ion-button>
+          </div>
+        </div>
+      </ng-template>
+    </ion-modal>
+
     <!-- ===== Campos ===== -->
     <!-- Apellido -->
     <div class="form-group">
-      <label for="apellido" class="subTittle">Apellido</label>
       <input id="apellido" name="apellido" type="text"
              [(ngModel)]="apellido" #apellidoModel="ngModel"
              required placeholder="Apellido"/>
@@ -42,7 +58,6 @@
 
     <!-- Nombre -->
     <div class="form-group">
-      <label for="username" class="subTittle">Nombre</label>
       <input id="username" name="username" type="text"
              [(ngModel)]="username" #usernameModel="ngModel"
              required placeholder="Nombre"/>
@@ -53,11 +68,10 @@
 
     <!-- DNI -->
     <div class="form-group">
-      <label for="dni" class="subTittle">DNI</label>
       <input id="dni" name="dni" type="text"
              [(ngModel)]="dni" #dniModel="ngModel"
              required inputmode="numeric" pattern="^[0-9]{7,8}$" maxlength="8"
-             placeholder="Sólo números (7–8 dígitos)"/>
+             placeholder="DNI"/>
       <small *ngIf="showError(dniModel, registerForm)" class="msg">
         INGRESÁ UN DNI VÁLIDO (7-8 DÍGITOS)
       </small>
@@ -65,10 +79,9 @@
 
     <!-- Correo -->
     <div class="form-group">
-      <label for="email" class="subTittle">Correo</label>
       <input id="email" name="email" type="email"
              [(ngModel)]="email" #emailModel="ngModel"
-             required email placeholder="correo@ejemplo.com"/>
+             required email placeholder="Correo"/>
       <small *ngIf="showError(emailModel, registerForm)" class="msg">
         INGRESÁ UN CORREO VÁLIDO
       </small>
@@ -76,10 +89,9 @@
 
     <!-- Contraseña -->
     <div class="form-group">
-      <label for="password" class="subTittle">Contraseña</label>
       <input id="password" name="password" type="password"
              [(ngModel)]="password" #passwordModel="ngModel"
-             required minlength="8" placeholder="Mínimo 8 caracteres"/>
+             required minlength="8" placeholder="Contraseña"/>
       <small *ngIf="showError(passwordModel, registerForm)" class="msg">
         LA CONTRASEÑA DEBE TENER AL MENOS 8 CARACTERES
       </small>
@@ -87,10 +99,9 @@
 
     <!-- Confirmación -->
     <div class="form-group">
-      <label for="confirm" class="subTittle">Repetir contraseña</label>
       <input id="confirm" name="confirm" type="password"
              [(ngModel)]="confirm" #confirmModel="ngModel"
-             required minlength="8" placeholder="Vuelva a escribir la contraseña"/>
+             required minlength="8" placeholder="Repetir contraseña"/>
       <small *ngIf="showError(confirmModel, registerForm)" class="msg">
         REPETÍ LA CONTRASEÑA (MÍNIMO 8 CARACTERES)
       </small>

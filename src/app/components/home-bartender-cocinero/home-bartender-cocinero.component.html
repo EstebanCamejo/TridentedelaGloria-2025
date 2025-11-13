@@ -4,7 +4,7 @@
     <ion-header class="client-header">
       <ion-toolbar>
         <div class="nav-pill">
-          BIENVENIDO | {{ (email$ | async) || '—' }}
+          BIENVENIDO | {{ (nombre$ || '—') | uppercase }}
         </div>
       </ion-toolbar>
     </ion-header>

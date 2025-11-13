@@ -1,4 +1,4 @@
-<ion-header>
+<ion-header class="chat-header">
   <ion-toolbar>
     <ion-title class="title-large">
       <span *ngIf="esDeliveryChat && esModoDelivery">CHAT CON CLIENTE</span>
@@ -12,7 +12,7 @@
   <div class="list">
     <ng-container *ngIf="mensajes?.length; else vacio">
       <div *ngFor="let m of mensajes" class="bubble" [class.mine]="soyYo(m)">
-        <div class="meta">{{ m.from_email }}</div>
+        <div class="meta" *ngIf="obtenerMetaTexto(m)">{{ obtenerMetaTexto(m) }}</div>
         <div class="text">{{ m.text }}</div>
         <div class="time">{{ m.created_at | date:'dd/MM HH:mm' }}</div>
       </div>
@@ -23,12 +23,6 @@
         <div class="empty-message">
           <div class="empty-icon">💬</div>
           <div class="empty-title">¡CHAT VACÍO!</div>
-          <div class="empty-subtitle">NO HAY MENSAJES TODAVÍA</div>
-          <div class="empty-description">
-            <span *ngIf="esDeliveryChat && esModoDelivery">INICIÁ LA CONVERSACIÓN CON EL CLIENTE</span>
-            <span *ngIf="esDeliveryChat && !esModoDelivery">INICIÁ LA CONVERSACIÓN CON EL REPARTIDOR</span>
-            <span *ngIf="!esDeliveryChat">INICIÁ LA CONVERSACIÓN CON TU MOZO</span>
-          </div>
         </div>
       </div>
     </ng-template>

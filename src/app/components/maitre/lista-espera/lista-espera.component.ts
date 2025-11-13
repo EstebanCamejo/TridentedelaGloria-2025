@@ -89,19 +89,20 @@
 //   }
 // }
 // src/app/pages/maitre/lista-espera.component.ts
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
-  IonAvatar, IonBadge,
+  IonHeader, IonToolbar, IonContent,
+  IonAvatar,
   IonRefresher, IonButton, IonIcon, IonCard
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { refresh,reorderThreeOutline} from 'ionicons/icons';
+import { refresh, reorderThreeOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { AlertController, ToastController, ActionSheetController ,ActionSheetButton} from '@ionic/angular';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { MaitreWaitlistService, EsperaItem, MesaLite } from 'src/app/services/maitre-waitlist.service';
 import { MaitreRealtimeService } from 'src/app/services/maitre-realtime.service';
+import { register } from 'swiper/element/bundle';
 
 @Component({
   selector: 'app-lista-espera',
@@ -109,16 +110,20 @@ import { MaitreRealtimeService } from 'src/app/services/maitre-realtime.service'
    styleUrls: ['./lista-espera.component.scss'],
   imports: [
     CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonAvatar, IonBadge, IonCard,
+    IonHeader, IonToolbar, IonContent,
+    IonAvatar, IonCard,
     IonRefresher, IonButton, IonIcon
   ],
   templateUrl: './lista-espera.component.html',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ListaEsperaComponent implements OnDestroy {
   loading = true;
   items: EsperaItem[] = [];
   mesasLibres: MesaLite[] = [];
+  
+  // Paginación
+  currentSlide: number = 0;
 
   constructor(
     private svc: MaitreWaitlistService,
@@ -128,7 +133,8 @@ export class ListaEsperaComponent implements OnDestroy {
     private spinner: SpinnerService,
     private maitreRt: MaitreRealtimeService
   ) {
-    addIcons({ refresh, reorderThreeOutline })
+    addIcons({ refresh, reorderThreeOutline, chevronBackOutline, chevronForwardOutline });
+    register(); // Registrar Swiper
   }
     async ionViewWillEnter() {
     await this.maitreRt.init();   // 🔔 empieza a escuchar INSERTs
@@ -203,20 +209,59 @@ async atender(it: EsperaItem) {
       }
     }
   }));
-btns.push({ text: 'CANCELAR', role: 'cancel', icon: 'close-outline', cssClass: 'mesa-cancel' });
 
 const s = await this.sheet.create({
   header: 'ASIGNAR MESA',
-  subHeader: `CANTIDAD COMENSALES: ${it.cantidad_comensales}`,
-  buttons: btns,                    // tus "Mesa N" + { role:'cancel' }
-  cssClass: 'mesa-sheet-dark'       // 👈 clave
+  buttons: btns,
+  cssClass: 'mesa-sheet-dark'
 });
+
 await s.present();
+
+// Agregar botón de cerrar después de que se presente el sheet
+setTimeout(() => {
+  const actionSheet = document.querySelector('ion-action-sheet.mesa-sheet-dark');
+  if (actionSheet) {
+    const header = actionSheet.querySelector('.action-sheet-header') as HTMLElement;
+    if (header && !header.querySelector('.mesa-close-btn')) {
+      const closeBtn = document.createElement('button');
+      closeBtn.innerHTML = '✕';
+      closeBtn.className = 'mesa-close-btn';
+      closeBtn.onclick = () => s.dismiss();
+      header.style.position = 'relative';
+      header.appendChild(closeBtn);
+    }
+  }
+}, 200);
 
 
   }
 
   trackById(_: number, it: EsperaItem) { return it.id; }
+
+  /** Obtiene solo el primer nombre del cliente */
+  primerNombre(nombreCompleto: string): string {
+    if (!nombreCompleto) return '';
+    const partes = nombreCompleto.trim().split(/\s+/);
+    return partes[0] || nombreCompleto;
+  }
+
+  // Métodos para manejar la paginación
+  onSlideChange(event: any) {
+    this.currentSlide = event.detail[0].activeIndex;
+  }
+
+  goToPrevious(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNext(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
+    }
+  }
 
   private async msg(message: string, error = false) {
     const t = await this.toast.create({

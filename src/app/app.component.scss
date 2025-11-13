@@ -303,7 +303,7 @@
 .splash-text.name{
   font-family:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-weight:700;
-  font-size: clamp(2rem, 2vw, 2rem);
+  font-size: clamp(2.4rem, 3vw, 2.8rem);
   color:var(--ink-soft);
   letter-spacing:.015em;
   text-shadow: 0 1px 0 rgba(0,0,0,.25);
@@ -357,14 +357,16 @@
   margin-bottom: clamp(2rem, 10vh, 8rem);/* ↑ espacio inferior => los empuja hacia arriba */
 }
 
-/* Cada nombre con “pill” de fondo */
+/* Cada nombre con "pill" de fondo */
 .splash-text.name{
   color: var(--ink);
   font-weight: 700;
-  display: inline-flex;                  /* para que el fondo se ajuste al texto */
+  display: flex;                          /* flex en lugar de inline-flex para mejor control */
   align-items: center;
-  padding: .35rem .75rem;                /* colchón del pill */
+  padding: .5rem 1.2rem;                 /* colchón del pill aumentado */
   border-radius: 999px;
+  width: clamp(280px, 40vw, 320px);      /* ancho fijo igual para todos */
+  justify-content: center;               /* centrar texto dentro del contenedor */
   background:
     linear-gradient(180deg, rgba(123,47,47,.22), rgba(123,47,47,.12));
   border: 1px solid rgba(255,255,255,.18);
@@ -372,6 +374,13 @@
     0 4px 18px rgba(0,0,0,.25),
     inset 0 1px 0 rgba(255,255,255,.12);
   backdrop-filter: blur(2px);            /* sutil vidrio esmerilado (si hay soporte) */
+  font-size: clamp(2.4rem, 3vw, 2.8rem); /* fuente más grande */
+  box-sizing: border-box;                /* incluir padding y border en el ancho */
+}
+
+/* Más padding para Iván para igualar el tamaño visual */
+.splash-text.name:nth-child(3){
+  padding: .5rem 1.8rem;                 /* más padding horizontal para igualar */
 }
 
 /* Un poquito más de aire vertical en pantallas muy altas */

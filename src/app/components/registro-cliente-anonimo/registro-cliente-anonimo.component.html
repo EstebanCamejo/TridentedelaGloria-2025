@@ -1,22 +1,38 @@
 <div class="wrapper">
   <form class="register-form" (ngSubmit)="onSubmit(f)" #f="ngForm" novalidate>
   <div class="contenedor-subidas">
-    <div class="avatar-ctr">
+    <div class="avatar-ctr" (click)="subirFotoClick()">
       <img [src]="photoPreview || 'assets/imagenes/agregar-usuario.png'" alt="foto-perfil" />
+      <div class="overlay-btn">
+        <ion-icon name="camera"></ion-icon>
+        <span>SUBIR FOTO</span>
+      </div>
     </div>
-
-    <ion-button class="btn-subir" (click)="subirFotoClick()" type="button">
-      <ion-icon name="camera"></ion-icon>
-      <p>SUBIR FOTO</p>
-    </ion-button>
 
     <!-- Fallback navegador/escritorio -->
     <input #fileInput type="file" accept="image/*" capture="environment"
            class="file-hidden" (change)="onFileSelected($event)">
   </div>
+
+  <!-- Modal para previsualizar y confirmar foto -->
+  <ion-modal [isOpen]="showPhotoModal" (didDismiss)="closePhotoModal()">
+    <ng-template>
+      <div class="photo-modal">
+        <div class="modal-header">
+          <h2>CONFIRMAR FOTO</h2>
+        </div>
+        <div class="modal-content">
+          <img [src]="tempPhotoPreview || photoPreview" alt="Vista previa" />
+        </div>
+        <div class="modal-actions">
+          <ion-button fill="outline" (click)="cancelPhoto()">CANCELAR</ion-button>
+          <ion-button (click)="confirmPhoto()">CONFIRMAR</ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
     <!-- Nombre -->
     <div class="form-group">
-      <label for="nombre" class="subTittle">Nombre</label>
       <input id="nombre" name="nombre" type="text"
              [(ngModel)]="nombre" #nombreModel="ngModel" required
              placeholder="Nombre" />
@@ -25,19 +41,17 @@
 
     <!-- Correo -->
     <div class="form-group">
-      <label for="email" class="subTittle">Correo</label>
       <input id="email" name="email" type="email"
              [(ngModel)]="email" #emailModel="ngModel" required email
-             placeholder="correo@ejemplo.com" />
+             placeholder="Correo" />
       <small *ngIf="showError(emailModel, f)" class="msg-error">INGRESÁ UN CORREO VÁLIDO</small>
     </div>
 
     <!-- Contraseña -->
     <div class="form-group">
-      <label for="password" class="subTittle">Contraseña</label>
       <input id="password" name="password" type="password"
              [(ngModel)]="password" #passwordModel="ngModel" required minlength="8"
-             placeholder="Mínimo 8 caracteres" />
+             placeholder="Contraseña" />
       <small *ngIf="showError(passwordModel, f)" class="msg-error">
         LA CONTRASEÑA DEBE TENER AL MENOS 8 CARACTERES
       </small>
@@ -45,10 +59,9 @@
 
     <!-- Repetir contraseña -->
     <div class="form-group">
-      <label for="confirm" class="subTittle">Repetir contraseña</label>
       <input id="confirm" name="confirm" type="password"
              [(ngModel)]="confirm" #confirmModel="ngModel" required minlength="8"
-             placeholder="Vuelva a escribir la contraseña" />
+             placeholder="Repetir contraseña" />
       <small *ngIf="showError(confirmModel, f)" class="msg-error">REPETÍ LA CONTRASEÑA</small>
       <small *ngIf="passwordsMismatch && (f.submitted || confirmModel.touched)" class="msg-error-strong">
         LAS CONTRASEÑAS NO COINCIDEN

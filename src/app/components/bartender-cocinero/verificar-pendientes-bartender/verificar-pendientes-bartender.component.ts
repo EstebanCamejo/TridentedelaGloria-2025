@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { SpinnerService } from 'src/app/services/spinner.service';
@@ -7,20 +7,30 @@ import { ToastrService } from 'ngx-toastr';
 import { MenuService, PlatoTipo } from 'src/app/services/menu.service';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline } from 'ionicons/icons';
+import { arrowBackOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
+import { FormsModule } from '@angular/forms';
+import type { SegmentChangeEventDetail } from '@ionic/angular';
+import { register } from 'swiper/element/bundle';
 
 @Component({
   selector: 'app-verificar-pendientes-bartender',
   templateUrl: './verificar-pendientes-bartender.component.html',
   styleUrls: ['./verificar-pendientes-bartender.component.scss'],
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule, FormsModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class VerificarPendientesBartenderComponent  implements OnInit {
 
-  pedidosBartender: any[] = [];
+  tab: 'pendientes' | 'listos' = 'pendientes';
+  pedidosPendientes: any[] = [];
+  pedidosListos: any[] = [];
   cargando: boolean = true;
   error: string | null = null;
   pedidosProcesando: Set<number> = new Set();
+  
+  // Paginación
+  currentSlidePendientes: number = 0;
+  currentSlideListos: number = 0;
 
   constructor(
     private service: MenuService,
@@ -28,7 +38,8 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
     private spinner: SpinnerService,
     private toast: ToastrService
   ) {
-    addIcons({ arrowBackOutline });
+    addIcons({ arrowBackOutline, chevronBackOutline, chevronForwardOutline });
+    register(); // Registrar Swiper
   }
 
   async ngOnInit() {
@@ -36,8 +47,7 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
       this.cargando = true;
       this.spinner.show({ immediate: true });
       console.log('🔄 Iniciando carga de pedidos de bar...');
-      this.pedidosBartender = await this.service.obtenerPedidosBar();
-      console.log('✅ Pedidos cargados en componente:', this.pedidosBartender);
+      await this.cargarPedidos();
     } catch (err) {
       console.error('💥 Error en componente:', err);
       this.error = 'ERROR AL CARGAR LOS PEDIDOS';
@@ -76,12 +86,8 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
             'bar'
           );
 
-          // Actualizar la lista local
-          const pedidoIndex = this.pedidosBartender.findIndex(p => p.id === pedido.id);
-          if (pedidoIndex !== -1) {
-            this.pedidosBartender[pedidoIndex].estado = 'en preparación parcial';
-            this.pedidosBartender[pedidoIndex].estado_sector_cocina = 'en preparación';
-          }
+          // Recargar pedidos para actualizar las listas
+          await this.cargarPedidos();
         } else {
           // Para pedidos de un solo sector, flujo normal
           await this.service.actualizarEstadoPedido(
@@ -91,12 +97,8 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
             'bar'
           );
 
-          // Actualizar la lista local
-          const pedidoIndex = this.pedidosBartender.findIndex(p => p.id === pedido.id);
-          if (pedidoIndex !== -1) {
-            this.pedidosBartender[pedidoIndex].estado = 'en preparación';
-            this.pedidosBartender[pedidoIndex].estado_sector_cocina = 'en preparación';
-          }
+          // Recargar pedidos para actualizar las listas
+          await this.cargarPedidos();
         }
       }
       // Si el pedido está en 'en preparación' o 'en preparación parcial', cambiar a 'listo para entregar'
@@ -118,12 +120,8 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
 
             await this.verificarPedido(pedido.id);
 
-            // Actualizar la lista local
-            const pedidoIndex = this.pedidosBartender.findIndex(p => p.id === pedido.id);
-            if (pedidoIndex !== -1) {
-              this.pedidosBartender[pedidoIndex].estado = 'listo para entregar';
-              this.pedidosBartender[pedidoIndex].estado_sector_bar = 'listo para entregar';
-            }
+            // Recargar pedidos (el pedido se eliminará de la vista porque el flujo normal lo maneja)
+            await this.cargarPedidos();
           } else {
             // Marcar este sector como listo y verificar si ahora todos están listos
             await this.service.actualizarEstadoPedido(
@@ -147,19 +145,11 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
 
               await this.verificarPedido(pedido.id);
 
-              // Actualizar la lista local
-              const pedidoIndex = this.pedidosBartender.findIndex(p => p.id === pedido.id);
-              if (pedidoIndex !== -1) {
-                this.pedidosBartender[pedidoIndex].estado = 'listo para entregar';
-                this.pedidosBartender[pedidoIndex].estado_sector_bar = 'listo para entregar';
-              }
+              // Recargar pedidos (el pedido se eliminará de la vista porque el flujo normal lo maneja)
+              await this.cargarPedidos();
             } else {
               // Solo marcar este sector como listo, mantener estado parcial
-              const pedidoIndex = this.pedidosBartender.findIndex(p => p.id === pedido.id);
-              if (pedidoIndex !== -1) {
-                this.pedidosBartender[pedidoIndex].estado = 'en preparación parcial';
-                this.pedidosBartender[pedidoIndex].estado_sector_bar = 'listo para entregar';
-              }
+              await this.cargarPedidos();
             }
           }
         } else {
@@ -173,12 +163,8 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
 
           await this.verificarPedido(pedido.id);
 
-          // Actualizar la lista local
-          const pedidoIndex = this.pedidosBartender.findIndex(p => p.id === pedido.id);
-          if (pedidoIndex !== -1) {
-            this.pedidosBartender[pedidoIndex].estado = 'listo para entregar';
-            this.pedidosBartender[pedidoIndex].estado_sector_bar = 'listo para entregar';
-          }
+          // Recargar pedidos (el pedido se eliminará de la vista porque el flujo normal lo maneja)
+          await this.cargarPedidos();
         }
       }
 
@@ -227,12 +213,28 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
     return estado.toUpperCase();
   }
 
+  async cargarPedidos() {
+    const todosLosPedidos = await this.service.obtenerPedidosBar();
+    // Separar pedidos en pendientes y listos
+    // PENDIENTES: solo "pedido en curso"
+    this.pedidosPendientes = todosLosPedidos.filter(pedido => 
+      pedido.estado === 'pedido en curso'
+    );
+    // LISTOS: "listo para entregar" y "en preparación"
+    this.pedidosListos = todosLosPedidos.filter(pedido => 
+      pedido.estado === 'listo para entregar' || 
+      pedido.estado === 'en preparación'
+    );
+    console.log('✅ Pedidos pendientes:', this.pedidosPendientes);
+    console.log('✅ Pedidos listos:', this.pedidosListos);
+  }
+
   async handleRefresh(ev: CustomEvent) {
     console.log('[VerificarPendientesBartenderComponent] Pull to refresh activado');
     try {
       this.cargando = true;
       // No mostrar spinner en pull-to-refresh
-      this.pedidosBartender = await this.service.obtenerPedidosBar();
+      await this.cargarPedidos();
     } catch (err) {
       console.error('💥 Error en componente:', err);
       this.error = 'ERROR AL CARGAR LOS PEDIDOS';
@@ -308,4 +310,43 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
     this.router.navigate(['/home-bartender-cocinero']);
   }
 
+  onTabChange(ev: CustomEvent<SegmentChangeEventDetail>) {
+    const v = ev.detail.value;
+    if (v === 'pendientes' || v === 'listos') {
+      this.tab = v;
+    }
+  }
+
+  // Métodos para manejar la paginación
+  onSlideChangePendientes(event: any) {
+    this.currentSlidePendientes = event.detail[0].activeIndex;
+  }
+
+  onSlideChangeListos(event: any) {
+    this.currentSlideListos = event.detail[0].activeIndex;
+  }
+
+  goToPreviousPendientes(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNextPendientes(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
+    }
+  }
+
+  goToPreviousListos(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNextListos(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
+    }
+  }
 }

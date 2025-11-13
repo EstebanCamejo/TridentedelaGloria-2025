@@ -1,373 +1,103 @@
-:host { display:block; }
 :root{
-  /* un solo token para márgenes horizontales consistentes */
-  --wrap-x: clamp(16px, 3.2svh, 28px);
-   --header-clearance: clamp(16px, 3.2svh, 28px);
-}
-/* Header burdeos */
-ion-toolbar{
-  --background:#5d2222;
-  --color:#fbf3e4;
-  box-shadow: 0 4px 10px rgba(61,43,43,.25);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-
-/* Fondo (deja ver tu patrón) y paddings */
-ion-content{
-  --background: transparent;
-  --padding-start: var(--wrap-x);
-  --padding-end: var(--wrap-x);
-  --padding-bottom: clamp(16px,5vh,28px);
+.client-header { 
+  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
 }
 
-/* === Botones GIGANTES === */
-ion-card-content ion-button{
-     display: block;
-  width: 100%;  
-  --border-radius: 14px;
-  --box-shadow: 0 10px 22px rgba(0,0,0,.25);
-  &::part(native){
-    height: clamp(68px, 12svh, 104px);
-    font-size: clamp(16px, 2.4svh, 19px);
-    font-weight: 800;
-    letter-spacing: .3px;
-    justify-content: center;
-    padding: 0 18px;
-  }
-  ion-icon{ font-size: 1.35em; margin-inline-end: 10px; }
+.client-header ion-toolbar {
+  --background: #5d2222;
+  --color: #ffffff;
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
 }
 
-/* Primario (1º botón) */
-ion-card-content ion-button:first-of-type{
-  --background:#5d2222; --color:#fbf3e4; --background-activated:#4a1a1a;
+.client-content {
+  --background: var(--cream-50);
+  --padding-top: 0;
 }
 
-/* Secundario (2º botón) */
-ion-card-content ion-button:nth-of-type(2){
-  --background: rgba(255,255,255,.10);
-  --color:#e9e0d0;
-  --border-color:#e9e0d0;
-  --border-radius:14px;
-  --border-style: solid;
-  --border-width: 2px;
-  --background-activated: rgba(255,255,255,.18);
-}
-ion-card-content ion-button::part(native){
-  width: 100%;
-  box-sizing: border-box;           /* respeta el padding/borde dentro del 100% */
+.client-header{
+  position: static;
+  top: 0;
+  z-index: 10;
+  padding: calc(var(--safe-top) + 10px) 0 10px;
+  background: #5d2222;
+  color: #ffffff;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
 }
 
-/* En pantallas MUY bajas, sigue empezando arriba */
-@media (max-height: 640px){
-  ion-content::part(scroll){ place-items: start center; }
-  ion-card-content ion-button::part(native){
-    height: clamp(76px, 13svh, 112px);
-  }
-}
-/* ==== Forzar colores de los botones (evita que otra regla los pise) ==== */
-
-/* Botón primario burdeos */
-ion-button.ops-btn.primary {
-  --background: transparent; /* neutralizamos por si algo lo usa */
-  --color: inherit;
-}
-ion-button.ops-btn.primary::part(native){
-  background: #5d2222 !important;   /* burdeos */
-  color: #fbf3e4 !important;         /* crema */
-  border-color: #000 !important;
-  border-width: 2px;
-  border-style: solid;
-  /* estados */
-  --ripple-color: rgba(255,255,255,.25);
-}
-ion-button.ops-btn.primary.button-solid::part(native),
-ion-button.ops-btn.primary.button::part(native){ /* md/ios */
-  background: #5d2222 !important;
-}
-
-/* Botón secundario crema */
-ion-button.ops-btn.ghost {
-  --background: transparent;
-  --color: inherit;
-}
-ion-button.ops-btn.ghost::part(native){
-  background: #efe3cf !important;    /* crema */
-  color: #3b2a2a !important;          /* tinta */
-  border-color: #000 !important;
-  border-width: 2px;
-  border-style: solid;
-  --ripple-color: rgba(0,0,0,.15);
-}
-
-/* Asegurar forma/tamaño (por si algo global los dejó “outline/clear”) */
-ion-button.ops-btn::part(native){
-  border-radius: 14px !important;
-  min-height: 104px;                  /* mismo feel que Admin */
-  padding: 0 clamp(14px, 3.6vw, 20px);
-  justify-content: center;
-}
-/* ===== Espaciados estilo Admin ===== */
-:root{
-  --wrap-x: clamp(14px, 4vw, 18px);
-  --header-clearance: clamp(14px, 2.8svh, 22px); /* aire bajo el título */
-}
-
-/* Contenido: aire bajo header + centrado */
-ion-content{
-  --background: transparent;
-  --padding-start: var(--wrap-x);
-  --padding-end: var(--wrap-x);
-}
-
-/* Contenedor de acciones (sin card) */
-.ops-wrap{
-  width: min(560px, 100%);
-  display: grid;
-  row-gap: clamp(12px, 2.6svh, 18px); /* separación entre botones */
-  margin: 0 auto;                     /* centrado */
-  font-family: "Inter", sans-serif;   /* igual que Admin */
-}
-
-/* ===== Botones “tarjeta” grandes (match Admin) ===== */
-ion-button.ops-btn{
-  width: 100%;
-  text-transform: none;
-  font-weight: 700;
-  letter-spacing: .2px;
-  --border-radius: 14px;
-  --box-shadow: 0 10px 22px rgba(0,0,0,.22);
-}
-
-/* tamaño + padding + borde (más grandes) */
-ion-button.ops-btn::part(native){
-  width: 100%;
-  box-sizing: border-box;
-  min-height: clamp(110px, 19svh, 150px);   /* ⬅️ AGRANDADOS */
-  padding: 0 clamp(16px, 3.8vw, 22px);
-  font-size: clamp(1.02rem, 2.6svh, 1.22rem);
-  justify-content: center;
-  border-radius: 14px;
-  border: 2px solid #000;                   /* borde estilo Admin */
-}
-
-/* icono consistente */
-ion-button.ops-btn [slot="start"]{ font-size: 1.25em; margin-inline-end: 10px; }
-
-/* Colores forzados (burdeos / crema) */
-ion-button.ops-btn.primary::part(native){
-  background:#5d2222 !important; color:#fbf3e4 !important;
-}
-ion-button.ops-btn.ghost::part(native){
-  background:#efe3cf !important; color:#3b2a2a !important;
-}
-
-/* XS: mantiene proporciones sin desbordar */
-@media (max-height: 640px){
-  ion-button.ops-btn::part(native){
-    min-height: clamp(96px, 20svh, 132px);
-  }
-}
-/* === FIX: aire real bajo el título y sin conflictos === */
-:root{
-  --header-clearance: clamp(16px, 3.2svh, 28px); /* separa header → botones */
-  --wrap-x: clamp(14px, 4vw, 18px);
-}
-
-
-/* Botones grandes estilo Admin */
-ion-button.ops-btn{
-  width: 100%;
-  text-transform: none;
+.nav-pill{
+  width: min(520px, 92vw);
+  margin: 0 auto;
+  padding: 12px 16px;
+  background: #5d2222;
+  color: #ffffff;
+  text-align: center;
   font-family: "Inter", sans-serif;
-  font-weight: 700;
   letter-spacing: .2px;
-  --border-radius: 14px;
-  --box-shadow: 0 10px 22px rgba(0,0,0,.22);
-}
-ion-button.ops-btn::part(native){
-  width: 100%;
-  box-sizing: border-box;
-  min-height: clamp(110px, 19svh, 150px);
-  padding: 0 clamp(16px, 3.8vw, 22px);
-  font-size: clamp(1.02rem, 2.6svh, 1.22rem);
-  justify-content: center;
-  border-radius: 14px;
-  border: 2px solid #000;
+  font-size: 1.25rem;
 }
 
-/* Colores sólidos (burdeos / crema) */
-ion-button.ops-btn.primary::part(native){
-  background:#5d2222 !important; color:#fbf3e4 !important;
-}
-ion-button.ops-btn.ghost::part(native){
-  background:#efe3cf !important; color:#3b2a2a !important;
-}
-
-/* el scroll del content arranca con aire debajo del header */
-:host ion-content::part(scroll){
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center;
-  min-height: 100%;
-  padding: var(--header-clearance) var(--wrap-x)
-           calc(env(safe-area-inset-bottom,0px) + 84px) !important;
-}
-
-/* por si preferís manejarlo como margen del contenedor */
-.ops-wrap{ 
-  width: min(560px, 100%);
-  margin: 0 auto;                    /* centrado */
-  row-gap: clamp(12px, 2.6svh, 18px);
-}
-.maitre-card{
-  width: min(780px, 96vw);           /* ocupa casi todo el ancho */
-  margin: clamp(10px,2.5svh,18px) auto;
-  min-height: clamp(68vh, 78svh, 86vh); /* llena la pantalla */
+/* Layout central mejorado */
+.bartender-cocinero-wrap {
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.maitre-card ion-card-content{
-  display: grid;
-  gap: clamp(12px, 2.4svh, 18px);
-  padding-block: clamp(8px, 1.6svh, 14px);
-}
-.maitre-card ion-button{
-  width: 100%;
-  --border-radius: 16px;
-  --box-shadow: 0 10px 22px rgba(0,0,0,.22);
-}
-.maitre-card ion-button::part(native){
-  min-height: clamp(104px, 18svh, 140px);
-  padding: 0 clamp(18px, 4vw, 24px);
-  font-weight: 800;
-  font-size: clamp(1.02rem, 2.6svh, 1.22rem);
+.client-wrap{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
-  border: 2px solid #000;
-}
-.maitre-card ion-button [slot="start"]{
-  font-size: 1.3em; margin-inline-end: 10px;
-}
-
-/* Colores */
-.maitre-card ion-button:first-of-type::part(native){
-  background:#5d2222 !important; color:#fbf3e4 !important;
-}
-.maitre-card ion-button:nth-of-type(2)::part(native){
-  background:#efe3cf !important; color:#3b2a2a !important;
-}
-/* Fondo y paddings (deja ver tu patrón) */
-ion-content{
-  --background: transparent;
-  --padding-start: clamp(14px, 4vw, 18px);
-  --padding-end: clamp(14px, 4vw, 18px);
-  --padding-bottom: calc(env(safe-area-inset-bottom,0px) + 84px);
+  align-items: center;
+  padding: clamp(180px, 30vh, 300px) clamp(10px, 4vw, 22px) 
+           calc(var(--safe-bottom) + 40px);
+  min-height: 0;
 }
 
-/* Contenedor centrado de acciones */
-.ops-wrap{
-  width: min(560px, 100%);
-  margin: clamp(12px, 2.6svh, 18px) auto 0;
+.client-stack{
+  width: min(620px, 94vw);
   display: grid;
-  row-gap: clamp(12px, 2.6svh, 18px);
+  gap: clamp(18px, 5svh, 80px);
+  margin-top: clamp(100px, 18vh, 200px);
+}
+
+/* Botones grandes */
+.cta{
   font-family: "Inter", sans-serif;
-}
-
-/* Botones grandes estilo Admin */
-ion-button.ops-btn{
-  width: 100%;
+  font-weight: 700;
+  letter-spacing: .2px;
   text-transform: none;
-  font-weight: 800;
-  letter-spacing: .3px;
-  --border-radius: 14px;
-  --box-shadow: 0 10px 22px rgba(0,0,0,.22);
+  height: clamp(160px, 32svh, 280px);
+  --border-radius: 28px;
+  font-size: 1.4rem;
+  --background: #5d2222;
+  --color: #ffffff;
 }
-ion-button.ops-btn::part(native){
-  width: 100%;
-  min-height: clamp(104px, 18svh, 140px);  /* tamaño grande */
-  padding: 0 clamp(16px, 3.8vw, 22px);
-  justify-content: center;
-  border: 2px solid #000;
-  border-radius: 14px;
-  font-size: clamp(1.02rem, 2.6svh, 1.22rem);
-}
-ion-button.ops-btn [slot="start"]{ font-size: 1.25em; margin-inline-end: 10px; }
+.cta::part(native){ justify-content: center; padding: 0 28px; }
+.cta [slot="start"]{ margin-inline-end: 16px; }
+.cta ion-icon{ font-size: 1.8em; }
 
-/* Colores coherentes con tu paleta */
-ion-button.ops-btn.primary::part(native){
-  background:#5d2222 !important; color:#fbf3e4 !important;
-}
-ion-button.ops-btn.ghost::part(native){
-  background:#efe3cf !important; color:#3b2a2a !important;
-}
-
-/* En pantallas muy bajas, conservá buen tamaño */
-@media (max-height: 640px){
-  ion-button.ops-btn::part(native){
-    min-height: clamp(92px, 20svh, 128px);
+/* Ajustes para pantallas muy chicas */
+@media (max-width: 360px){
+  .cta{ 
+    height: clamp(140px, 28svh, 220px);
+    font-size: 1.25rem;
   }
 }
-/* Centrar vertical y horizontal el contenedor dentro del scroll */
-:host ion-content::part(scroll){
-  display: grid;
-  place-items: center; /* centra en ambos ejes */
-  min-height: 100svh;
-  padding: clamp(14px,4vw,18px)
-           clamp(14px,4vw,18px)
-           calc(env(safe-area-inset-bottom,0px) + 84px);
-}
 
-/* Contenedor: ocupa GRAN parte de la pantalla */
-.ops-wrap{
-  width: min(560px, 100%);
-  height: clamp(72svh, 78svh, 86svh);   /* <— controla cuánto llenan */
-  display: grid;
-  grid-template-rows: 1fr 1fr;          /* dos filas iguales */
-  gap: clamp(12px, 2.6svh, 18px);
-  align-content: center;
-}
-
-/* Botones grandes que CRECEN para llenar cada fila */
-ion-button.ops-btn{
-  width: 100%;
-  --border-radius: 14px;
-  --box-shadow: 0 10px 22px rgba(0,0,0,.22);
-}
-ion-button.ops-btn::part(native){
-  height: 100%;                         /* <— llena la fila */
-  padding: 0 clamp(16px, 3.8vw, 22px);
-  border: 2px solid #000;
-  border-radius: 14px;
-  display: flex; justify-content: center; align-items: center;
-  font-weight: 800;
-  font-size: clamp(1.02rem, 2.6svh, 1.22rem);
-}
-ion-button.ops-btn [slot="start"]{ font-size: 1.25em; margin-inline-end: 10px; }
-
-/* Colores */
-ion-button.ops-btn.primary::part(native){ background:#5d2222 !important; color:#fbf3e4 !important; }
-ion-button.ops-btn.ghost::part(native){   background:#efe3cf !important; color:#3b2a2a !important; }
-
-/* Pantallas muy bajitas: siguen grandes sin desbordar */
+/* (Extra) deja más aire si el dispositivo es súper bajo en alto */
 @media (max-height: 640px){
-  .ops-wrap{ height: 70svh; }
-}
-/* 🔧 Tamaño general de la zona de botones */
-.ops-wrap{
-  margin-top: 120px;
-  height: 58svh;            /* antes ~78–86svh */
-  gap: clamp(10px, 2svh, 14px);
+  .client-wrap{ padding-bottom: calc(var(--safe-bottom) + 112px); }
 }
 
-/* 🔧 Botones un poquito más compactos */
-ion-button.ops-btn::part(native){
-  padding: 0 clamp(14px, 3.2vw, 20px);
-  font-size: clamp(1rem, 2.2svh, 1.15rem);   /* antes 1.02rem–1.22rem */
-  border-radius: 12px;
-}
-
-/* 🔧 Icono apenas menor */
-ion-button.ops-btn [slot="start"]{
-  font-size: 1.15em;       /* antes 1.25em */
-  margin-inline-end: 10px;
+/* Asegurar que ion-content ocupe toda la altura */
+ion-content.client-content {
+  --overflow: hidden;
+  height: 100vh;
 }

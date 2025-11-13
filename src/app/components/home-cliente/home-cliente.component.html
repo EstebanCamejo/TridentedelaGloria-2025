@@ -1,12 +1,12 @@
 <ion-header class="client-header">
   <ion-toolbar>
     <div class="nav-pill">
-      BIENVENIDO | {{ (email$ | async) || '—' }}
+      BIENVENIDO | {{ ((email$ | async) || '—') | uppercase }}
     </div>
   </ion-toolbar>
 </ion-header>
 <ion-content class="client-content" fullscreen>
-  <div class="client-wrap">
+  <div class="client-wrap" [class.anonimo]="!esClienteRegistrado">
     
     <!-- Mensaje alusivo para factura lista -->
     <div *ngIf="facturaUrl" class="factura-message empty-message">
@@ -69,7 +69,6 @@
         <ion-icon slot="start" name="albums-outline"></ion-icon>
         VER ENCUESTAS ANTERIORES
       </ion-button>
-
     </div>
   </div>
 </ion-content>

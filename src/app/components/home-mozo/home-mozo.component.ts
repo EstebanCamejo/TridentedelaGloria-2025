@@ -1,15 +1,16 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonContent, IonSegment, IonSegmentButton, IonLabel,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon,
   IonCardSubtitle, IonSpinner, IonRefresher, IonRefresherContent, AlertController
 } from '@ionic/angular/standalone';
-import { chevronForwardOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, closeCircleOutline } from 'ionicons/icons';
+import { chevronForwardOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, closeCircleOutline, chevronBackOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { FormsModule } from '@angular/forms';
 import type { SegmentChangeEventDetail } from '@ionic/angular';
+import { register } from 'swiper/element/bundle';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { ToastrService } from 'ngx-toastr';
@@ -17,6 +18,7 @@ import { Observable, Subscription } from 'rxjs';
 import { ChatService, MozoChatRow } from 'src/app/services/chat.service';
 import { MozoRealtimeService } from 'src/app/services/mozo-realtime.service';
 import { MozoPedidosService, PedidoPendiente } from 'src/app/services/mozo-pedidos.service';
+import { SesionService } from 'src/app/services/sesion.service';
 
 @Component({
   selector: 'app-home-mozo',
@@ -24,16 +26,17 @@ import { MozoPedidosService, PedidoPendiente } from 'src/app/services/mozo-pedid
   templateUrl: './home-mozo.component.html',
   styleUrls: ['./home-mozo.component.scss'],
   imports: [
-    CommonModule, DatePipe, CurrencyPipe,
+    CommonModule, DatePipe,
     IonHeader, IonToolbar, IonContent,
     IonSegment, IonSegmentButton, IonLabel,
     IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
     IonButton, IonIcon, IonSpinner, 
     IonRefresher, IonRefresherContent, FormsModule
-  ]
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class HomeMozoComponent implements OnInit, OnDestroy {
-  email!: Observable<string | null>;
+  nombre!: string | null;
   tab: 'pedidos' | 'en-curso' | 'consultas' = 'pedidos';
 
   // Pedidos pendientes de confirmación
@@ -46,6 +49,10 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
   cargandoPedidosEnCurso = false;
   entregandoId: number | null = null;
   rechazandoId: number | null = null;
+
+  // Paginación
+  currentSlidePendientes: number = 0;
+  currentSlideEnCurso: number = 0;
 
   chats: MozoChatRow[] = [];
   
@@ -61,21 +68,22 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
     private toast: ToastrService,
     private mozoRt: MozoRealtimeService,
     private mozoPedidosSvc: MozoPedidosService,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private sesion: SesionService
   ) {
     console.log('[HomeMozoComponent] 🏗️ Constructor ejecutado');
     addIcons({ 
       chevronForwardOutline, 
       chatbubbleEllipsesOutline,
       checkmarkCircleOutline,
-      closeCircleOutline
+      closeCircleOutline,
+      chevronBackOutline
     });
-    this.email = this.supa.authEmail$;
+    register(); // Registrar Swiper
+    this.nombre = this.sesion.usuarioBD?.nombres || null;
   }
 
   async ngOnInit() {
-    this.email = this.supa.authEmail$;
-    
     // Suscribirse a chats
     this.chatSvc.mozoChats$().subscribe(rows => this.chats = rows);
 
@@ -212,6 +220,39 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
     const v = ev.detail.value;
     if (v === 'pedidos' || v === 'en-curso' || v === 'consultas') {
       this.tab = v;
+    }
+  }
+
+  // Métodos para manejar la paginación
+  onSlideChangePendientes(event: any) {
+    this.currentSlidePendientes = event.detail[0].activeIndex;
+  }
+
+  onSlideChangeEnCurso(event: any) {
+    this.currentSlideEnCurso = event.detail[0].activeIndex;
+  }
+
+  goToPreviousPendientes(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNextPendientes(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
+    }
+  }
+
+  goToPreviousEnCurso(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNextEnCurso(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
     }
   }
 

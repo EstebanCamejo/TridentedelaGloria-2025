@@ -11,16 +11,17 @@ import { firstValueFrom } from 'rxjs';
 import { DireccionDeliveryComponent, DireccionDelivery } from '../direccion-delivery/direccion-delivery.component';
 import {
   IonContent, IonGrid, IonRow, IonCol,
-  IonButton, IonIcon, IonHeader, IonToolbar, IonTitle, IonCard } from '@ionic/angular/standalone';
+  IonButton, IonIcon, IonHeader, IonToolbar, IonTitle, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { addIcons } from 'ionicons';
-import { checkmarkOutline } from 'ionicons/icons';
+import { checkmarkOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { Pedido } from '../../../models/pedido.model'
 import { register } from 'swiper/element/bundle';
 import { PedidosService } from 'src/app/services/pedidos.service';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 let _swiperRegistered = false;
 
@@ -50,6 +51,7 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
   menu: any[] = [];
   menuFiltrado: any[] = [];
   filtroActual: string = 'comida';
+  currentSlide: number = 0;
 
   cargando = false;
   pedidoRealizado = false;
@@ -70,6 +72,9 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
   private lastZ: number = 0;
   private isListening: boolean = false;
   private motionHandler!: (event: DeviceMotionEvent) => void;
+  
+  // Suscripción realtime para actualizar el menú automáticamente
+  private menuChannel?: RealtimeChannel;
   
   // Configuración de sensibilidad (ajustable)
   private readonly TILT_THRESHOLD_X = 6.0;    // Menos sensible para izquierda/derecha
@@ -100,7 +105,9 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
     private modalCtrl: ModalController
   ) {
     addIcons({
-      'checkmark-outline': checkmarkOutline
+      'checkmark-outline': checkmarkOutline,
+      'chevron-back-outline': chevronBackOutline,
+      'chevron-forward-outline': chevronForwardOutline
     });
     if (!_swiperRegistered) { register(); _swiperRegistered = true; }
   }
@@ -147,6 +154,10 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
       
       this.idCliente = await this.menuService.getClienteIdActual(); // uuid string
       this.menu = await this.menuService.obtenerMenu();
+      this.filtrarMenuPorCategoria();
+      
+      // Suscribirse a cambios en tiempo real del menú
+      this.suscribirAMenuRealtime();
       
     } catch (err) {
       console.error(err);
@@ -155,6 +166,57 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
         timeOut: 4000
       });
     }
+  }
+
+  /**
+   * Filtra el menú según la categoría actual
+   */
+  private filtrarMenuPorCategoria() {
+    this.menuFiltrado = this.menu.filter(producto => 
+      producto.categoria_menu === this.filtroActual
+    );
+    this.currentSlide = 0;
+  }
+
+  /**
+   * Suscripción a cambios en tiempo real de la tabla menu
+   */
+  private suscribirAMenuRealtime() {
+    console.log('[ClienteRealizaPedidoComponent] 📡 Suscribiéndose a cambios del menú en tiempo real...');
+    
+    this.menuChannel = this.supa.client
+      .channel('menu-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'menu'
+        },
+        async (payload) => {
+          console.log('[ClienteRealizaPedidoComponent] 🆕 Nuevo producto detectado:', payload);
+          
+          // Obtener el nuevo producto completo desde la BD
+          const nuevoProducto = payload.new as any;
+          
+          // Agregar el nuevo producto al array del menú
+          this.menu = [...this.menu, nuevoProducto];
+          
+          // Si el nuevo producto pertenece a la categoría actual, agregarlo también al menú filtrado
+          if (nuevoProducto.categoria_menu === this.filtroActual) {
+            this.menuFiltrado = [...this.menuFiltrado, nuevoProducto];
+            
+            // Mostrar notificación
+            this.toastr.info(`NUEVO ${nuevoProducto.categoria_menu.toUpperCase()}: ${nuevoProducto.nombre.toUpperCase()}`, '', {
+              positionClass: 'toast-center',
+              timeOut: 3000
+            });
+          }
+        }
+      )
+      .subscribe();
+    
+    console.log('[ClienteRealizaPedidoComponent] ✅ Suscripción a menú activa');
   }
 
   /**
@@ -205,6 +267,12 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.stopMotionTracking();
+    // Desuscribirse del canal de menú
+    if (this.menuChannel) {
+      console.log('[ClienteRealizaPedidoComponent] 🔴 Desuscribiéndose del menú en tiempo real...');
+      this.menuChannel.unsubscribe();
+      this.menuChannel = undefined;
+    }
     //this.frontalMovementCount = 0;
   }
 
@@ -755,9 +823,7 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
 
   filtrarMenu(event: any) {
     this.filtroActual = event.detail.value;
-    this.menuFiltrado = this.menu.filter(producto => 
-      producto.categoria_menu === this.filtroActual
-    );
+    this.filtrarMenuPorCategoria();
     
     // Resetear el swiper al primer slide cuando se cambia de categoría
     setTimeout(() => {
@@ -879,6 +945,39 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
   decrementarCantidad(productoId: string) {
     if (this.cantidadesProductos[productoId] && this.cantidadesProductos[productoId] > 0) {
       this.cantidadesProductos[productoId]--;
+    }
+  }
+
+  // Métodos para manejar la paginación personalizada
+  onSlideChange(event: any) {
+    // Solo actualizar si el evento viene del swiper principal de productos
+    // El swiper principal tiene menuFiltrado.length slides (productos)
+    // El swiper interno de fotos tiene máximo 3 slides, así que podemos filtrar por eso
+    if (event && event.detail && event.detail[0]) {
+      const swiperInstance = event.detail[0];
+      const activeIndex = swiperInstance.activeIndex;
+      const slidesCount = swiperInstance.slides ? swiperInstance.slides.length : 0;
+      
+      // Solo actualizar si el número de slides coincide con el número de productos
+      // Esto asegura que el evento viene del swiper principal, no del interno de fotos
+      if (typeof activeIndex === 'number' && 
+          activeIndex >= 0 && 
+          activeIndex < this.menuFiltrado.length &&
+          slidesCount === this.menuFiltrado.length) {
+        this.currentSlide = activeIndex;
+      }
+    }
+  }
+
+  goToPrevious(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNext(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
     }
   }
 }

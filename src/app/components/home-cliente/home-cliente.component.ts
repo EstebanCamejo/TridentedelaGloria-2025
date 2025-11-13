@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import {  IonContent, IonButton, IonIcon, IonHeader, IonToolbar, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline, downloadOutline } from 'ionicons/icons';
+import { qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline, downloadOutline, documentTextOutline } from 'ionicons/icons';
 import { Observable, Subscription } from 'rxjs';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { Router } from '@angular/router';
@@ -50,7 +50,7 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     private sesion: SesionService,
     private alertCtrl: AlertController
   ) {
-    addIcons({ qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline, downloadOutline });
+    addIcons({ qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline, downloadOutline, documentTextOutline });
     this.email$ = this.supa.authEmail$;
     console.log('🏗️ [HomeCliente] Constructor ejecutado');
   }
@@ -596,6 +596,10 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
 
   verEncuestas() {
     this.router.navigate(['/pagina-resultados-encuestas']);
+  }
+
+  irAFormularioEncuesta() {
+    this.router.navigate(['/form-encuesta']);
   }
 
   irAPedidos() {

@@ -1,7 +1,9 @@
 
-   <ion-header>
+<ion-header class="client-header">
   <ion-toolbar>
-    <ion-title class="title-large">LISTA DE ESPERA</ion-title>
+    <div class="nav-pill title-large">
+      LISTA DE ESPERA
+    </div>
   </ion-toolbar>
 </ion-header>
 
@@ -9,42 +11,67 @@
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
   </ion-refresher>
 
-  <!-- Lista de espera (cards compactas) -->
-<div class="waitlist" *ngIf="!loading && items.length; else estado">
-  <ion-card class="wl-card" *ngFor="let it of items; trackBy: trackById">
-    
-    <!-- Barra superior: Prioridad + timestamp / estado -->
-    <div class="wl-topbar">
-      <div class="wl-prio">
-        <span class="wl-prio-label">PRIORIDAD</span>
-        <span class="wl-prio-value">{{ prioridadDe(it) }}</span>
-      </div>
-      <div class="wl-meta">
-        <ion-badge color="warning" class="wl-status">EN ESPERA</ion-badge>
-        <small class="wl-time">{{ it.created_at | date:'dd/MM, HH:mm' }}</small>
-      </div>
-    </div>
+  <!-- Lista de espera (cards con swiper) -->
+<div class="waitlist-container" *ngIf="!loading && items.length; else estado">
+  <swiper-container
+    #swiperEspera
+    class="waitlist-swiper"
+    slides-per-view="1"
+    space-between="20"
+    centered-slides="true"
+    pagination="false"
+    navigation="false"
+    speed="300"
+    (swiperslidechange)="onSlideChange($event)">
+    <swiper-slide *ngFor="let it of items; trackBy: trackById">
+      <ion-card class="wl-card">
+        <!-- Barra superior: Prioridad -->
+        <div class="wl-topbar">
+          <div class="wl-prio">
+            <span class="wl-prio-label">PRIORIDAD</span>
+            <span class="wl-prio-value">{{ prioridadDe(it) }}</span>
+          </div>
+        </div>
 
-    <!-- Cuerpo: avatar + nombre + correo -->
-    <div class="wl-body">
-      <ion-avatar class="wl-avatar">
-        <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
-      </ion-avatar>
-      <div class="wl-info">
-        <h3 class="wl-name">{{ it.nombre }}</h3>
-        <p class="wl-email" *ngIf="it.email">{{ it.email }}</p>
-      </div>
-    </div>
+        <!-- Cuerpo: avatar + nombre -->
+        <div class="wl-body">
+          <ion-avatar class="wl-avatar">
+            <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
+          </ion-avatar>
+          <div class="wl-info">
+            <h3 class="wl-name">{{ primerNombre(it.nombre) }}</h3>
+          </div>
+        </div>
 
-    <!-- Zona de acción: Asignar mesa -->
-    <div class="wl-actions">
-      <ion-button class="btn-asignar" fill="solid" expand="block" (click)="atender(it)">
-  <ion-icon slot="start" name="reorder-three-outline"></ion-icon>
-  ASIGNAR MESA
-</ion-button>
-
+        <!-- Zona de acción: Asignar mesa -->
+        <div class="wl-actions">
+          <ion-button class="btn-asignar" fill="solid" expand="block" (click)="atender(it)">
+            <ion-icon slot="start" name="reorder-three-outline"></ion-icon>
+            ASIGNAR MESA
+          </ion-button>
+        </div>
+      </ion-card>
+    </swiper-slide>
+  </swiper-container>
+  
+  <!-- Paginación personalizada -->
+  <div *ngIf="items.length > 0" class="custom-pagination">
+    <button 
+      class="pagination-btn"
+      (click)="goToPrevious(swiperEspera)"
+      [disabled]="currentSlide === 0">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <div class="pagination-counter">
+      {{ currentSlide + 1 }}/{{ items.length }}
     </div>
-  </ion-card>
+    <button 
+      class="pagination-btn"
+      (click)="goToNext(swiperEspera)"
+      [disabled]="currentSlide === items.length - 1">
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+  </div>
 </div>
 
 <!-- Estado (cargando / vacío) -->

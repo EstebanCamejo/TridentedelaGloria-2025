@@ -133,14 +133,6 @@
   <span class="btn-text">COMPLETAR ENCUESTA</span>
 </ion-button>
 
-<!-- Mensaje para clientes anónimos sobre juegos -->
-<div *ngIf="esClienteAnonimo" class="anonimo-message">
-  <ion-note color="medium">
-    <ion-icon name="information-circle-outline"></ion-icon>
-    LOS JUEGOS ESTÁN DISPONIBLES SOLO PARA CLIENTES REGISTRADOS
-  </ion-note>
-</div>
-
 <!-- Mensaje para repartidor que aún no confirmó recepción -->
 <div *ngIf="esDelivery && estado === 'entregado' && !recepcionConfirmada" class="anonimo-message">
   <ion-note color="warning">

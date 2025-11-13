@@ -8,7 +8,7 @@ import { SpinnerService } from 'src/app/services/spinner.service';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Device } from '@capacitor/device';
 import { AppLauncher } from '@capacitor/app-launcher';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { IonButton, IonIcon, IonModal } from '@ionic/angular/standalone';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -16,7 +16,7 @@ import { BarcodeScanner, BarcodeFormat, PermissionStatus  } from '@capacitor-mlk
 
 // 👇 importa util y los íconos que vas a usar
 import { addIcons } from 'ionicons';
-import { camera, barcodeOutline } from 'ionicons/icons';
+import { camera, barcodeOutline, close } from 'ionicons/icons';
 
 @Component({
   selector: 'app-registro-cliente',
@@ -25,7 +25,8 @@ import { camera, barcodeOutline } from 'ionicons/icons';
   styleUrls: ['./registro-cliente.component.scss'],
   imports: [CommonModule, FormsModule,
   IonButton,
-  IonIcon,],   // ← quitamos IonContent
+  IonIcon,
+  IonModal,],   // ← quitamos IonContent
 })
 export class RegistroClienteComponent {
   username = '';
@@ -41,6 +42,8 @@ export class RegistroClienteComponent {
   logoReady = false;
   photoPreview: string | null = null;   // para mostrar la miniatura
 photoFile: File | null = null;        // archivo listo para subir
+  showPhotoModal = false;              // control del modal
+  tempPhotoPreview: string | null = null;  // foto temporal antes de confirmar
 
 @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   constructor(
@@ -49,7 +52,7 @@ photoFile: File | null = null;        // archivo listo para subir
     private toastr: ToastrService,
     private spinner: SpinnerService
   ) {
-     addIcons({ camera, barcodeOutline });
+     addIcons({ camera, barcodeOutline, close });
   }
 
   ionViewDidEnter() {
@@ -327,8 +330,8 @@ async subirFotoClick() {
       });
 
       if (img?.webPath) {
-        this.photoPreview = img.webPath;
-        this.photoFile = await this.uriToFile(img.webPath, `perfil-${Date.now()}`);
+        this.tempPhotoPreview = img.webPath;
+        this.showPhotoModal = true;
       }
     } else {
       this.fileInput?.nativeElement.click();
@@ -338,13 +341,43 @@ async subirFotoClick() {
   }
 }
 
-
 onFileSelected(ev: Event) {
   const input = ev.target as HTMLInputElement;
   if (!input.files || input.files.length === 0) return;
   const f = input.files[0];
-  this.photoFile = f;
-  this.photoPreview = URL.createObjectURL(f);
+  this.tempPhotoPreview = URL.createObjectURL(f);
+  this.showPhotoModal = true;
+}
+
+confirmPhoto() {
+  if (this.tempPhotoPreview) {
+    this.photoPreview = this.tempPhotoPreview;
+    // Convertir la URI temporal a File si es necesario
+    if (this.isNative() && this.tempPhotoPreview.startsWith('file://')) {
+      this.uriToFile(this.tempPhotoPreview, `perfil-${Date.now()}`).then(file => {
+        this.photoFile = file;
+      });
+    } else if (this.tempPhotoPreview.startsWith('blob:')) {
+      // Ya es un blob URL, el fileInput ya tiene el archivo
+      // pero necesitamos asegurarnos de que photoFile esté asignado
+      if (!this.photoFile && this.fileInput?.nativeElement.files?.[0]) {
+        this.photoFile = this.fileInput.nativeElement.files[0];
+      }
+    }
+  }
+  this.closePhotoModal();
+}
+
+cancelPhoto() {
+  if (this.tempPhotoPreview && this.tempPhotoPreview.startsWith('blob:')) {
+    URL.revokeObjectURL(this.tempPhotoPreview);
+  }
+  this.tempPhotoPreview = null;
+  this.closePhotoModal();
+}
+
+closePhotoModal() {
+  this.showPhotoModal = false;
 }
 // === ESCANEAR DNI ===
   async escanearDNI() {

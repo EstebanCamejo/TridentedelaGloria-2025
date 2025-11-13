@@ -31,55 +31,77 @@
 
   <ion-content>
     <div class="centrado">
-      <swiper-container 
-        #productsSwiper
-        class="products-swiper"
-        slides-per-view="1"
-        space-between="20"
-        centered-slides="true"
-        pagination="false"
-        navigation="true"
-        speed="300"
-      >
-        <swiper-slide *ngFor="let producto of menuFiltrado">
-          <ion-card class="product-card">
-            <swiper-container
-              pagination="true"
-              navigation="true"
-              class="mySwiper"
-            >
-              <swiper-slide *ngIf="producto.foto1">
-                <img [src]="producto.foto1" alt="{{ producto.nombre }}">
-              </swiper-slide>
-              <swiper-slide *ngIf="producto.foto2">
-                <img [src]="producto.foto2" alt="{{ producto.nombre }}">
-              </swiper-slide>
-              <swiper-slide *ngIf="producto.foto3">
-                <img [src]="producto.foto3" alt="{{ producto.nombre }}">
-              </swiper-slide>
-            </swiper-container>
+      <div class="products-container">
+        <swiper-container 
+          #productsSwiper
+          class="products-swiper"
+          slides-per-view="1"
+          space-between="20"
+          centered-slides="true"
+          pagination="false"
+          navigation="false"
+          speed="300"
+          (swiperslidechange)="onSlideChange($event)"
+        >
+          <swiper-slide *ngFor="let producto of menuFiltrado">
+            <ion-card class="product-card">
+              <swiper-container
+                pagination="true"
+                navigation="true"
+                class="mySwiper"
+              >
+                <swiper-slide *ngIf="producto.foto1">
+                  <img [src]="producto.foto1" alt="{{ producto.nombre }}">
+                </swiper-slide>
+                <swiper-slide *ngIf="producto.foto2">
+                  <img [src]="producto.foto2" alt="{{ producto.nombre }}">
+                </swiper-slide>
+                <swiper-slide *ngIf="producto.foto3">
+                  <img [src]="producto.foto3" alt="{{ producto.nombre }}">
+                </swiper-slide>
+              </swiper-container>
 
-                <ion-card-header>
-                  <ion-card-title>{{ producto.nombre }}</ion-card-title>
-                  <ion-card-subtitle>{{ producto.descripcion }}</ion-card-subtitle>
-                  <ion-card-subtitle>Tiempo de elaboración estimado: {{ producto.tiempo_elaboracion }} MINUTOS</ion-card-subtitle>
-                  <ion-card-subtitle class="ion-card-centered-text">${{ producto.precio }}</ion-card-subtitle>
-                </ion-card-header>
+              <ion-card-header>
+                <ion-card-title>{{ producto.nombre }}</ion-card-title>
+                <ion-card-subtitle>{{ producto.descripcion }}</ion-card-subtitle>
+                <ion-card-subtitle>Tiempo de elaboración estimado: {{ producto.tiempo_elaboracion }} MINUTOS</ion-card-subtitle>
+                <ion-card-subtitle class="ion-card-centered-text">${{ producto.precio }}</ion-card-subtitle>
+              </ion-card-header>
 
-            <div class="card-body contenedor-agregar">
-              <div class="counter">
-                <button (click)="decrementarCantidad(producto.id)" class="btn">-</button>
-                <span class="value">{{ cantidadesProductos[producto.id] || 0 }}</span>
-                <button (click)="incrementarCantidad(producto.id)" class="btn">+</button>
+              <div class="card-body contenedor-agregar">
+                <div class="counter">
+                  <button (click)="decrementarCantidad(producto.id)" class="btn">-</button>
+                  <span class="value">{{ cantidadesProductos[producto.id] || 0 }}</span>
+                  <button (click)="incrementarCantidad(producto.id)" class="btn">+</button>
+                </div>
+                <button class="btn agregar-producto"
+                  (click)="agregarProducto(producto.id, producto.precio, producto.nombre, producto.sector, producto.tiempo_elaboracion)">
+                  <span class="agregar-texto">Agregar <ion-icon name="checkmark-outline"></ion-icon></span>
+                </button>
               </div>
-              <button class="btn agregar-producto"
-                (click)="agregarProducto(producto.id, producto.precio, producto.nombre, producto.sector, producto.tiempo_elaboracion)">
-                <span class="agregar-texto">Agregar <ion-icon name="checkmark-outline"></ion-icon></span>
-              </button>
-            </div>
-          </ion-card>
-        </swiper-slide>
-      </swiper-container>
+            </ion-card>
+          </swiper-slide>
+        </swiper-container>
+        
+        <!-- Paginación personalizada -->
+        <div *ngIf="menuFiltrado.length > 0" class="custom-pagination">
+          <button 
+            class="pagination-btn"
+            (click)="goToPrevious(productsSwiper)"
+            [disabled]="currentSlide === 0">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+          <div class="pagination-counter">
+            {{ currentSlide + 1 }}/{{ menuFiltrado.length }}
+          </div>
+          <button 
+            class="pagination-btn"
+            (click)="goToNext(productsSwiper)"
+            [disabled]="currentSlide === menuFiltrado.length - 1">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
     </div>
   </ion-content>
   

@@ -1,5 +1,43 @@
 :host { --composer-h: 80px; } /* 🆕 Aumentado de 64px a 80px para más espacio */
 
+/* ===== Header con mismo estilo que home-mozo ===== */
+:root{
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.chat-header { 
+  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
+}
+
+.chat-header ion-toolbar {
+  --background: #5d2222 !important;
+  --color: #ffffff !important;
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+}
+
+.chat-header{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: calc(var(--safe-top) + 10px) 0 10px;
+  background: #5d2222 !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+}
+
+/* Asegurar que el título también sea blanco */
+.chat-header ion-title {
+  --color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.chat-header .title-large {
+  color: #ffffff !important;
+}
+
 .chat-content {
   --background: transparent;
 }
@@ -95,19 +133,25 @@
   color: #fff7ea;
 }
 .meta {
-  font-size: 0.78rem;
-  opacity: 0.7;
-  margin-bottom: 2px;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-weight: 700;
+  opacity: 0.9;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .text {
   white-space: pre-wrap;
   word-wrap: break-word;
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  line-height: 1.5;
 }
 .time {
-  font-size: 0.7rem;
-  opacity: 0.6;
-  margin-top: 4px;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  opacity: 0.7;
+  margin-top: 6px;
   text-align: right;
+  font-weight: 500;
 }
 /* Título grande y visible */
 .title-large {

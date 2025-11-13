@@ -1,63 +1,273 @@
-/* ===== Ajustes para la calificación de limpieza ===== */
-
-/* Hacer que el ion-segment ocupe menos espacio horizontal */
-ion-segment {
-  --background: transparent;
-  max-width: 300px; /* Limitar el ancho máximo */
-  margin: 0 auto; /* Centrar el segmento */
+/* ===== Header con mismo estilo que home-cliente ===== */
+:root{
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --cream-25: #fbf3e4;
 }
 
-/* Ajustar el espaciado entre botones del segmento */
-ion-segment-button {
-  min-width: 40px !important; /* Reducir el ancho mínimo de cada botón */
-  max-width: 50px !important; /* Limitar el ancho máximo */
-  flex: 0 0 auto !important; /* No permitir que se expandan */
-  
-  /* Ajustar el padding interno */
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
+.client-header { 
+  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
 }
 
-/* Asegurar que el texto de los botones sea visible */
-ion-segment-button ion-label {
-  font-size: 14px;
+.client-header ion-toolbar {
+  --background: #5d2222;
+  --color: #ffffff;
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+}
+
+.client-header{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: calc(var(--safe-top) + 10px) 0 10px;
+  background: #5d2222;
+  color: #ffffff;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+}
+
+.nav-pill{
+  width: min(520px, 92vw);
+  margin: 0 auto;
+  padding: 12px 16px;
+  background: #5d2222;
+  color: #ffffff;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  letter-spacing: .2px;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--ion-color-primary);
 }
 
-/* Estilo para el botón seleccionado */
-ion-segment-button.segment-button-checked {
-  --color: var(--ion-color-primary-contrast);
-  --background: var(--ion-color-primary);
+/* ===== Contenedor principal del formulario ===== */
+.encuesta-content {
+  --background: var(--cream-50);
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
 }
 
-/* Ajustar el contenedor del ion-item para centrar el segmento */
-ion-item {
-  --padding-start: 16px;
-  --padding-end: 16px;
+.encuesta-container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #2c2c2c;
+  border-radius: 16px;
+  padding: 16px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-/* Hacer que el label esté centrado */
-ion-label[position="stacked"] {
+/* ===== Bandeja de errores ===== */
+.error-box {
+  margin-bottom: 12px;
+}
+
+.error-box ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #ffffff;
+}
+
+/* ===== Secciones del formulario ===== */
+.form-section {
+  margin-bottom: 18px;
+}
+
+.section-header {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
   text-align: center;
-  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  font-family: "Inter", sans-serif;
 }
 
-/* Ajustar el mensaje de ayuda */
-ion-item small {
-  text-align: center;
-  display: block;
-  margin-top: 8px;
-  opacity: 0.75;
+/* ===== Rating (1-5) ===== */
+.rating-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
 }
-/* Tamaño grande para títulos principales de la encuesta */
-ion-label.label-lg {
-  font-size: 22px !important;   /* 🆕 Tamaño más grande para distinguir como títulos */
-  font-weight: 700 !important;   /* Negrita para destacar */
-  line-height: 1.3 !important;   /* Mejora lectura */
-  color: var(--ion-color-dark, #000) !important; /* Color más oscuro para mejor contraste */
-  margin-bottom: 12px !important; /* Más espacio debajo del título */
-  display: block !important;
+
+.rating-segment {
+  --background: rgba(255, 255, 255, 0.1);
+  max-width: 300px;
+  width: 100%;
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.rating-segment ion-segment-button {
+  min-width: 45px;
+  --color: #ffffff;
+  --color-checked: #ffffff;
+  --background-checked: #5d2222;
+  --indicator-color: transparent;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 7px;
+  transition: all 0.3s ease;
+}
+
+.rating-segment ion-segment-button.segment-button-checked {
+  background: #5d2222;
+  box-shadow: 0 2px 8px rgba(93, 34, 34, 0.4);
+}
+
+.help-text {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.8rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ===== Select dropdown ===== */
+.select-container {
+  margin-bottom: 4px;
+}
+
+.custom-select {
+  --background: rgba(255, 255, 255, 0.1);
+  --color: #ffffff;
+  --placeholder-color: rgba(255, 255, 255, 0.6);
+  --placeholder-opacity: 1;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  min-height: 44px;
+}
+
+.custom-select::part(icon) {
+  color: #ffffff;
+  opacity: 0.8;
+}
+
+/* ===== Checkboxes ===== */
+.checkboxes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.checkbox-item ion-checkbox {
+  --size: 20px;
+  --checkbox-background-checked: #5d2222;
+  --border-color-checked: #5d2222;
+  --checkmark-color: #ffffff;
+}
+
+.checkbox-item ion-label {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex: 1;
+}
+
+/* ===== Textarea ===== */
+.textarea-container {
+  margin-bottom: 4px;
+}
+
+.custom-textarea {
+  --background: rgba(255, 255, 255, 0.1);
+  --color: #ffffff;
+  --placeholder-color: rgba(255, 255, 255, 0.6);
+  --placeholder-opacity: 1;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-height: 80px;
+  line-height: 1.4;
+}
+
+.char-counter {
+  text-align: right;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* ===== Botón de envío ===== */
+.submit-container {
+  margin-top: 16px;
+  padding-top: 4px;
+}
+
+.submit-btn {
+  --background: #7b2f2f;
+  --background-hover: #8b3f3f;
+  --background-activated: #5d2222;
+  --color: #ffffff;
+  --border-radius: 14px;
+  height: 48px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(123, 47, 47, 0.4);
+  transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+  --background: #8b3f3f;
+  box-shadow: 0 6px 16px rgba(123, 47, 47, 0.5);
+  transform: translateY(-2px);
+}
+
+.submit-btn:disabled {
+  --background: rgba(123, 47, 47, 0.4);
+  --color: rgba(255, 255, 255, 0.5);
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+  .encuesta-container {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .section-header {
+    font-size: 1.15rem;
+  }
+
+  .rating-segment {
+    max-width: 100%;
+  }
+
+  .submit-btn {
+    height: 52px;
+    font-size: 1.1rem;
+  }
 }

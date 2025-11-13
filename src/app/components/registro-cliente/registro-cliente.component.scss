@@ -22,11 +22,12 @@
 
 /* Contenedor interno sin centrado vertical */
 .wrapper{
-  max-width: var(--panel-max);
-  padding: clamp(4px, 0.8svh, 8px) /* arriba */
-           clamp(10px, 4vw, 16px)   /* laterales */
-           clamp(10px, 1.8svh, 14px);/* abajo */
-  gap: clamp(6px, 1vh, 10px);
+  max-width: 90vw;
+  width: 100%;
+  padding: clamp(2px, 0.5svh, 4px) /* arriba */
+           clamp(8px, 2vw, 12px)   /* laterales */
+           clamp(4px, 1svh, 8px);/* abajo */
+  gap: clamp(4px, 0.8vh, 6px);
   margin-inline: auto;
   margin-top: 0;
   margin-bottom: 0;
@@ -37,19 +38,19 @@
 /* El form con look de "card" */
 .register-form{
   width:100%;
-  max-width: 420px;
+  max-width: 90vw;
   background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
   border: 1px solid rgba(255,255,255,.06);
   border-radius: 18px;
   box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
   backdrop-filter: blur(8px) saturate(1.05);
   -webkit-backdrop-filter: blur(8px) saturate(1.05);
-  padding: 18px 16px 16px;
+  padding: 14px 14px 12px;
   position: relative;
   overflow: visible;
-  padding-top: calc(10px + var(--badge-clearance));
+  padding-top: calc(8px + var(--badge-clearance));
   margin-top: 0;
-  padding-bottom: clamp(12px, 1.2svh, 16px);
+  padding-bottom: clamp(10px, 1svh, 14px);
   margin-bottom: 0;
 }
 
@@ -91,19 +92,23 @@
 
 /* Form fields */
 .form-group{ margin:0; }
-.form-group + .form-group{ margin-top: clamp(10px, 1.4vh, 14px); }
+.form-group + .form-group{ margin-top: clamp(8px, 1.2vh, 12px); }
 .subTittle{
   margin:6px 2px 4px; color:#f3e7da; font-family:"Inter",sans-serif;
   font-weight:600; font-size:.95rem;
 }
 input[type="text"], input[type="email"], input[type="password"], input[type="number"]{
-  width:100%; height:46px; padding:0 12px; box-sizing:border-box; border-radius:12px;
+  width:100%; height:56px; padding:0 16px; box-sizing:border-box; border-radius:12px;
   border:1.5px solid rgba(255,221,190,.55);
   background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
-  color:#f3e7da; font-size:1rem; outline:none;
+  color:#f3e7da; font-size:1.25rem; font-weight: 700; outline:none;
+  text-transform: uppercase;
   transition:border-color .2s, box-shadow .2s, background .2s, transform .04s;
 }
-input::placeholder{ color:#a88978; }
+input::placeholder{ 
+  color:#a88978; 
+  text-transform: uppercase;
+}
 input:focus{
   border-color: var(--cream-200);
   box-shadow: 0 0 0 3px rgba(255,221,190,.35);
@@ -112,10 +117,11 @@ input:focus{
 
 /* Botones */
 .buttonLogin, .buttonRegister{
-  width:100%; border-radius:14px; padding:.9rem 1rem;
-  font-family:"Inter",sans-serif; font-weight:700; font-size:1.05rem;
+  width:100%; border-radius:14px; padding:1.4rem 1.6rem;
+  font-family:"Inter",sans-serif; font-weight:700; font-size:1.5rem;
   cursor:pointer; transition: transform .04s ease, filter .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
   margin-top:16px;
+  min-height: 64px;
 }
 .buttonLogin{ border:2px solid rgba(255,221,190,.65); color:#1b0f0f; background:#ffe9d3; }
 .buttonRegister{ background:transparent; color:#ffe4cc; border:2px solid rgba(255,221,190,.9); }
@@ -135,12 +141,12 @@ input:focus{
 
 .avatar-ctr {
   display:flex; align-items:center; justify-content:center;
-  width: 88px; height: 88px; border-radius: 9999px;
+  width: 140px; height: 140px; border-radius: 9999px;
   background: #7b2f2f; 
   position: relative;
 }
 .avatar-ctr img {
-  width: 74px; height: 74px; object-fit: cover; border-radius: 9999px;
+  width: 120px; height: 120px; object-fit: cover; border-radius: 9999px;
   background:#eee; border: 2px solid #fff;
 }
 
@@ -161,36 +167,101 @@ input:focus{
 .file-hidden { display:none; }
 /* ===== Header del form (avatar + acciones) ===== */
 .subidas{
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
 }
-.avatar-ctr{ width: 88px; height: 88px; border-radius: 9999px; background:#7b2f2f; display:flex; align-items:center; justify-content:center; }
-.avatar-ctr img{ width:74px; height:74px; border-radius:9999px; object-fit:cover; background:#eee; border:2px solid #fff; }
-/* Botonera: dos columnas cuando hay espacio, apilado en XS */
+.avatar-ctr{ 
+  width: 220px; 
+  height: 220px; 
+  border-radius: 12px; 
+  background:#7b2f2f; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 3px solid #7b2f2f;
+  box-shadow: 0 2px 8px rgba(123, 47, 47, 0.3);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.avatar-ctr:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(123, 47, 47, 0.4);
+}
+.avatar-ctr img{ 
+  width: 100%; 
+  height: 100%; 
+  border-radius: 9px; 
+  object-fit:cover; 
+  background:#eee; 
+  border:2px solid #fff; 
+}
+.overlay-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(123, 47, 47, 0.85);
+  border-radius: 9px;
+  color: #ffe9d3;
+  font-weight: 700;
+  font-size: 0.9rem;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.avatar-ctr:hover .overlay-btn,
+.avatar-ctr:active .overlay-btn {
+  opacity: 1;
+}
+.overlay-btn ion-icon {
+  font-size: 1.5rem;
+}
+/* Botonera: apilada verticalmente a la derecha de la foto */
 .acciones{
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
-@media (max-width: 340px){
-  .acciones{ grid-template-columns: 1fr; }
+@media (max-width: 480px){
+  .subidas{
+    flex-direction: column;
+    align-items: center;
+  }
+  .acciones{
+    width: 100%;
+  }
 }
 
 /* Botones */
 .btn-subir, .btn-scanner{
-  --padding-start: 12px; --padding-end: 12px;
-  height: clamp(34px, 5.2svh, 40px);
-  font-weight: 800;
-  border-radius: 10px;
+  --padding-start: 16px; 
+  --padding-end: 16px;
+  height: clamp(50px, 6.5svh, 58px);
+  font-weight: 700;
+  font-size: 1.3rem;
+  border-radius: 8px;
+  width: 100%;
+  margin: 0;
 }
 .btn-subir{
   --background:#7b2f2f; --background-activated:#6a2727; --color:#ffe9d3;
 }
 .btn-scanner{
   --background:#3f1717; --background-activated:#341212; --color:#ffe9d3;
+  height: clamp(58px, 7.5svh, 66px);
+  font-size: 1.4rem;
+  --padding-start: 18px; 
+  --padding-end: 18px;
 }
 .btn-subir ion-icon, .btn-scanner ion-icon{ margin-right: 6px; }
 
@@ -205,31 +276,20 @@ input:focus{
 .file-hidden{ display:none; }
 
 
-/* Quitar el hueco a la izquierda de ambos botones */
-.acciones .btn-subir,
-.acciones .btn-scanner{
-  --padding-start: 0 !important;
-  --padding-end: 0 !important;
-}
-
-/* Forzamos el padding real del elemento nativo del botón */
+/* Asegurar que los botones se vean bien en el layout horizontal */
 .acciones .btn-subir::part(native),
 .acciones .btn-scanner::part(native){
-  padding-left: 8px !important;   /* ajustá 6–10px si querés */
-  padding-right: 8px !important;
-  justify-content: center;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  justify-content: center !important;
 }
 
-/* El icono NO agrega margen al inicio */
+/* El icono con separación con texto */
 .acciones .btn-subir ion-icon,
 .acciones .btn-scanner ion-icon{
-  margin-left: 0 !important;
-  margin-right: 6px;              /* solo separación con texto */
+  margin-right: 4px;
+  font-size: 1rem;
 }
-.acciones .btn-subir,
-.acciones .btn-scanner{ --padding-start:0!important; --padding-end:0!important; }
-.acciones .btn-subir::part(native),
-.acciones .btn-scanner::part(native){ padding-left:12px!important; padding-right:12px!important; justify-content:center!important; }
 
 /* Responsive adjustments for better centering on different screen sizes */
 @media (max-height: 600px) {
@@ -258,4 +318,61 @@ input:focus{
     padding-top: clamp(12px, 2svh, 20px);
     padding-bottom: clamp(12px, 2svh, 20px);
   }
+}
+
+/* Modal de confirmación de foto */
+.photo-modal {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a0f0f;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: #3f1717;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #ffe9d3;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.modal-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.modal-content img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #3f1717;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-actions ion-button {
+  flex: 1;
+  --height: 56px;
+  font-weight: 700;
+  font-size: 1.2rem;
 }

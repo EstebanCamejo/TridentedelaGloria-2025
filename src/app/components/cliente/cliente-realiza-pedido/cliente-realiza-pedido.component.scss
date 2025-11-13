@@ -5,8 +5,8 @@
 :host { display:block; }
 
 :host {
-  --swiper-navigation-color: white;
-  --swiper-pagination-color: white;
+  --swiper-navigation-color: #000000;
+  --swiper-pagination-color: #000000;
   --swiper-pagination-bullet-inactive-color: gray;
   --swiper-pagination-bullet-opacity: 0.7;
   --swiper-navigation-opacity: 1;
@@ -143,39 +143,60 @@ input:focus{
 
 .mySwiper {
   width: 100%;
-  height: 250px;
+  height: clamp(280px, 35vh, 320px);
   flex: 0 0 auto;
+  min-height: 280px;
+  max-height: 320px;
+  position: relative;
+  overflow: hidden;
 
-  --swiper-navigation-color: white !important;
-  --swiper-pagination-color: white !important;
+  --swiper-navigation-color: #000000 !important;
+  --swiper-pagination-color: #000000 !important;
   --swiper-pagination-bullet-inactive-color: gray !important;
   --swiper-pagination-bullet-opacity: 0.7 !important;
   --swiper-navigation-opacity: 1 !important;
 
   swiper-container {
-    --swiper-navigation-color: white !important;
-    --swiper-pagination-color: white !important;
+    width: 100%;
+    height: 100%;
+    --swiper-navigation-color: #000000 !important;
+    --swiper-pagination-color: #000000 !important;
     --swiper-pagination-bullet-inactive-color: gray !important;
     --swiper-pagination-bullet-opacity: 0.7 !important;
     --swiper-navigation-opacity: 1 !important;
+  }
+
+  swiper-slide {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
   }
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
+    display: block;
+    min-width: 100%;
+    min-height: 100%;
   }
 
   &::part(button-prev),
   &::part(button-next) {
-    color: white !important;
-    background: rgba(0, 0, 0, 0.3);
+    color: #000000 !important;
+    background: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     
     &::after {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: bold;
     }
   }
@@ -216,7 +237,7 @@ input:focus{
   align-items: center;
   justify-content: center;
   background-color: #7b2f2f;
-  color: rgb(255, 255, 255);
+  color: #ffffff !important;
   font-size: 1.5rem;
   padding: 10px 20px;
   min-height: 44px;
@@ -227,6 +248,12 @@ input:focus{
     justify-content: center;
     gap: 5px;
     line-height: 1;
+    color: #ffffff !important;
+    text-transform: uppercase;
+  }
+  
+  ion-icon {
+    color: #ffffff !important;
   }
 }
 
@@ -242,13 +269,171 @@ ion-title {
   gap: 20px;
 }
 
-ion-card-title {
-  font-size: 1.6rem;
-  font-weight: bold;
+/* ===== Tarjetas del menú con fondo blanco y texto negro ===== */
+.product-card {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin: 0;
+  overflow: hidden;
 }
 
-ion-card-subtitle {
+.product-card ion-card-header {
+  background: #ffffff !important;
+  padding: 16px 20px;
+}
+
+.product-card ion-card-title {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #000000 !important;
+  text-transform: uppercase;
+}
+
+.product-card ion-card-subtitle {
   font-size: 1.2rem;
+  color: #333333 !important;
+  text-transform: none;
+}
+
+/* Asegurar que los textos principales sean negros */
+.product-card ion-card-title,
+.product-card ion-card-subtitle,
+.product-card .value {
+  color: #000000 !important;
+}
+
+.product-card .ion-card-centered-text {
+  color: #000000 !important;
+}
+
+.product-card .ion-card-tiempo-elaboracion {
+  color: #000000 !important;
+}
+
+/* Contenedor de agregar también con fondo blanco */
+.product-card .contenedor-agregar {
+  background: #ffffff !important;
+}
+
+/* Botones de contador dentro de la tarjeta */
+.product-card .counter .btn {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  border: 1px solid #ccc !important;
+}
+
+/* Botón agregar mantiene su estilo rojo */
+.product-card .agregar-producto {
+  background-color: #7b2f2f !important;
+  color: #ffffff !important;
+  
+  .agregar-texto {
+    color: #ffffff !important;
+  }
+  
+  ion-icon {
+    color: #ffffff !important;
+  }
+}
+
+.product-card .value {
+  color: #000000 !important;
+}
+
+/* Contenedor de productos con paginación */
+.products-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Estilos para el swiper principal de productos */
+.products-swiper {
+  width: 100%;
+  padding-bottom: 0;
+}
+
+/* Paginación personalizada (igual que mozo/bartender/cocinero) */
+.custom-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: rgba(100, 100, 100, 0.9);
+  border-radius: 12px;
+  margin-top: 8px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pagination-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #5d2222;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+  
+  ion-icon {
+    font-size: 24px;
+  }
+  
+  &:hover:not(:disabled) {
+    background: #7b2f2f;
+    transform: scale(1.05);
+  }
+  
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+}
+
+.pagination-counter {
+  background: #5d2222;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 60px;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+}
+
+/* Forzar fondo blanco en modo oscuro también */
+@media (prefers-color-scheme: dark) {
+  .product-card {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .product-card ion-card-header {
+    background: #ffffff !important;
+  }
+  
+  .product-card ion-card-title,
+  .product-card ion-card-subtitle,
+  .product-card * {
+    color: #000000 !important;
+  }
 }
 
 .ion-card-tiempo-elaboracion{
@@ -260,12 +445,12 @@ ion-card-subtitle {
 }
 
 .ion-card-centered-text {
-  font-size: 1.6rem;
-  font-weight: 200;
+  font-size: clamp(2.8rem, 6vw, 3.6rem);
+  font-weight: 800;
   margin-top: 0.8rem;
   margin-bottom: 1rem;
-  font-weight: bold;
   color: black;
+  text-transform: uppercase;
 }
 
 .value {

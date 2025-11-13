@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+export type ProductoPedido = {
+  nombre: string;
+  cantidad: number;
+};
+
 export type PedidoPendiente = {
   id: number;
   mesa_numero: number;
@@ -11,6 +16,7 @@ export type PedidoPendiente = {
   tiempo_estimado: number;
   estado: string;
   cantidad_items: number;
+  productos: ProductoPedido[];
 };
 
 @Injectable({ providedIn: 'root' })
@@ -68,17 +74,31 @@ export class MozoPedidosService {
         }
       });
 
-      // 5. Obtener cantidad de items por pedido
+      // 5. Obtener productos con nombres y cantidades por pedido
       const pedidoIds = pedidos.map(p => p.id);
       const { data: detalles } = await this.supa.client
         .from('pedidos_detalles')
-        .select('idPedido, cantidad')
+        .select('idPedido, cantidad, menu!inner(nombre)')
         .in('idPedido', pedidoIds);
 
       const cantidadesMap = new Map<number, number>();
+      const productosMap = new Map<number, ProductoPedido[]>();
+      
       (detalles || []).forEach(d => {
-        const current = cantidadesMap.get(d.idPedido) || 0;
-        cantidadesMap.set(d.idPedido, current + (d.cantidad || 0));
+        const pedidoId = d.idPedido;
+        const cantidad = d.cantidad || 0;
+        const nombre = (d.menu as any)?.nombre || 'Producto desconocido';
+        
+        // Sumar cantidad total
+        const current = cantidadesMap.get(pedidoId) || 0;
+        cantidadesMap.set(pedidoId, current + cantidad);
+        
+        // Agregar producto a la lista
+        if (!productosMap.has(pedidoId)) {
+          productosMap.set(pedidoId, []);
+        }
+        const productos = productosMap.get(pedidoId)!;
+        productos.push({ nombre, cantidad });
       });
 
       // 6. Construir resultado
@@ -92,6 +112,7 @@ export class MozoPedidosService {
           tiempo_estimado: p.tiempo_estimado || 0,
           estado: p.estado,
           cantidad_items: cantidadesMap.get(p.id) || 0,
+          productos: productosMap.get(p.id) || [],
         };
       });
 
@@ -213,17 +234,31 @@ export class MozoPedidosService {
         }
       });
 
-      // 5. Obtener cantidad de items por pedido
+      // 5. Obtener productos con nombres y cantidades por pedido
       const pedidoIds = pedidos.map(p => p.id);
       const { data: detalles } = await this.supa.client
         .from('pedidos_detalles')
-        .select('idPedido, cantidad')
+        .select('idPedido, cantidad, menu!inner(nombre)')
         .in('idPedido', pedidoIds);
 
       const cantidadesMap = new Map<number, number>();
+      const productosMap = new Map<number, ProductoPedido[]>();
+      
       (detalles || []).forEach(d => {
-        const current = cantidadesMap.get(d.idPedido) || 0;
-        cantidadesMap.set(d.idPedido, current + (d.cantidad || 0));
+        const pedidoId = d.idPedido;
+        const cantidad = d.cantidad || 0;
+        const nombre = (d.menu as any)?.nombre || 'Producto desconocido';
+        
+        // Sumar cantidad total
+        const current = cantidadesMap.get(pedidoId) || 0;
+        cantidadesMap.set(pedidoId, current + cantidad);
+        
+        // Agregar producto a la lista
+        if (!productosMap.has(pedidoId)) {
+          productosMap.set(pedidoId, []);
+        }
+        const productos = productosMap.get(pedidoId)!;
+        productos.push({ nombre, cantidad });
       });
 
       // 6. Filtrar pedidos según su estado
@@ -271,6 +306,7 @@ export class MozoPedidosService {
           tiempo_estimado: p.tiempo_estimado || 0,
           estado: p.estado,
           cantidad_items: cantidadesMap.get(p.id) || 0,
+          productos: productosMap.get(p.id) || [],
         };
       });
 

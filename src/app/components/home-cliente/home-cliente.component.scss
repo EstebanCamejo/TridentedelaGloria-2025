@@ -127,6 +127,13 @@
   --padding-top: 0;
 }
 
+/* Asegurar que ion-content ocupe toda la altura sin scroll */
+ion-content.client-content {
+  --overflow: hidden;
+  height: 100vh;
+  overflow: hidden;
+}
+
 
 /* Header fijo: respeta la barra de estado (batería, hora) */
 .client-header{
@@ -151,39 +158,101 @@
   font-size: 1.25rem;
 }
 
-/* Layout central: reserva espacio inferior para no chocar con la barra del sistema ni el FAB */
+/* Layout central para cliente registrado (tamaño original) */
 .client-wrap{
-  height: 100vh; /* altura fija para evitar scroll */
+  height: calc(100vh - 80px); /* altura sin header aproximado para evitar scroll */
+  min-height: 0;
+  max-height: calc(100vh - 80px);
   display: grid;
   place-items: center;
-  padding: 18px clamp(10px, 4vw, 22px)
-           calc(var(--safe-bottom) + 120px); /* más espacio abajo para evitar solapamiento */
+  padding: clamp(30px, 6vh, 50px) clamp(10px, 4vw, 22px) calc(var(--safe-bottom) + 20px);
   box-sizing: border-box;
+  overflow: hidden;
 }
+
+/* Layout central para cliente anónimo (botones grandes como bartender/cocinero) */
+.client-wrap.anonimo{
+  height: calc(100vh - 80px); /* altura sin header aproximado para evitar scroll */
+  min-height: 0;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centra los botones verticalmente */
+  align-items: center;
+  padding: 0 clamp(10px, 4vw, 22px) calc(var(--safe-bottom) + 20px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
 .client-stack{
   width: min(620px, 94vw);
   display: grid;
-  gap: clamp(12px, 3svh, 24px); /* menos espacio entre botones */
+  gap: clamp(12px, 3svh, 24px); /* menos espacio entre botones para registrado */
 }
 
-/* Botones más compactos para 4 botones */
+/* Cliente anónimo: más espacio entre botones */
+.client-wrap.anonimo .client-stack{
+  gap: clamp(18px, 5svh, 80px);
+  margin-top: 0; /* Sin margin-top, el centrado se hace con justify-content */
+}
+
+/* Botones tamaño normal para cliente registrado */
 .cta{
   font-family: "Inter", sans-serif;
   font-weight: 700;
   letter-spacing: .2px;
   text-transform: none;
-  height: clamp(80px, 16svh, 120px); /* altura reducida */
+  height: clamp(90px, 18svh, 140px); /* altura original */
   --border-radius: 20px;
-  font-size: 1.1rem; /* texto un poco más pequeño */
+  font-size: 1.3rem;
+  
+  /* Color de fondo igual para todos */
+  --background: #5d2222;
+  --color: #ffffff !important; /* blanco siempre, sin importar el tema */
+  --background-hover: #7b2f2f;
+  --background-activated: #3f1717;
 }
-.cta::part(native){ justify-content: center; padding: 0 22px; }
-.cta [slot="start"]{ margin-inline-end: 12px; }
-.cta ion-icon{ font-size: 1.6em; }
+
+/* Botones grandes solo para cliente anónimo */
+.client-wrap.anonimo .cta{
+  height: clamp(160px, 32svh, 280px);
+  --border-radius: 28px;
+  font-size: 1.4rem;
+}
+
+.cta::part(native){ 
+  justify-content: center; 
+  padding: 0 22px;
+  color: #ffffff !important; /* asegurar texto blanco */
+}
+
+/* Cliente anónimo: más padding */
+.client-wrap.anonimo .cta::part(native){ 
+  padding: 0 28px;
+}
+
+.cta::part(native) .button-inner {
+  color: #ffffff !important; /* asegurar texto blanco en el contenido */
+}
+.cta [slot="start"]{ 
+  margin-inline-end: 12px;
+  color: #ffffff !important; /* iconos blancos */
+}
+
+/* Cliente anónimo: más espacio para iconos */
+.client-wrap.anonimo .cta [slot="start"]{ 
+  margin-inline-end: 16px;
+}
+
+.cta ion-icon{ 
+  font-size: 1.8em; /* iconos más grandes */
+  color: #ffffff !important; /* iconos blancos */
+}
 
 /* Estilos específicos para el botón de reservas */
 .btn-reserva {
   --background: #5d2222;
-  --color: var(--cream-25);
+  --color: #ffffff !important;
   --background-hover: #7b2f2f;
   --background-activated: #3f1717;
 }
@@ -191,7 +260,23 @@
 /* Estilos específicos para el botón de delivery */
 .btn-delivery {
   --background: #5d2222;
-  --color: var(--cream-25);
+  --color: #ffffff !important;
+  --background-hover: #7b2f2f;
+  --background-activated: #3f1717;
+}
+
+/* Estilos para el botón de escanear QR */
+.btn-scan {
+  --background: #5d2222;
+  --color: #ffffff !important;
+  --background-hover: #7b2f2f;
+  --background-activated: #3f1717;
+}
+
+/* Estilos para el botón de historial */
+.btn-history {
+  --background: #5d2222;
+  --color: #ffffff !important;
   --background-hover: #7b2f2f;
   --background-activated: #3f1717;
 }
@@ -199,11 +284,12 @@
 /* Ajustes para pantallas muy chicas */
 @media (max-width: 360px){
   .cta{ 
-    height: clamp(70px, 14svh, 100px); /* aún más compacto en pantallas pequeñas */
-    font-size: 1rem;
+    height: clamp(80px, 16svh, 110px); /* tamaño original para registrado */
+    font-size: 1.2rem;
   }
-  .client-stack {
-    gap: clamp(8px, 2svh, 16px); /* menos espacio en pantallas pequeñas */
+  .client-wrap.anonimo .cta{ 
+    height: clamp(140px, 28svh, 220px); /* tamaño grande para anónimo */
+    font-size: 1.25rem;
   }
 }
 
@@ -213,13 +299,24 @@
 /* (Extra) ajusta para pantallas muy bajas para evitar scroll */
 @media (max-height: 640px){
   .client-wrap{ 
-    padding-bottom: calc(var(--safe-bottom) + 60px); /* menos padding para pantallas bajas */
+    padding: 8px clamp(10px, 4vw, 22px) calc(var(--safe-bottom) + 10px);
   }
   .cta {
-    height: clamp(65px, 12svh, 90px); /* aún más compacto */
+    height: clamp(70px, 12svh, 90px); /* altura reducida para pantallas bajas */
+    font-size: 1.1rem;
   }
   .client-stack {
     gap: clamp(6px, 1.5svh, 12px); /* mínimo espacio */
+  }
+  .client-wrap.anonimo{ 
+    padding: 0 clamp(10px, 4vw, 22px) calc(var(--safe-bottom) + 10px);
+  }
+  .client-wrap.anonimo .cta {
+    height: clamp(120px, 24svh, 180px); /* tamaño reducido para anónimo en pantallas bajas */
+    font-size: 1.2rem;
+  }
+  .client-wrap.anonimo .client-stack {
+    gap: clamp(12px, 3svh, 40px);
   }
 }
 .qr-preview-modal::part(content) {

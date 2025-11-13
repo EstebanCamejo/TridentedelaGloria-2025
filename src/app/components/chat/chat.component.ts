@@ -8,6 +8,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ChatService, ChatMessage } from 'src/app/services/chat.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
+import { SesionService } from 'src/app/services/sesion.service';
 import { chevronBackOutline, sendOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -27,6 +28,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   meUid: string | null = null;
   esDeliveryChat = false; // 🆕 Flag para saber si es chat de delivery
   esModoDelivery = false; // 🆕 Flag para saber si el usuario actual es delivery (no cliente)
+  mesaNumero: number | null = null; // Número de mesa para mostrar en mensajes del mozo
+  nombresCache = new Map<string, string>(); // Cache de nombres de usuarios (uid -> nombre)
+  metaTextos = new Map<number, string>(); // Cache de textos meta por mensaje (id -> texto)
 
   private sub?: Subscription;
   @ViewChild('bottom') bottom?: ElementRef;
@@ -35,6 +39,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private chat: ChatService,
     private supa: SupabaseService,
+    private sesion: SesionService,
     private cdr: ChangeDetectorRef
   ) { 
     console.log('[ChatComponent] 🔧 Constructor ejecutado');
@@ -68,9 +73,10 @@ async ngOnInit() {
       this.roomId = +roomFromRoute;
       console.log('[ChatComponent] 🏠 Room ID:', this.roomId);
       
-      this.sub = this.chat.streamMessages(this.roomId).subscribe(arr => {
+      this.sub = this.chat.streamMessages(this.roomId).subscribe(async arr => {
         console.log('[ChatComponent] 📨 Mensajes recibidos:', arr.length);
         this.mensajes = arr;
+        await this.actualizarMetaTextos();
         this.scrollDownSoon();
       });
       return;
@@ -79,9 +85,13 @@ async ngOnInit() {
       this.roomId = +roomFromRoute;
       console.log('[ChatComponent] 🏠 Room ID:', this.roomId);
       
-      this.sub = this.chat.streamMessages(this.roomId).subscribe(arr => {
+      // Cargar número de mesa para mostrar en los mensajes
+      await this.cargarMesaNumero();
+      
+      this.sub = this.chat.streamMessages(this.roomId).subscribe(async arr => {
         console.log('[ChatComponent] 📨 Mensajes recibidos:', arr.length);
         this.mensajes = arr;
+        await this.actualizarMetaTextos();
         this.scrollDownSoon();
       });
       return;
@@ -173,13 +183,19 @@ async ngOnInit() {
       console.log('[ChatComponent] ✅ Sala mesa creada/obtenida. Room ID:', this.roomId);
     }
     
+    // Si es mozo, cargar número de mesa
+    if (this.sesion.esMozo()) {
+      await this.cargarMesaNumero();
+    }
+    
     console.log('[ChatComponent] ✅ Sala final obtenida. Room ID:', this.roomId);
     console.log('[ChatComponent] 🔍 Suscribiéndose a mensajes...');
     
     this.sub = this.chat.streamMessages(this.roomId).subscribe({
-      next: (arr) => {
+      next: async (arr) => {
         console.log('[ChatComponent] 📨 Mensajes recibidos:', arr.length);
         this.mensajes = arr;
+        await this.actualizarMetaTextos();
         this.scrollDownSoon();
       },
       error: (err) => {
@@ -222,6 +238,8 @@ async enviar() {
   console.log('[ChatComponent] 🎭 Mensaje optimista creado:', optimista);
   
   this.mensajes = [...this.mensajes, optimista];
+  // Actualizar meta textos para incluir el mensaje optimista
+  await this.actualizarMetaTextos();
   this.nuevo = '';
   this.scrollDownSoon();
 
@@ -239,6 +257,114 @@ async enviar() {
   }
 }
   soyYo(m: ChatMessage) { return m.from_uid === this.meUid; }
+  
+  /** Carga el número de mesa desde chat_rooms */
+  async cargarMesaNumero() {
+    try {
+      const { data, error } = await this.supa.client
+        .from('chat_rooms')
+        .select('mesa_num')
+        .eq('id', this.roomId)
+        .maybeSingle();
+      
+      if (!error && data) {
+        this.mesaNumero = data.mesa_num;
+        console.log('[ChatComponent] 📍 Mesa número cargado:', this.mesaNumero);
+      }
+    } catch (e) {
+      console.error('[ChatComponent] ❌ Error al cargar número de mesa:', e);
+    }
+  }
+  
+  /** Obtiene el nombre del usuario desde la tabla usuarios */
+  async obtenerNombreUsuario(uid: string): Promise<string> {
+    // Verificar cache primero
+    if (this.nombresCache.has(uid)) {
+      return this.nombresCache.get(uid)!;
+    }
+    
+    try {
+      const { data, error } = await this.supa.client
+        .from('usuarios')
+        .select('nombres')
+        .eq('auth_id', uid)
+        .maybeSingle();
+      
+      if (!error && data?.nombres) {
+        const nombre = data.nombres;
+        this.nombresCache.set(uid, nombre);
+        return nombre;
+      }
+    } catch (e) {
+      console.error('[ChatComponent] ❌ Error al obtener nombre de usuario:', e);
+    }
+    
+    return 'Usuario'; // Fallback
+  }
+  
+  /** Actualiza los textos meta de todos los mensajes */
+  async actualizarMetaTextos() {
+    this.metaTextos.clear();
+    
+    for (const m of this.mensajes) {
+      // Si es mi mensaje, no mostrar meta (excepto en delivery)
+      if (this.soyYo(m) && !this.esDeliveryChat) {
+        this.metaTextos.set(m.id, '');
+        continue;
+      }
+      
+      // Si es delivery, mostrar email como antes
+      if (this.esDeliveryChat) {
+        this.metaTextos.set(m.id, m.from_email);
+        continue;
+      }
+      
+      // Si soy cliente y el mensaje es del mozo, mostrar nombre del mozo
+      if (this.sesion.esCliente() && !this.soyYo(m)) {
+        const nombre = await this.obtenerNombreUsuario(m.from_uid);
+        this.metaTextos.set(m.id, nombre);
+        continue;
+      }
+      
+      // Si soy mozo y el mensaje es del cliente, mostrar número de mesa
+      if (this.sesion.esMozo() && !this.soyYo(m)) {
+        if (this.mesaNumero) {
+          this.metaTextos.set(m.id, `MESA ${this.mesaNumero}`);
+        } else {
+          this.metaTextos.set(m.id, 'Cliente');
+        }
+        continue;
+      }
+      
+      // Fallback
+      this.metaTextos.set(m.id, m.from_email);
+    }
+    
+    this.cdr.detectChanges();
+  }
+  
+  /** Obtiene el texto meta para un mensaje (síncrono para usar en template) */
+  obtenerMetaTexto(m: ChatMessage): string {
+    // Si es mi mensaje y no es delivery, nunca mostrar meta
+    if (this.soyYo(m) && !this.esDeliveryChat) {
+      return '';
+    }
+    
+    // Si está en cache, usar el cache
+    const cached = this.metaTextos.get(m.id);
+    if (cached !== undefined) {
+      return cached;
+    }
+    
+    // Si es delivery, mostrar email
+    if (this.esDeliveryChat) {
+      return m.from_email;
+    }
+    
+    // Para otros casos, no mostrar nada hasta que se actualice
+    return '';
+  }
+  
   scrollDownSoon() {
     console.log('[ChatComponent] 📜 ScrollDownSoon ejecutado');
     setTimeout(() => {

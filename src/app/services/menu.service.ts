@@ -686,12 +686,17 @@ async crearPedido(pedido: {
 
 // === Helpers ===
 function mapPlatoABaseDeDatos(payload: CrearPlatoPayload) {
+  // Asignar categoria_menu automáticamente según el tipo
+  // 'plato' → 'comida', 'bebida' → 'bebida'
+  const categoria_menu = payload.tipo === 'plato' ? 'comida' : 'bebida';
+  
   return {
     nombre: payload.nombre,
     descripcion: payload.descripcion,
     tiempo_elaboracion: payload.tiempoElaboracion,
     precio: payload.precio,
     tipo: payload.tipo,
+    categoria_menu: categoria_menu,
   };
 }
 
