@@ -242,6 +242,26 @@ export class ReservasService {
   }
 
   /**
+   * Obtiene reservas por estado (para admin)
+   * @param estado 'pendiente confirmacion' | 'confirmada' | 'rechazada'
+   */
+  async obtenerReservasPorEstado(estado: 'pendiente confirmacion' | 'confirmada' | 'rechazada'): Promise<any[]> {
+    const { data, error } = await this.supa.client
+      .from('reservas')
+      .select('*')
+      .eq('estado', estado)
+      .order('fecha', { ascending: true })
+      .order('hora', { ascending: true });
+
+    if (error) {
+      console.error(`Error al obtener reservas ${estado}:`, error);
+      throw error;
+    }
+
+    return data || [];
+  }
+
+  /**
    * Cambia el estado de una reserva (para admin)
    */
   async cambiarEstadoReserva(reservaId: string, nuevoEstado: 'confirmada' | 'rechazada', motivoRechazo?: string, mesaId?: string): Promise<void> {

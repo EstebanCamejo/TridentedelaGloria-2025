@@ -111,7 +111,7 @@ export class AdminAltaMesaService {
         throw new Error('Ya existe una mesa con ese número.');
       }
       if (msg.includes('invalid input value') && msg.includes('tipo_mesa')) {
-        throw new Error('El tipo de mesa no es válido. Elegí Estándar, VIP o Movilidad reducida.');
+        throw new Error('El tipo de mesa no es válido. Elegí Estándar, EXCLUSIVA o Movilidad reducida.');
       }
       throw new Error('No se pudo crear la mesa. Intentá nuevamente.');
     }

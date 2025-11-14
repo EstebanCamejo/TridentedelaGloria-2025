@@ -1,18 +1,18 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import {
-  IonHeader, IonToolbar, IonContent, IonSegment, IonSegmentButton, IonLabel,
+  IonHeader, IonToolbar, IonTitle, IonContent, IonSegment, IonSegmentButton, IonLabel,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon,
   IonCardSubtitle, IonSpinner, IonRefresher, IonRefresherContent, AlertController
 } from '@ionic/angular/standalone';
-import { checkmarkCircleOutline, closeCircleOutline, bicycleOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, closeCircleOutline, bicycleOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { FormsModule } from '@angular/forms';
 import type { SegmentChangeEventDetail } from '@ionic/angular';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { Observable, Subscription } from 'rxjs';
-import { AdminDeliveryPedidosService, PedidoDeliveryPendiente, PedidoDeliveryListo } from 'src/app/services/admin-delivery-pedidos.service';
+import { AdminDeliveryPedidosService, PedidoDeliveryPendiente, PedidoDeliveryListo, ProductoPedido } from 'src/app/services/admin-delivery-pedidos.service';
 import { ToastrService } from 'ngx-toastr';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { ModalController } from '@ionic/angular';
@@ -24,29 +24,35 @@ import { SelectDeliveryComponent } from '../select-delivery/select-delivery.comp
   templateUrl: './delivery-pedidos.component.html',
   styleUrls: ['./delivery-pedidos.component.scss'],
   imports: [
-    CommonModule, DatePipe, CurrencyPipe,
-    IonHeader, IonToolbar, IonContent,
+    CommonModule, CurrencyPipe,
+    IonHeader, IonToolbar, IonTitle, IonContent,
     IonSegment, IonSegmentButton, IonLabel,
-    IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonButton, IonIcon, IonSpinner, 
     IonRefresher, IonRefresherContent, FormsModule
   ],
   providers: [AlertController, ModalController]
 })
-export class DeliveryPedidosComponent implements OnInit, OnDestroy {
+export class DeliveryPedidosComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('carruselContainerPendientes', { static: false }) carruselContainerPendientes?: ElementRef<HTMLDivElement>;
+  @ViewChild('carruselContainerListos', { static: false }) carruselContainerListos?: ElementRef<HTMLDivElement>;
+  
   email!: Observable<string | null>;
   tab: 'pendientes' | 'listos' = 'pendientes';
+  Math = Math; // Exponer Math para usar en el template
 
   // Pedidos pendientes de confirmación
   pedidosPendientes: PedidoDeliveryPendiente[] = [];
   cargandoPendientes = false;
   confirmandoId: number | null = null;
   rechazandoId: number | null = null;
+  indicePendienteActual: number = 0;
 
   // Pedidos listos para entregar
   pedidosListos: PedidoDeliveryListo[] = [];
   cargandoListos = false;
   asignandoId: number | null = null;
+  indiceListoActual: number = 0;
 
   private pedidosPendientesSub?: Subscription;
   private pedidosListosSub?: Subscription;
@@ -58,13 +64,16 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
     private toast: ToastrService,
     private spinner: SpinnerService,
     private alertCtrl: AlertController,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private cdr: ChangeDetectorRef
   ) {
     console.log('[DeliveryPedidosComponent] 🏗️ Constructor ejecutado');
     addIcons({ 
       checkmarkCircleOutline,
       closeCircleOutline,
-      bicycleOutline
+      bicycleOutline,
+      chevronBackOutline,
+      chevronForwardOutline
     });
     this.email = this.supa.authEmail$;
   }
@@ -79,6 +88,13 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
     this.cargarPedidosListos();
   }
 
+  ngAfterViewInit() {
+    // Esperar a que el DOM esté listo y forzar detección de cambios
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 100);
+  }
+
   ngOnDestroy() {
     this.pedidosPendientesSub?.unsubscribe();
     this.pedidosListosSub?.unsubscribe();
@@ -89,6 +105,7 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
     this.pedidosPendientesSub = this.adminDeliverySvc.pedidosDeliveryPendientes$().subscribe({
       next: (pedidos) => {
         this.pedidosPendientes = pedidos;
+        this.indicePendienteActual = 0;
         this.cargandoPendientes = false;
         console.log('[DeliveryPedidosComponent] Pedidos pendientes actualizados:', pedidos);
       },
@@ -104,6 +121,7 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
     this.pedidosListosSub = this.adminDeliverySvc.pedidosListosParaEntregar$().subscribe({
       next: (pedidos) => {
         this.pedidosListos = pedidos;
+        this.indiceListoActual = 0;
         this.cargandoListos = false;
         console.log('[DeliveryPedidosComponent] Pedidos listos actualizados:', pedidos);
       },
@@ -118,14 +136,19 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
     if (this.confirmandoId === pedido.id) return;
 
     // Mostrar alert para ingresar tiempo estimado
+    const tiempoEstimadoActual = pedido.tiempo_estimado || 0;
+    const placeholderTexto = tiempoEstimadoActual > 0 
+      ? `${tiempoEstimadoActual} minutos` 
+      : 'EJ: 45';
+    
     const alert = await this.alertCtrl.create({
-      header: 'CONFIRMAR PEDIDO REPARTIDOR',
-      message: `PEDIDO #${pedido.id}\n\nINGRESÁ EL TIEMPO TOTAL ESTIMADO EN MINUTOS (PREPARACIÓN + ENTREGA):`,
+      header: '¿CONFIRMAR PEDIDO?',
+      message: 'AGREGAR DEMORA ESTIMADA',
       inputs: [
         {
           name: 'tiempoEstimado',
           type: 'number',
-          placeholder: 'EJ: 45',
+          placeholder: placeholderTexto,
           attributes: {
             min: '1',
             max: '300',
@@ -136,13 +159,13 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: '',
           role: 'cancel',
-          cssClass: 'alert-button-cancel'
+          cssClass: 'btn-cancel-icon'
         },
         {
-          text: 'CONFIRMAR',
-          cssClass: 'alert-button-confirm',
+          text: '',
+          cssClass: 'btn-confirm-icon',
           handler: (data) => {
             const tiempoEstimado = parseInt(data?.tiempoEstimado, 10);
             if (!tiempoEstimado || isNaN(tiempoEstimado) || tiempoEstimado < 1 || tiempoEstimado > 300) {
@@ -157,7 +180,7 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
           }
         }
       ],
-      cssClass: 'custom-alert',
+      cssClass: 'confirmar-pedido-alert',
       backdropDismiss: false // Evita que se cierre haciendo clic fuera
     });
 
@@ -198,21 +221,20 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
     if (this.rechazandoId === pedido.id) return;
     
     const alert = await this.alertCtrl.create({
-      header: 'CONFIRMAR RECHAZO',
-      message: `¿ESTÁS SEGURO DE QUE QUERÉS RECHAZAR EL PEDIDO REPARTIDOR #${pedido.id}?\n\nCLIENTE: ${pedido.cliente_email}\nTOTAL: $${pedido.total}`,
+      header: '¿CONFIRMAR RECHAZO?',
       buttons: [
         {
-          text: 'CANCELAR',
+          text: '',
           role: 'cancel',
-          cssClass: 'alert-button-cancel'
+          cssClass: 'btn-cancel-icon'
         },
         {
-          text: 'CONFIRMAR',
-          cssClass: 'alert-button-confirm',
+          text: '',
+          cssClass: 'btn-confirm-icon',
           handler: () => this.procesarRechazoDelivery(pedido)
         }
       ],
-      cssClass: 'custom-alert'
+      cssClass: 'rechazar-pedido-alert'
     });
     
     await alert.present();
@@ -229,7 +251,7 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
       // Remover de la lista local
       this.pedidosPendientes = this.pedidosPendientes.filter(p => p.id !== pedido.id);
       
-      this.toast.success(`PEDIDO REPARTIDOR #${pedido.id} RECHAZADO`, '', {
+      this.toast.error(`PEDIDO REPARTIDOR #${pedido.id} RECHAZADO`, '', {
         positionClass: 'toast-center',
         timeOut: 3000
       });
@@ -308,6 +330,112 @@ export class DeliveryPedidosComponent implements OnInit, OnDestroy {
     const v = ev.detail.value;
     if (v === 'pendientes' || v === 'listos') {
       this.tab = v;
+    }
+  }
+
+  // Métodos para carrusel de pendientes
+  siguientePendiente() {
+    if (this.indicePendienteActual < this.pedidosPendientes.length - 1) {
+      this.indicePendienteActual++;
+    }
+  }
+
+  anteriorPendiente() {
+    if (this.indicePendienteActual > 0) {
+      this.indicePendienteActual--;
+    }
+  }
+
+  // Métodos para carrusel de listos
+  siguienteListo() {
+    if (this.indiceListoActual < this.pedidosListos.length - 1) {
+      this.indiceListoActual++;
+    }
+  }
+
+  anteriorListo() {
+    if (this.indiceListoActual > 0) {
+      this.indiceListoActual--;
+    }
+  }
+
+  // Obtener altura del contenedor
+  private obtenerAlturaContenedor(container?: ElementRef<HTMLDivElement>): number {
+    if (container?.nativeElement) {
+      return container.nativeElement.offsetHeight;
+    }
+    // Fallback: usar window.innerHeight con la nueva altura reducida
+    return Math.max(window.innerHeight - 280, 400);
+  }
+
+  // Calcular transform para pendientes
+  getTransformPendientes(): string {
+    if (this.pedidosPendientes.length === 0) return 'translateY(0)';
+    const alturaContenedor = this.obtenerAlturaContenedor(this.carruselContainerPendientes);
+    const translateValue = this.indicePendienteActual * alturaContenedor;
+    return `translateY(-${translateValue}px)`;
+  }
+
+  // Calcular transform para listos
+  getTransformListos(): string {
+    if (this.pedidosListos.length === 0) return 'translateY(0)';
+    const alturaContenedor = this.obtenerAlturaContenedor(this.carruselContainerListos);
+    const translateValue = this.indiceListoActual * alturaContenedor;
+    return `translateY(-${translateValue}px)`;
+  }
+
+  // Obtener pedidos visibles para pendientes (2 por pantalla)
+  obtenerPendientesVisibles(): PedidoDeliveryPendiente[] {
+    const inicio = this.indicePendienteActual * 2;
+    return this.pedidosPendientes.slice(inicio, inicio + 2);
+  }
+
+  // Obtener pedidos visibles para listos (2 por pantalla)
+  obtenerListosVisibles(): PedidoDeliveryListo[] {
+    const inicio = this.indiceListoActual * 2;
+    return this.pedidosListos.slice(inicio, inicio + 2);
+  }
+
+  // Obtener fecha separada
+  obtenerFecha(fechaCompleta: string): string {
+    const fecha = new Date(fechaCompleta);
+    return fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  }
+
+  // Obtener horario separado
+  obtenerHorario(fechaCompleta: string): string {
+    const fecha = new Date(fechaCompleta);
+    return fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Mostrar productos en modal
+  async verProductos(pedido: PedidoDeliveryPendiente | PedidoDeliveryListo) {
+    try {
+      const productos = await this.adminDeliverySvc.obtenerProductosPedido(pedido.id);
+      
+      const productosTexto = productos
+        .map(p => `${p.nombre.toUpperCase()}: ${p.cantidad}`)
+        .join('\n\n');
+
+      const alert = await this.alertCtrl.create({
+        header: 'PRODUCTOS DEL PEDIDO',
+        message: productosTexto,
+        buttons: [
+          {
+            text: 'CERRAR',
+            cssClass: 'alert-button-confirm'
+          }
+        ],
+        cssClass: 'productos-alert'
+      });
+
+      await alert.present();
+    } catch (error: any) {
+      console.error('[DeliveryPedidosComponent] Error al obtener productos:', error);
+      this.toast.error('ERROR AL OBTENER PRODUCTOS', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
     }
   }
 }

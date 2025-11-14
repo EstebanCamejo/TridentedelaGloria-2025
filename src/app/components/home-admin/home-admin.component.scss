@@ -137,10 +137,12 @@
 /* Forzamos al row a comportarse como columna con gap */
 .admin-actions > ion-row{
   width: 100%;
-  max-width: 460px;                 /* que no se pegue a bordes en móviles angostos */
+  max-width: 600px;                 /* ancho máximo para pantallas grandes */
   display: flex !important;
   flex-direction: column;
-  gap: 8px;                         /* ← espacio muy reducido entre botones */
+  gap: 16px;                        /* espacio entre botones */
+  height: 100%;
+  justify-content: center;
 }
 
 /* Quitamos paddings verticales de las columnas */
@@ -149,31 +151,39 @@
   padding-bottom: 0 !important;
 }
 
-/* Botones con misma “presencia” visual */
+/* Botones grandes que ocupan toda la pantalla */
 .admin-actions ion-button{
   width: 100%;
-  --padding-top: 14px;
-  --padding-bottom: 14px;
-  --border-radius: 14px;
+  --padding-top: 20px;
+  --padding-bottom: 20px;
+  --border-radius: 16px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .admin-actions ion-button::part(native){
-  min-height: 104px;                /* mismo alto visual */
-  padding: 0 18px;
-  border: 2px solid #000;
-  border-radius: 14px;
+  min-height: 140px;                /* botones grandes */
+  padding: 0 24px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-.admin-actions ion-button [slot="start"]{ font-size: 1.2em; }
+.admin-actions ion-button [slot="start"]{ 
+  font-size: 2em; 
+  margin-right: 12px;
+}
 
 /* Ajustes en pantallas muy bajas (que sigan centrados) */
 @media (max-height: 700px){
-  .admin-actions > ion-row{ gap: 6px; }
-  .admin-actions ion-button::part(native){ min-height: 96px; }
-  .admin-actions{ padding-top: 5px; }
+  .admin-actions > ion-row{ gap: 12px; }
+  .admin-actions ion-button::part(native){ min-height: 120px; }
+  .admin-actions{ padding-top: 8px; }
 }
 @media (max-height: 560px){
-  .admin-actions{ align-items: flex-start; }        /* subimos un poco el bloque */
-  .admin-actions > ion-row{ margin-top: 6px; }
-  .admin-actions{ padding-top: 3px; }
+  .admin-actions > ion-row{ gap: 10px; }
+  .admin-actions ion-button::part(native){ min-height: 100px; }
+  .admin-actions{ padding-top: 5px; }
 }
 /* empuja el contenido por debajo del notch/status bar */
 .safe-top{

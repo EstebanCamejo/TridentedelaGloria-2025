@@ -5,10 +5,10 @@ import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonCardSubtitle, IonIcon, IonLoading
+  IonIcon, IonLoading
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { receiptOutline, qrCodeOutline, cardOutline } from 'ionicons/icons';
+import { receiptOutline, qrCodeOutline, cardOutline, bicycleOutline, restaurantOutline } from 'ionicons/icons';
 import { ToastrService } from 'ngx-toastr';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
@@ -49,7 +49,7 @@ interface CuentaDetalle {
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonButton, IonCard, IonCardContent,
-    IonCardHeader, IonCardTitle, IonCardSubtitle, IonIcon, IonLoading
+    IonCardHeader, IonCardTitle, IonIcon, IonLoading
   ]
 })
 export class ClienteDetalleCuentaComponent implements OnInit {
@@ -72,7 +72,7 @@ export class ClienteDetalleCuentaComponent implements OnInit {
     private route: ActivatedRoute,
     private qrHtml5: QrHtml5Service
   ) {
-    addIcons({ receiptOutline, qrCodeOutline, cardOutline });
+    addIcons({ receiptOutline, qrCodeOutline, cardOutline, bicycleOutline, restaurantOutline });
   }
 
   async ngOnInit() {

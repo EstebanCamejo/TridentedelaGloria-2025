@@ -1,4 +1,3 @@
-import { Browser } from '@capacitor/browser';
 import { Component } from '@angular/core';
 import { addIcons } from 'ionicons';
 import { personCircle, glasses, footsteps, restaurant, beer, body, bicycleOutline, peopleOutline } from 'ionicons/icons';
@@ -31,7 +30,6 @@ import { ToastrService } from 'ngx-toastr';
 import { logoFacebook } from 'ionicons/icons';
 import { authService } from '../../services/facebook-auth.service';
 
-import { SocialLogin } from '@capgo/capacitor-social-login';
 import { AlertController } from '@ionic/angular';
 import { SpinnerService } from 'src/app/services/spinner.service';
 
@@ -109,7 +107,7 @@ export class loginComponent {
       'people-outline': peopleOutline,
       'logo-facebook': logoFacebook,
     });
-  
+
     // Animación del logo
     setTimeout(() => (this.logoReady = true), 10);
 

@@ -49,21 +49,18 @@
 
 /* ===== Fondo y layout ===== */
 .client-content{
-  /* usá tu patrón de fondo aquí si lo tenés */
-  --background: transparent;
-  overflow-y: auto !important; /* 🆕 Forzar scroll vertical */
+  --background: #fbf3e4; /* Fondo crema igual que otros componentes */
+  overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
-  height: 100%; /* 🆕 Asegurar altura completa */
+  height: 100%;
 }
 .client-wrap{
   min-height: 100%;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  padding: 0 var(--wrap-x);
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centrar horizontalmente */
+  padding: var(--header-clearance) var(--wrap-x) calc(var(--safe-bottom) + clamp(80px, 10svh, 120px));
   gap: var(--stack-gap);
-  margin-top: var(--header-clearance);
-  padding-bottom: calc(var(--safe-bottom) + clamp(80px, 10svh, 120px)) !important; /* 🆕 Reducido - solo espacio mínimo necesario */
-  /* Asegurar que el contenido sea scrolleable */
   overflow-y: visible;
 }
 
@@ -74,14 +71,16 @@
 
 /* ===== Card de pedido (estado/total/demora) ===== */
 .pedido-card{
-  margin: 0 auto;
+  margin: 0;
   background: rgba(0,0,0,.85);
   border: 2px solid rgba(255,255,255,.1);
   border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0,0,0,.3);
   color: #fff;
-  width: min(600px, 100%);
-  margin-bottom: var(--actions-gap);
+  width: 100%;
+  max-width: min(600px, calc(100% - 2 * var(--wrap-x)));
+  margin-bottom: clamp(16px, 3svh, 24px); /* Espaciado más razonable */
+  align-self: center; /* Asegurar centrado dentro del flex */
 }
 .pedido-card ion-card-content{ 
   padding: 24px 20px; 
@@ -266,7 +265,10 @@ ion-row{
 .action-stack{
   display: grid;
   gap: var(--actions-gap);
-  margin-top: var(--actions-gap);
+  margin-top: 0; /* Ya está controlado por el gap del flex container */
+  width: 100%;
+  max-width: min(600px, calc(100% - 2 * var(--wrap-x)));
+  align-self: center; /* Centrar horizontalmente */
 }
 
 /* mantené tu estilo de botón-tarjeta */
@@ -294,7 +296,12 @@ ion-row{
   box-shadow: 0 10px 22px rgba(0,0,0,.16);
 }
 /* --- Reset para que los márgenes se noten --- */
-.client-wrap ion-grid{ --ion-grid-column-padding: 0 !important; }
+.client-wrap ion-grid{ 
+  --ion-grid-column-padding: 0 !important;
+  width: 100%;
+  max-width: min(600px, calc(100% - 2 * var(--wrap-x)));
+  align-self: center; /* Centrar horizontalmente */
+}
 .client-wrap ion-row{ display: block !important; }
 .client-wrap ion-col{ display: block !important; }
 
@@ -390,15 +397,15 @@ ion-button.option-card.var4[disabled]::part(native) {
   opacity: 0.6;
 }
 
-/* 2) Bajar el card de estado del pedido */
+/* 2) Ajustar el card de estado del pedido */
 .pedido-card{
-  margin-top: clamp(15px, 8svh, 40px);   /* ↓ separa del header */
-  margin-bottom: clamp(16px, 3svh, 24px) ; /* 🆕 Reducir margen inferior cuando hay 3 botones */
+  margin-top: 0; /* Ya está controlado por el gap del flex container */
+  margin-bottom: clamp(16px, 3svh, 24px);
 }
 
 /* 🆕 Reducir margen del card cuando hay 3 botones */
 .client-wrap:has(.action-stack:has(ion-button.option-card.var4)) .pedido-card {
-  margin-bottom: clamp(12px, 2svh, 18px) !important; /* 🆕 Margen inferior reducido */
+  margin-bottom: clamp(12px, 2svh, 18px) !important;
 }
 
 /* (opcional) un poquito más de aire entre botones */

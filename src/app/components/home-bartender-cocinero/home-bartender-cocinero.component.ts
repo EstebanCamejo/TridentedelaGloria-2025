@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonContent, IonGrid, IonRow, IonCol,
-  IonButton, IonIcon, IonHeader, IonToolbar } from '@ionic/angular/standalone';
+  IonButton, IonIcon, IonHeader, IonToolbar, IonTitle } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
 import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart, listCircleOutline, addCircleOutline} from 'ionicons/icons';
@@ -14,7 +14,7 @@ import { BartenderCocineroRealtimeService } from 'src/app/services/bartender-coc
 @Component({
   selector: 'app-home-bartender-cocinero',
   standalone: true,
-  imports: [IonToolbar, IonHeader, CommonModule, IonContent, IonGrid, IonRow, IonCol, IonButton, IonIcon],
+  imports: [IonToolbar, IonHeader, IonTitle, CommonModule, IonContent, IonGrid, IonRow, IonCol, IonButton, IonIcon],
   templateUrl: './home-bartender-cocinero.component.html',
   styleUrls: ['./home-bartender-cocinero.component.scss']
 })

@@ -134,7 +134,7 @@ export class MesasComponent implements OnInit , ViewWillEnter{
       component: AltaMesaComponent,
       canDismiss: true,
       breakpoints: [0, 0.9],
-      initialBreakpoint: 0.9,
+      initialBreakpoint: 0.9
     });
     await modal.present();
   
@@ -156,6 +156,12 @@ export class MesasComponent implements OnInit , ViewWillEnter{
 
   // EDITAR (modal con id)
   async editarMesa(mesa: MesaRow) {
+    console.log('[mesas] Editando mesa:', mesa);
+    if (!mesa || !mesa.id) {
+      console.error('[mesas] Mesa o ID inválido:', mesa);
+      return;
+    }
+    
     const modal = await this.modalCtrl.create({
       componentProps: { mesaId: mesa.id },
       component: AltaMesaComponent,
@@ -189,22 +195,162 @@ export class MesasComponent implements OnInit , ViewWillEnter{
     }
   }
 
-  async eliminarMesa(m: MesaRow) {
+  tipoTexto(tipo: MesaRow['tipo']): string {
+    switch (tipo) {
+      case 'vip': return 'EXCLUSIVA';
+      case 'estandar': return 'ESTÁNDAR';
+      case 'mov_reducida': return 'MOVILIDAD REDUCIDA';
+      default: return String(tipo).toUpperCase();
+    }
+  }
+
+  async mostrarOpcionesMesa(m: MesaRow) {
     const alert = await this.alertCtrl.create({
-      header: 'CONFIRMAR ELIMINACIÓN',
-      message: `¿ELIMINAR DEFINITIVAMENTE LA MESA #${m.numero}?`,
+      header: 'MESA #' + m.numero,
+      cssClass: 'mesas-alert-options',
       buttons: [
         {
-          text: 'CANCELAR',
-          role: 'cancel',
-          cssClass: 'alert-button-cancel'
+          text: '✏️',
+          role: 'edit',
+          cssClass: 'mesas-alert-btn-edit',
+          handler: () => {
+            this.editarMesa(m);
+            return true;
+          }
         },
         {
-          text: 'CONFIRMAR',
+          text: '🗑️',
           role: 'destructive',
-          cssClass: 'alert-button-confirm',
+          cssClass: 'mesas-alert-btn-delete',
+          handler: () => {
+            this.confirmarEliminacion(m);
+            return true;
+          }
+        }
+      ]
+    });
+    
+    await alert.present();
+    
+    // Función robusta para aplicar estilos a los botones de opciones
+    const applyStyles = () => {
+      const selectors = [
+        '.alert-wrapper.mesas-alert-options',
+        '.alert-wrapper',
+        'ion-alert.mesas-alert-options',
+        'ion-alert'
+      ];
+      
+      let alertWrapper: Element | null = null;
+      for (const selector of selectors) {
+        alertWrapper = document.querySelector(selector);
+        if (alertWrapper) break;
+      }
+      
+      if (!alertWrapper) return;
+      
+      const buttonSelectors = [
+        '.alert-button',
+        'button.alert-button',
+        '.alert-button-group button',
+        'button[class*="alert-button"]'
+      ];
+      
+      let buttons: NodeListOf<Element> | null = null;
+      for (const selector of buttonSelectors) {
+        buttons = alertWrapper.querySelectorAll(selector);
+        if (buttons && buttons.length > 0) break;
+      }
+      
+      if (!buttons || buttons.length === 0) return;
+      
+      buttons.forEach((btn: any) => {
+        if (!btn || !btn.style) return;
+        
+        btn.style.setProperty('width', 'calc(50% - 7.5px)', 'important');
+        btn.style.setProperty('height', '150px', 'important');
+        btn.style.setProperty('font-size', '80px', 'important');
+        btn.style.setProperty('font-weight', '700', 'important');
+        btn.style.setProperty('color', '#ffffff', 'important');
+        btn.style.setProperty('display', 'flex', 'important');
+        btn.style.setProperty('align-items', 'center', 'important');
+        btn.style.setProperty('justify-content', 'center', 'important');
+        btn.style.setProperty('flex', '1 1 50%', 'important');
+        btn.style.setProperty('border-radius', '16px', 'important');
+        btn.style.setProperty('box-shadow', '0 8px 16px rgba(0, 0, 0, 0.5)', 'important');
+        
+        if (btn.classList.contains('mesas-alert-btn-edit')) {
+          btn.style.setProperty('background', '#28a745', 'important');
+          btn.style.setProperty('border', '4px solid #1e7e34', 'important');
+        } else if (btn.classList.contains('mesas-alert-btn-delete')) {
+          btn.style.setProperty('background', '#dc3545', 'important');
+          btn.style.setProperty('border', '4px solid #bd2130', 'important');
+        }
+        
+        const buttonInner = btn.querySelector('.button-inner') || btn.querySelector('span');
+        if (buttonInner) {
+          (buttonInner as HTMLElement).style.setProperty('font-size', '80px', 'important');
+          (buttonInner as HTMLElement).style.setProperty('color', '#ffffff', 'important');
+          (buttonInner as HTMLElement).style.setProperty('display', 'flex', 'important');
+          (buttonInner as HTMLElement).style.setProperty('align-items', 'center', 'important');
+          (buttonInner as HTMLElement).style.setProperty('justify-content', 'center', 'important');
+        }
+      });
+      
+      const buttonGroup = alertWrapper.querySelector('.alert-button-group');
+      if (buttonGroup) {
+        (buttonGroup as HTMLElement).style.setProperty('display', 'flex', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('flex-direction', 'row', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('gap', '15px', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('width', '100%', 'important');
+      }
+    };
+
+    // Aplicar múltiples veces para asegurar que se apliquen
+    setTimeout(applyStyles, 50);
+    setTimeout(applyStyles, 150);
+    setTimeout(applyStyles, 300);
+    setTimeout(applyStyles, 500);
+
+    // MutationObserver para detectar cambios en el DOM
+    const observer = new MutationObserver(() => {
+      applyStyles();
+    });
+
+    setTimeout(() => {
+      const alertElement = document.querySelector('.alert-wrapper') || document.querySelector('ion-alert');
+      if (alertElement) {
+        observer.observe(alertElement, {
+          childList: true,
+          subtree: true,
+          attributes: true
+        });
+        
+        setTimeout(() => {
+          observer.disconnect();
+        }, 2000);
+      }
+    }, 100);
+  }
+
+  async confirmarEliminacion(m: MesaRow) {
+    const alert = await this.alertCtrl.create({
+      header: 'CONFIRMAR ELIMINACIÓN',
+      cssClass: 'mesas-alert-confirm',
+      buttons: [
+        { 
+          text: '✗',
+          role: 'cancel',
+          cssClass: 'mesas-alert-btn-cancel',
+          handler: () => {
+            return true;
+          }
+        },
+        {
+          text: '✓',
+          role: 'confirm',
+          cssClass: 'mesas-alert-btn-confirm',
           handler: async () => {
-            // Cerrar el diálogo primero
             await alert.dismiss();
             
             // UI optimista: la saco de la lista ya mismo
@@ -224,9 +370,7 @@ export class MesasComponent implements OnInit , ViewWillEnter{
               });
           
               // sincronizo por si hay latencia de replicación/caché
-              // (espera mínima y recarga segura)
               await new Promise(r => setTimeout(r, 120));
-              //await this.cargarMesas();
               await this.recargarVista();
           
             } catch (e: any) {
@@ -252,11 +396,113 @@ export class MesasComponent implements OnInit , ViewWillEnter{
             }
           }
         }
-      ],
-      cssClass: 'custom-alert'
+      ]
     });
     
     await alert.present();
+    
+    // Función robusta para aplicar estilos
+    const applyStyles = () => {
+      const selectors = [
+        '.alert-wrapper.mesas-alert-confirm',
+        '.alert-wrapper',
+        'ion-alert.mesas-alert-confirm',
+        'ion-alert'
+      ];
+      
+      let alertWrapper: Element | null = null;
+      for (const selector of selectors) {
+        alertWrapper = document.querySelector(selector);
+        if (alertWrapper) break;
+      }
+      
+      if (!alertWrapper) return;
+      
+      const buttonSelectors = [
+        '.alert-button',
+        'button.alert-button',
+        '.alert-button-group button',
+        'button[class*="alert-button"]'
+      ];
+      
+      let buttons: NodeListOf<Element> | null = null;
+      for (const selector of buttonSelectors) {
+        buttons = alertWrapper.querySelectorAll(selector);
+        if (buttons && buttons.length > 0) break;
+      }
+      
+      if (!buttons || buttons.length === 0) return;
+      
+      buttons.forEach((btn: any) => {
+        if (!btn || !btn.style) return;
+        
+        btn.style.setProperty('width', 'calc(50% - 7.5px)', 'important');
+        btn.style.setProperty('height', '100px', 'important');
+        btn.style.setProperty('font-size', '64px', 'important');
+        btn.style.setProperty('font-weight', '700', 'important');
+        btn.style.setProperty('color', '#ffffff', 'important');
+        btn.style.setProperty('display', 'flex', 'important');
+        btn.style.setProperty('align-items', 'center', 'important');
+        btn.style.setProperty('justify-content', 'center', 'important');
+        btn.style.setProperty('flex', '1 1 50%', 'important');
+        
+        const buttonText = btn.textContent || btn.innerText || '';
+        const hasCheckmark = buttonText.includes('✓');
+        
+        if (btn.classList.contains('mesas-alert-btn-cancel')) {
+          btn.style.setProperty('background', '#dc3545', 'important');
+          btn.style.setProperty('border', '4px solid #bd2130', 'important');
+        } else if (btn.classList.contains('mesas-alert-btn-confirm') || hasCheckmark) {
+          btn.style.setProperty('background', '#28a745', 'important');
+          btn.style.setProperty('border', '4px solid #1e7e34', 'important');
+        }
+        
+        const buttonInner = btn.querySelector('.button-inner') || btn.querySelector('span');
+        if (buttonInner) {
+          (buttonInner as HTMLElement).style.setProperty('font-size', '64px', 'important');
+          (buttonInner as HTMLElement).style.setProperty('color', '#ffffff', 'important');
+        }
+      });
+      
+      const buttonGroup = alertWrapper.querySelector('.alert-button-group');
+      if (buttonGroup) {
+        (buttonGroup as HTMLElement).style.setProperty('display', 'flex', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('flex-direction', 'row', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('gap', '15px', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('width', '100%', 'important');
+      }
+    };
+
+    // Aplicar múltiples veces para asegurar que se apliquen
+    setTimeout(applyStyles, 50);
+    setTimeout(applyStyles, 150);
+    setTimeout(applyStyles, 300);
+    setTimeout(applyStyles, 500);
+
+    // MutationObserver para detectar cambios en el DOM
+    const observer = new MutationObserver(() => {
+      applyStyles();
+    });
+
+    setTimeout(() => {
+      const alertElement = document.querySelector('.alert-wrapper') || document.querySelector('ion-alert');
+      if (alertElement) {
+        observer.observe(alertElement, {
+          childList: true,
+          subtree: true,
+          attributes: true
+        });
+        
+        setTimeout(() => {
+          observer.disconnect();
+        }, 2000);
+      }
+    }, 100);
+  }
+
+  async eliminarMesa(m: MesaRow) {
+    // Este método ya no se usa directamente, pero lo mantenemos por compatibilidad
+    await this.confirmarEliminacion(m);
   }
   
 

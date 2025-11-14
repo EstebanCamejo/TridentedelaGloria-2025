@@ -6,7 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { SesionService } from 'src/app/services/sesion.service';
-import { ModalController } from '@ionic/angular';
+import { ModalController, AlertController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { DireccionDeliveryComponent, DireccionDelivery } from '../direccion-delivery/direccion-delivery.component';
 import {
@@ -17,7 +17,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { addIcons } from 'ionicons';
-import { checkmarkOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
+import { checkmarkOutline, chevronBackOutline, chevronForwardOutline, closeOutline } from 'ionicons/icons';
 import { Pedido } from '../../../models/pedido.model'
 import { register } from 'swiper/element/bundle';
 import { PedidosService } from 'src/app/services/pedidos.service';
@@ -102,12 +102,14 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
     private ngZone: NgZone,
     private spinner: SpinnerService,
     private sesion: SesionService,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private alertController: AlertController
   ) {
     addIcons({
       'checkmark-outline': checkmarkOutline,
       'chevron-back-outline': chevronBackOutline,
-      'chevron-forward-outline': chevronForwardOutline
+      'chevron-forward-outline': chevronForwardOutline,
+      'close-outline': closeOutline
     });
     if (!_swiperRegistered) { register(); _swiperRegistered = true; }
   }
@@ -158,6 +160,11 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
       
       // Suscribirse a cambios en tiempo real del menú
       this.suscribirAMenuRealtime();
+      
+      // Inicializar menuFiltrado con el filtro por defecto
+      this.menuFiltrado = this.menu.filter(producto => 
+        producto.categoria_menu === this.filtroActual
+      );
       
     } catch (err) {
       console.error(err);
@@ -979,5 +986,25 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
     if (swiperEl && swiperEl.swiper) {
       swiperEl.swiper.slideNext();
     }
+  }
+
+  /**
+   * Abre el alert con los detalles del producto (misma estética que VER NOTA en reservas)
+   */
+  async abrirDetalles(producto: any) {
+    const alert = await this.alertController.create({
+      header: producto.nombre.toUpperCase(),
+      message: producto.descripcion,
+      buttons: [
+        {
+          text: 'CERRAR',
+          role: 'cancel',
+          cssClass: 'secondary'
+        }
+      ],
+      cssClass: 'detalles-producto-alert'
+    });
+
+    await alert.present();
   }
 }

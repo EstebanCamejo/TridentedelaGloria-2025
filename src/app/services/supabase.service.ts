@@ -53,7 +53,7 @@ export type AltaEmpleadoPayload = {
   cuil: string;
   email: string;
   password: string;
-  rol_usua: 'maitre'|'mozo'|'cocinero'|'bartender';
+  rol_usua: 'maitre'|'mozo'|'cocinero'|'bartender'|'delivery';
   photoBase64: string | null; // dataURL o null
 };
 
@@ -538,7 +538,7 @@ export class SupabaseService {
   async altaEmpleadoViaFunctionDirect(payload: {
     apellidos: string; nombres: string; dni: string; cuil: string;
     email: string; password: string;
-    perfil: 'maitre'|'mozo'|'cocinero'|'bartender';
+    perfil: 'maitre'|'mozo'|'cocinero'|'bartender'|'delivery';
     photoBase64: string | null;
   }) {
    const url = `${environment.supabaseUrl.replace(/\/$/, '')}/functions/v1/alta-empleado`;  

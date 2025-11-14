@@ -1,6 +1,6 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>DETALLE DE CUENTA</ion-title>
+  <ion-toolbar style="--background: #5d2222; --color: #fff;">
+    <ion-title style="text-align: center; font-weight: 700; text-transform: uppercase;">DETALLE DE CUENTA</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -9,81 +9,58 @@
 
   <div *ngIf="!loading && cuenta" class="cuenta-container">
     
-    <!-- Información de la mesa o repartidor -->
-    <ion-card class="mesa-info">
+    <!-- Card principal con toda la información -->
+    <ion-card class="pago-card">
       <ion-card-header>
         <ion-card-title class="mesa-title">
+          <ion-icon *ngIf="esDelivery" name="bicycle-outline"></ion-icon>
+          <ion-icon *ngIf="!esDelivery" name="restaurant-outline"></ion-icon>
           <span *ngIf="esDelivery">REPARTIDOR #{{ cuenta.pedido_delivery_id }}</span>
           <span *ngIf="!esDelivery">MESA {{ cuenta.numero_mesa }}</span>
         </ion-card-title>
-        <ion-card-subtitle class="mesa-subtitle">DETALLE DE CUENTA</ion-card-subtitle>
       </ion-card-header>
-      <ion-card-content>
-        <ion-button 
-          expand="block" 
-          fill="solid" 
-          color="success"
-          size="large"
-          (click)="realizarPago()"
-          class="btn-pagar">
-          <ion-icon slot="start" name="card-outline"></ion-icon>
-          REALIZAR PAGO
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
 
-    <!-- Detalle de pedidos -->
-    <ion-card class="pedidos-card">
-      <ion-card-header>
-        <ion-card-title class="section-title">PEDIDOS REALIZADOS</ion-card-title>
-      </ion-card-header>
       <ion-card-content>
-        <div class="pedidos-list">
-          <div *ngFor="let pedido of cuenta.pedidos" class="pedido-item">
-            <div class="pedido-info">
-              <h3 class="pedido-nombre">{{ pedido.nombre }}</h3>
-              <p class="pedido-detalle">{{ pedido.cantidad }} x ${{ pedido.precio_unitario | number:'1.2-2' }}</p>
-            </div>
-            <div class="pedido-subtotal">
-              ${{ pedido.subtotal | number:'1.2-2' }}
+        <!-- Detalle de pedidos -->
+        <div class="pedidos-section">
+          <h4 class="section-subtitle">PEDIDOS:</h4>
+          <div class="pedidos-list">
+            <div *ngFor="let pedido of cuenta.pedidos" class="pedido-item">
+              <div class="pedido-info">
+                <h3 class="pedido-nombre">{{ pedido.nombre }}</h3>
+                <p class="pedido-detalle">{{ pedido.cantidad }} x ${{ pedido.precio_unitario | number:'1.2-2' }}</p>
+              </div>
+              <div class="pedido-subtotal">
+                ${{ pedido.subtotal | number:'1.2-2' }}
+              </div>
             </div>
           </div>
         </div>
-      </ion-card-content>
-    </ion-card>
 
-    <!-- Descuentos de juegos -->
-    <ion-card *ngIf="cuenta.descuentos.length > 0" class="descuentos-card">
-      <ion-card-header>
-        <ion-card-title class="section-title">DESCUENTOS POR JUEGOS</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="descuentos-list">
-          <div *ngFor="let descuento of cuenta.descuentos" class="descuento-item">
-            <div class="descuento-info">
-              <h3 class="descuento-juego">{{ descuento.juego.toUpperCase() }}</h3>
-              <p class="descuento-detalle">DESCUENTO: {{ descuento.descuento_pct }}%</p>
-            </div>
-            <div class="descuento-monto">
-              -${{ descuento.monto_descuento | number:'1.2-2' }}
+        <!-- Descuentos de juegos (solo si hay descuentos) -->
+        <div *ngIf="cuenta.descuentos.length > 0" class="descuentos-section">
+          <h4 class="section-subtitle">DESCUENTOS POR JUEGOS:</h4>
+          <div class="descuentos-list">
+            <div *ngFor="let descuento of cuenta.descuentos" class="descuento-item">
+              <div class="descuento-info">
+                <h3 class="descuento-juego">{{ descuento.juego.toUpperCase() }}</h3>
+                <p class="descuento-detalle">DESCUENTO: {{ descuento.descuento_pct }}%</p>
+              </div>
+              <div class="descuento-monto">
+                -${{ descuento.monto_descuento | number:'1.2-2' }}
+              </div>
             </div>
           </div>
         </div>
-      </ion-card-content>
-    </ion-card>
 
-    <!-- Sección de propinas -->
-    <ion-card class="propina-card">
-      <ion-card-header>
-        <ion-card-title class="section-title">PROPINA</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="propina-info">
+        <!-- Sección de propinas -->
+        <div class="propina-section">
+          <h4 class="section-subtitle">PROPINA:</h4>
           <div *ngIf="propinaSeleccionada === 0" class="propina-placeholder">
             <ion-icon name="qr-code-outline" class="placeholder-icon"></ion-icon>
             <p>ESCANEÁ EL QR DE PROPINA PARA SELECCIONAR TU NIVEL DE SATISFACCIÓN</p>
           </div>
-          <div *ngIf="propinaSeleccionada > 0" class="propina-seleccionada">
+          <div *ngIf="propinaSeleccionada > 0" class="propina-info">
             <div class="propina-detail">
               <span class="propina-label">NIVEL DE SATISFACCIÓN:</span>
               <span class="propina-value">{{ getPropinaLabel(propinaSeleccionada) }}</span>
@@ -97,60 +74,66 @@
               <span class="propina-value">${{ propinaMonto | number:'1.2-2' }}</span>
             </div>
           </div>
+          
+          <ion-button 
+            expand="block" 
+            fill="outline" 
+            (click)="escanearQRPropina()"
+            class="btn-qr-propina">
+            <ion-icon slot="start" name="qr-code-outline"></ion-icon>
+            {{ propinaSeleccionada > 0 ? 'CAMBIAR PROPINA' : 'ESCANEAR QR PROPINA' }}
+          </ion-button>
         </div>
-        
+
+        <!-- Resumen de totales -->
+        <div class="totales-section">
+          <h4 class="section-subtitle totales-subtitle">RESUMEN DE TOTALES:</h4>
+          <div class="totales-list">
+            <div class="total-line subtotal">
+              <span class="total-label">SUBTOTAL:</span>
+              <span class="total-value">${{ cuenta.subtotal | number:'1.2-2' }}</span>
+            </div>
+            
+            <div *ngIf="cuenta.descuentos.length > 0" class="total-line descuento">
+              <span class="total-label">DESCUENTOS:</span>
+              <span class="total-value">-${{ getTotalDescuentos() | number:'1.2-2' }}</span>
+            </div>
+            
+            <div *ngIf="propinaMonto > 0" class="total-line propina">
+              <span class="total-label">PROPINA ({{ propinaSeleccionada }}%):</span>
+              <span class="total-value">${{ propinaMonto | number:'1.2-2' }}</span>
+            </div>
+            
+            <div class="total-line total-final">
+              <span class="total-label">TOTAL A PAGAR:</span>
+              <span class="total-value">${{ totalFinal | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón de pago -->
         <ion-button 
           expand="block" 
-          fill="outline" 
-          (click)="escanearQRPropina()"
-          class="btn-qr-propina">
-          <ion-icon slot="start" name="qr-code-outline"></ion-icon>
-          {{ propinaSeleccionada > 0 ? 'CAMBIAR PROPINA' : 'ESCANEAR QR PROPINA' }}
+          fill="solid" 
+          color="success"
+          size="large"
+          (click)="realizarPago()"
+          class="btn-pagar">
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          REALIZAR PAGO
         </ion-button>
       </ion-card-content>
     </ion-card>
 
-    <!-- Resumen de totales -->
-    <ion-card class="totales-card">
-      <ion-card-header>
-        <ion-card-title class="section-title">RESUMEN DE TOTALES</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="totales-list">
-          <div class="total-line subtotal">
-            <span class="total-label">SUBTOTAL:</span>
-            <span class="total-value">${{ cuenta.subtotal | number:'1.2-2' }}</span>
-          </div>
-          
-          <div *ngIf="cuenta.descuentos.length > 0" class="total-line descuento">
-            <span class="total-label">DESCUENTOS:</span>
-            <span class="total-value">-${{ getTotalDescuentos() | number:'1.2-2' }}</span>
-          </div>
-          
-          <div *ngIf="propinaMonto > 0" class="total-line propina">
-            <span class="total-label">PROPINA ({{ propinaSeleccionada }}%):</span>
-            <span class="total-value">${{ propinaMonto | number:'1.2-2' }}</span>
-          </div>
-          
-          <div class="total-line total-final">
-            <span class="total-label">TOTAL A PAGAR:</span>
-            <span class="total-value">${{ totalFinal | number:'1.2-2' }}</span>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
     <!-- Botón de volver -->
-    <div class="action-buttons">
-      <ion-button 
-        expand="block" 
-        fill="solid"
-        (click)="volver()"
-        class="btn-volver">
-        <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
-        VOLVER
-      </ion-button>
-    </div>
+    <ion-button 
+      expand="block" 
+      fill="solid"
+      (click)="volver()"
+      class="btn-volver">
+      <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+      VOLVER
+    </ion-button>
 
   </div>
 </ion-content>

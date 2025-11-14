@@ -29,7 +29,6 @@
       <ion-icon name="bicycle-outline" slot="start" [color]="seleccionadoId === usuario.auth_id ? 'primary' : 'medium'"></ion-icon>
       <ion-label>
         <h2>{{ getNombreCompleto(usuario) }}</h2>
-        <p>{{ usuario.email }}</p>
       </ion-label>
       <ion-icon 
         *ngIf="seleccionadoId === usuario.auth_id"
@@ -42,6 +41,7 @@
 
   <div class="button-container" *ngIf="!cargando && deliveryUsuarios.length > 0">
     <ion-button 
+      class="btn-confirmar-seleccion"
       expand="block" 
       color="primary"
       [disabled]="!seleccionadoId"

@@ -1,7 +1,7 @@
 <ion-header class="client-header">
   <ion-toolbar>
     <div class="nav-pill">
-      El tridente de la gloria
+      EL TRIDENTE DE LA GLORIA
     </div>
   </ion-toolbar>
 </ion-header>
@@ -40,7 +40,7 @@
             <span class="total-value">${{ total }}</span>
           </div>
           <div class="demora">
-            <span class="demora-label">DEMORA ESTIMADA:</span>
+            <span class="demora-label">DEMORA:</span>
             <span class="demora-value">{{ tiempo }} MINUTOS</span>
           </div>
         </div>
@@ -58,19 +58,9 @@
           </div>
         </div>
 
-        <!-- Botón para confirmar recepción (solo para repartidor entregado, antes de pedir cuenta) -->
+        <!-- Botón para pedir cuenta (cuando está entregado, después de que el cliente acepte el pedido) -->
         <ion-button 
-          *ngIf="esDelivery && estado === 'entregado' && !recepcionConfirmada" 
-          expand="block" 
-          class="cta" 
-          color="success"
-          (click)="confirmarRecepcionDelivery()">
-          ✅ CONFIRMAR RECEPCIÓN DEL PEDIDO
-        </ion-button>
-
-        <!-- Botón para pedir cuenta (cuando está entregado, para mesa siempre, para repartidor solo después de confirmar recepción) -->
-        <ion-button 
-          *ngIf="estado === 'entregado' && (!esDelivery || recepcionConfirmada)" 
+          *ngIf="estado === 'entregado'" 
           expand="block" 
           class="cta" 
           (click)="pedirCuenta()">
@@ -107,7 +97,7 @@
       class="option-card var2" 
       expand="block"
       (click)="irAChat()"
-      [disabled]="estado === 'pendiente' || estado === 'rechazado por admin' || (esDelivery && !repartidorInfo)">
+      [disabled]="esDelivery && !repartidorInfo">
     <img src="../../../assets/chat.png" class="icono" alt="">
     <span class="btn-text">{{ esDelivery ? 'CONSULTAS AL REPARTIDOR' : 'CONSULTAS A LOS MOZOS' }}</span>
   </ion-button>
@@ -128,29 +118,14 @@
   class="option-card var4" 
   expand="block" 
   (click)="irAEncuestas()"
-  [disabled]="yaCompletoEncuesta || esClienteAnonimo || (esDelivery && !recepcionConfirmada)">
+  [disabled]="yaCompletoEncuesta || esClienteAnonimo">
   <img src="../../../assets/encuesta.png" class="icono" alt="">
   <span class="btn-text">COMPLETAR ENCUESTA</span>
 </ion-button>
 
-<!-- Mensaje para repartidor que aún no confirmó recepción -->
-<div *ngIf="esDelivery && estado === 'entregado' && !recepcionConfirmada" class="anonimo-message">
-  <ion-note color="warning">
-    <ion-icon name="information-circle-outline"></ion-icon>
-    CONFIRMÁ LA RECEPCIÓN DEL PEDIDO PARA ACCEDER A JUEGOS Y ENCUESTA
-  </ion-note>
-</div>
 
 <!-- Mensajes para encuesta -->
 <div *ngIf="estado === 'entregado'">
-  <!-- Mensaje para clientes anónimos sobre encuestas -->
-  <div *ngIf="esClienteAnonimo && !yaCompletoEncuesta" class="anonimo-message">
-    <ion-note color="medium">
-      <ion-icon name="information-circle-outline"></ion-icon>
-      LAS ENCUESTAS ESTÁN DISPONIBLES SOLO PARA CLIENTES REGISTRADOS
-    </ion-note>
-  </div>
-
   <!-- Mensaje cuando ya completó la encuesta -->
   <div *ngIf="yaCompletoEncuesta" class="anonimo-message encuesta-completada">
     <ion-note color="medium">

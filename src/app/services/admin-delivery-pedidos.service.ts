@@ -2,9 +2,15 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+export type ProductoPedido = {
+  nombre: string;
+  cantidad: number;
+};
+
 export type PedidoDeliveryPendiente = {
   id: number;
   cliente_email: string;
+  cliente_nombre: string;
   created_at: string;
   total: number;
   tiempo_estimado: number;
@@ -18,6 +24,7 @@ export type PedidoDeliveryPendiente = {
 export type PedidoDeliveryListo = {
   id: number;
   cliente_email: string;
+  cliente_nombre: string;
   created_at: string;
   total: number;
   tiempo_estimado: number;
@@ -59,14 +66,17 @@ export class AdminDeliveryPedidosService {
       // 2. Obtener IDs de clientes únicos
       const clienteIds = [...new Set(pedidos.map(p => p.idCliente).filter(Boolean))];
 
-      // 3. Obtener información de usuarios (para emails)
+      // 3. Obtener información de usuarios (para emails y nombres)
       const { data: usuarios } = await this.supa.client
         .from('usuarios')
-        .select('auth_id, email')
+        .select('auth_id, email, nombres, apellidos')
         .in('auth_id', clienteIds);
 
       const usuariosMap = new Map(
-        (usuarios || []).map(u => [u.auth_id, u.email || 'Sin email'])
+        (usuarios || []).map(u => [u.auth_id, {
+          email: u.email || 'Sin email',
+          nombre: `${u.nombres || ''} ${u.apellidos || ''}`.trim() || 'Cliente'
+        }])
       );
 
       // 4. Obtener cantidad de items por pedido
@@ -84,9 +94,11 @@ export class AdminDeliveryPedidosService {
 
       // 5. Construir resultado
       const resultado: PedidoDeliveryPendiente[] = pedidos.map(p => {
+        const usuario = usuariosMap.get(p.idCliente);
         return {
           id: p.id,
-          cliente_email: usuariosMap.get(p.idCliente) || 'Desconocido',
+          cliente_email: usuario?.email || 'Desconocido',
+          cliente_nombre: usuario?.nombre || 'Cliente',
           created_at: p.created_at,
           total: p.total || 0,
           tiempo_estimado: p.tiempo_estimado || 0,
@@ -194,14 +206,17 @@ export class AdminDeliveryPedidosService {
       // 2. Obtener IDs de clientes únicos
       const clienteIds = [...new Set(pedidos.map(p => p.idCliente).filter(Boolean))];
 
-      // 3. Obtener información de usuarios (para emails)
+      // 3. Obtener información de usuarios (para emails y nombres)
       const { data: usuarios } = await this.supa.client
         .from('usuarios')
-        .select('auth_id, email')
+        .select('auth_id, email, nombres, apellidos')
         .in('auth_id', clienteIds);
 
       const usuariosMap = new Map(
-        (usuarios || []).map(u => [u.auth_id, u.email || 'Sin email'])
+        (usuarios || []).map(u => [u.auth_id, {
+          email: u.email || 'Sin email',
+          nombre: `${u.nombres || ''} ${u.apellidos || ''}`.trim() || 'Cliente'
+        }])
       );
 
       // 4. Obtener cantidad de items por pedido
@@ -219,9 +234,11 @@ export class AdminDeliveryPedidosService {
 
       // 5. Construir resultado
       const resultado: PedidoDeliveryListo[] = pedidos.map(p => {
+        const usuario = usuariosMap.get(p.idCliente);
         return {
           id: p.id,
-          cliente_email: usuariosMap.get(p.idCliente) || 'Desconocido',
+          cliente_email: usuario?.email || 'Desconocido',
+          cliente_nombre: usuario?.nombre || 'Cliente',
           created_at: p.created_at,
           total: p.total || 0,
           tiempo_estimado: p.tiempo_estimado || 0,
@@ -350,6 +367,41 @@ export class AdminDeliveryPedidosService {
       .subscribe();
 
     return subject.asObservable();
+  }
+
+  /**
+   * Obtiene los productos de un pedido con sus nombres y cantidades
+   */
+  async obtenerProductosPedido(pedidoId: number): Promise<ProductoPedido[]> {
+    console.log(`[AdminDeliveryPedidosService] Obteniendo productos del pedido ${pedidoId}...`);
+
+    try {
+      const { data: detalles, error } = await this.supa.client
+        .from('pedidos_detalles')
+        .select(`
+          cantidad,
+          menu!inner (
+            nombre
+          )
+        `)
+        .eq('idPedido', pedidoId);
+
+      if (error) {
+        console.error('[AdminDeliveryPedidosService] Error al obtener productos:', error);
+        throw error;
+      }
+
+      const productos: ProductoPedido[] = (detalles || []).map((d: any) => ({
+        nombre: d.menu?.nombre || 'Producto desconocido',
+        cantidad: d.cantidad || 0
+      }));
+
+      console.log(`[AdminDeliveryPedidosService] Productos obtenidos:`, productos);
+      return productos;
+    } catch (error) {
+      console.error('[AdminDeliveryPedidosService] Error en obtenerProductosPedido:', error);
+      throw error;
+    }
   }
 }
 

@@ -10,14 +10,17 @@ import {
   IonIcon,
   IonButtons,
   IonSpinner,
-  IonBadge,
   IonRefresher,
   IonRefresherContent,
   IonCard,
   IonCardContent,
+  IonSegment,
+  IonSegmentButton,
+  IonLabel,
   AlertController,
   ActionSheetController
 } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import { 
   calendarOutline, 
@@ -27,12 +30,18 @@ import {
   closeCircleOutline,
   refreshOutline,
   personOutline,
-  restaurantOutline
+  restaurantOutline,
+  chevronBackOutline,
+  chevronForwardOutline,
+  documentTextOutline,
+  alertCircleOutline
 } from 'ionicons/icons';
+import type { SegmentChangeEventDetail } from '@ionic/angular';
 import { ReservasService, Reserva } from '../../../services/reservas.service';
 import { SupabaseService } from '../../../services/supabase.service';
 import { SpinnerService } from '../../../services/spinner.service';
 import { ToastrService } from 'ngx-toastr';
+import { MesasService } from '../../../services/mesas.service';
 import type { RefresherCustomEvent } from '@ionic/angular';
 
 @Component({
@@ -40,6 +49,7 @@ import type { RefresherCustomEvent } from '@ionic/angular';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     IonContent,
     IonHeader,
     IonToolbar,
@@ -48,11 +58,13 @@ import type { RefresherCustomEvent } from '@ionic/angular';
     IonIcon,
     IonButtons,
     IonSpinner,
-    IonBadge,
     IonRefresher,
     IonRefresherContent,
     IonCard,
-    IonCardContent
+    IonCardContent,
+    IonSegment,
+    IonSegmentButton,
+    IonLabel
   ],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.scss']
@@ -63,6 +75,15 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   cargandoAccion = false;
   cargandoConfirmar = false;
   cargandoRechazar = false;
+  
+  // Segmento de navegación
+  segmentoActual: 'pendientes' | 'confirmadas' | 'rechazadas' = 'pendientes';
+  
+  // Carrusel
+  indiceReservaActual: number = 0;
+
+  // Cache para números de mesa
+  private mesaCache: Map<string, number> = new Map();
 
   constructor(
     private reservasService: ReservasService,
@@ -71,7 +92,8 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
     private toast: ToastrService,
     private alertController: AlertController,
     private actionSheetController: ActionSheetController,
-    private spinner: SpinnerService
+    private spinner: SpinnerService,
+    private mesasService: MesasService
   ) {
     addIcons({ 
       calendarOutline, 
@@ -81,7 +103,11 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
       closeCircleOutline,
       refreshOutline,
       personOutline,
-      restaurantOutline
+      restaurantOutline,
+      chevronBackOutline,
+      chevronForwardOutline,
+      documentTextOutline,
+      alertCircleOutline
     });
   }
 
@@ -94,13 +120,33 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga todas las reservas pendientes
+   * Carga todas las reservas según el estado del segmento
    */
   async cargarReservas() {
     try {
       this.cargando = true;
       this.spinner.show({ immediate: true });
-      this.reservas = await this.reservasService.obtenerReservasPendientes();
+      
+      let estado: 'pendiente confirmacion' | 'confirmada' | 'rechazada';
+      switch (this.segmentoActual) {
+        case 'pendientes':
+          estado = 'pendiente confirmacion';
+          break;
+        case 'confirmadas':
+          estado = 'confirmada';
+          break;
+        case 'rechazadas':
+          estado = 'rechazada';
+          break;
+      }
+      
+      this.reservas = await this.reservasService.obtenerReservasPorEstado(estado);
+      this.indiceReservaActual = 0; // Resetear índice al cambiar segmento
+      
+      // Precargar números de mesa para reservas confirmadas
+      if (estado === 'confirmada') {
+        await this.precargarNumerosMesa();
+      }
     } catch (error: any) {
       console.error('Error al cargar reservas:', error);
       this.toast.error((error?.message || 'ERROR AL CARGAR LAS RESERVAS').toUpperCase(), '', {
@@ -114,11 +160,91 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Maneja el cambio de segmento
+   */
+  onSegmentChange(event: CustomEvent<SegmentChangeEventDetail>) {
+    const valor = event.detail.value;
+    if (valor === 'pendientes' || valor === 'confirmadas' || valor === 'rechazadas') {
+      this.segmentoActual = valor;
+      this.cargarReservas();
+    }
+  }
+
+  /**
+   * Navega a la siguiente reserva en el carrusel
+   */
+  siguienteReserva() {
+    if (this.indiceReservaActual < this.reservas.length - 1) {
+      this.indiceReservaActual++;
+    }
+  }
+
+  /**
+   * Navega a la reserva anterior en el carrusel
+   */
+  anteriorReserva() {
+    if (this.indiceReservaActual > 0) {
+      this.indiceReservaActual--;
+    }
+  }
+
+  /**
+   * Obtiene la reserva actual del carrusel
+   */
+  obtenerReservaActual(): any | null {
+    return this.reservas[this.indiceReservaActual] || null;
+  }
+
+  /**
    * Refresca la lista de reservas
    */
   async refrescar(event: RefresherCustomEvent) {
     await this.cargarReservas();
     event.target.complete();
+  }
+
+  /**
+   * Muestra la nota de la reserva en un modal con letra grande
+   */
+  async verNota(reserva: Reserva) {
+    if (!reserva.nota) return;
+
+    const alert = await this.alertController.create({
+      header: 'NOTA DEL CLIENTE',
+      message: reserva.nota,
+      buttons: [
+        {
+          text: 'CERRAR',
+          role: 'cancel',
+          cssClass: 'secondary'
+        }
+      ],
+      cssClass: 'nota-alert'
+    });
+
+    await alert.present();
+  }
+
+  /**
+   * Muestra el motivo de rechazo de la reserva en un modal con letra grande
+   */
+  async verMotivoRechazo(reserva: Reserva) {
+    if (!reserva.motivo_rechazo) return;
+
+    const alert = await this.alertController.create({
+      header: 'MOTIVO DEL RECHAZO',
+      message: reserva.motivo_rechazo,
+      buttons: [
+        {
+          text: 'CERRAR',
+          role: 'cancel',
+          cssClass: 'secondary'
+        }
+      ],
+      cssClass: 'motivo-alert'
+    });
+
+    await alert.present();
   }
 
   /**
@@ -146,24 +272,28 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
       }
 
       // Crear action sheet con las mesas disponibles
-      const buttons: any[] = mesasDisponibles.map(mesa => ({
-        text: `Mesa ${mesa.numero} (Capacidad: ${mesa.capacidad})`,
-        icon: 'restaurant-outline',
-        handler: async () => {
-          await this.confirmarReservaConMesa(reserva.id!.toString(), mesa.id);
-        }
-      }));
-
-      buttons.push({
-        text: 'Cancelar',
-        role: 'cancel',
-        icon: 'close-outline'
-      });
+      const buttons: any[] = [
+        // Botón de cerrar (X) al inicio
+        {
+          text: '',
+          role: 'cancel',
+          icon: 'close-outline',
+          cssClass: 'close-button'
+        },
+        // Mesas disponibles
+        ...mesasDisponibles.map(mesa => ({
+          text: `Mesa ${mesa.numero} (Capacidad: ${mesa.capacidad})`,
+          icon: 'restaurant-outline',
+          cssClass: 'mesa-button',
+          handler: async () => {
+            await this.confirmarReservaConMesa(reserva.id!.toString(), mesa.id);
+          }
+        }))
+      ];
 
       const actionSheet = await this.actionSheetController.create({
-        header: 'Asignar Mesa',
-        subHeader: `Selecciona una mesa para la reserva del ${this.formatearFecha(reserva.fecha)} a las ${reserva.hora}`,
-        buttons: buttons
+        buttons: buttons,
+        cssClass: 'mesas-action-sheet'
       });
 
       await actionSheet.present();
@@ -178,16 +308,19 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
    */
   private async confirmarReservaConMesa(reservaId: string, mesaId: string) {
     const alert = await this.alertController.create({
-      header: 'Confirmar Reserva',
-      message: `¿Confirmar la reserva y asignar la mesa seleccionada?`,
+      header: '¿CONFIRMAR RESERVA?',
       buttons: [
         {
-          text: 'CANCELAR',
+          text: '',
           role: 'cancel',
-          cssClass: 'secondary'
+          cssClass: 'btn-cancel-icon',
+          handler: () => {
+            // Cerrar sin confirmar
+          }
         },
         {
-          text: 'CONFIRMAR',
+          text: '',
+          cssClass: 'btn-confirm-icon',
           handler: async () => {
             // Cerrar el alert primero
             await alert.dismiss();
@@ -197,7 +330,8 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
             await this.confirmarReservaCompleta(reservaId, mesaId);
           }
         }
-      ]
+      ],
+      cssClass: 'confirmar-reserva-alert'
     });
 
     await alert.present();
@@ -210,8 +344,7 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
     if (!reserva.id) return;
 
     const alert = await this.alertController.create({
-      header: 'RECHAZAR RESERVA',
-      message: `¿RECHAZAR LA RESERVA DE ${this.obtenerNombreCliente(reserva).toUpperCase()} (${this.obtenerEmailCliente(reserva)}) PARA EL ${this.formatearFecha(reserva.fecha).toUpperCase()} A LAS ${reserva.hora}?`,
+      header: '¿RECHAZAR RESERVA?',
       inputs: [
         {
           name: 'motivo',
@@ -225,13 +358,13 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: '',
           role: 'cancel',
-          cssClass: 'secondary'
+          cssClass: 'btn-cancel-icon'
         },
         {
-          text: 'RECHAZAR',
-          cssClass: 'danger',
+          text: '',
+          cssClass: 'btn-reject-icon',
           handler: async (data) => {
             if (!data.motivo || data.motivo.trim().length === 0) {
               this.toast.error('DEBÉS INDICAR EL MOTIVO DEL RECHAZO', '', {
@@ -249,7 +382,8 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
             return true;
           }
         }
-      ]
+      ],
+      cssClass: 'rechazar-reserva-alert'
     });
 
     await alert.present();
@@ -280,6 +414,7 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
       }
       
       await this.cargarReservas();
+      this.indiceReservaActual = 0; // Resetear índice después de confirmar/rechazar
     } catch (error: any) {
       console.error('Error al confirmar reserva:', error);
       this.toast.error((error?.message || 'ERROR AL CONFIRMAR LA RESERVA').toUpperCase(), '', {
@@ -316,6 +451,7 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
       }
       
       await this.cargarReservas();
+      this.indiceReservaActual = 0; // Resetear índice después de confirmar/rechazar
     } catch (error: any) {
       console.error('Error al rechazar reserva:', error);
       this.toast.error((error?.message || 'ERROR AL RECHAZAR LA RESERVA').toUpperCase(), '', {
@@ -340,6 +476,70 @@ export class ReservasAdminComponent implements OnInit, OnDestroy {
    */
   obtenerEmailCliente(reserva: any): string {
     return reserva.email_cliente || 'SIN CORREO';
+  }
+
+  /**
+   * Obtiene el número de mesa asignada a la reserva
+   */
+  async obtenerNumeroMesa(reserva: any): Promise<number | null> {
+    if (!reserva.mesa_id) return null;
+
+    // Verificar cache primero
+    if (this.mesaCache.has(reserva.mesa_id)) {
+      return this.mesaCache.get(reserva.mesa_id) || null;
+    }
+
+    try {
+      const mesa = await this.mesasService.getMesaById(reserva.mesa_id);
+      if (mesa && mesa.numero) {
+        this.mesaCache.set(reserva.mesa_id, mesa.numero);
+        return mesa.numero;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error al obtener número de mesa:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Obtiene el número de mesa de forma síncrona (desde cache o datos de la reserva)
+   */
+  obtenerNumeroMesaSync(reserva: any): number | null {
+    // Si la reserva ya tiene el número de mesa (desde un join), usarlo
+    if (reserva.numero_mesa) {
+      return reserva.numero_mesa;
+    }
+
+    // Si no, intentar desde el cache
+    if (reserva.mesa_id && this.mesaCache.has(reserva.mesa_id)) {
+      return this.mesaCache.get(reserva.mesa_id) || null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Precarga los números de mesa para todas las reservas confirmadas
+   */
+  private async precargarNumerosMesa() {
+    const reservasConMesa = this.reservas.filter(r => r.mesa_id && !this.mesaCache.has(r.mesa_id));
+    
+    if (reservasConMesa.length === 0) return;
+
+    // Cargar todas las mesas en paralelo
+    const promesas = reservasConMesa.map(async (reserva) => {
+      try {
+        const mesa = await this.mesasService.getMesaById(reserva.mesa_id);
+        if (mesa && mesa.numero) {
+          this.mesaCache.set(reserva.mesa_id, mesa.numero);
+        }
+      } catch (error) {
+        console.error(`Error al precargar mesa ${reserva.mesa_id}:`, error);
+      }
+    });
+
+    await Promise.all(promesas);
   }
 
   /**

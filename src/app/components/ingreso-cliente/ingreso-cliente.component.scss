@@ -1,81 +1,116 @@
-/* ===== Safe-areas (soporta notch / barra gestual) ===== */
+/* ===== Safe areas + medidas ===== */
 :root{
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-/* Deja que ion-header maneje el espacio superior */
-/* Color de fondo del header/toolbar y padding seguro arriba */
-.client-header { 
-  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
-}
-.client-header ion-toolbar {
-  --background: #5d2222;
-  --color: var(--cream-25);
-  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+  --safe-top:    var(--ion-safe-area-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--ion-safe-area-bottom, env(safe-area-inset-bottom, 0px));
 }
 
-/* Fondo del content; sin fullscreen ni padding superior extra */
+/* ===== Content ===== */
 .client-content {
-  --background: var(--cream-50);
-  --padding-top: 0;
+  --background: #fbf3e4;
 }
 
-
-/* Header fijo: respeta la barra de estado (batería, hora) */
-.client-header{
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  padding: calc(var(--safe-top) + 10px) 0 10px; /* <- aire superior seguro */
-  background: #5d2222;
-  color: var(--cream-25);
-  backdrop-filter: blur(2px);
-  box-shadow: 0 4px 8px rgba(61,43,43,.28);
-}
-.nav-pill{
-  width: min(520px, 92vw);
-  margin: 0 auto;
-  padding: 12px 16px;
-  background: #5d2222;
-  color: var(--cream-25);
-  text-align: center;
-  font-family: "Inter", sans-serif;
-  letter-spacing: .2px;
-  font-size: 1.25rem;
-}
-
-/* Layout central: reserva espacio inferior para no chocar con la barra del sistema ni el FAB */
+/* ===== Contenedor principal ===== */
 .client-wrap{
-  min-height: 100%;
-  display: grid;
-  place-items: center;
-  padding: 18px clamp(10px, 4vw, 22px)
-           calc(var(--safe-bottom) + 96px); /* deja aire abajo */
-}
-.client-stack{
-  width: min(620px, 94vw);
-  display: grid;
-  gap: clamp(18px, 6svh, 100px);
+  height: calc(100dvh - 56px); /* altura menos el header */
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
 }
 
-/* Botones grandes */
-.cta{
-  font-family: "Inter", sans-serif;
+/* ===== Zona de acciones para cliente ANÓNIMO ===== */
+.client-actions{
+  height: 100%;
+  width: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ===== Cliente ANÓNIMO: 2 botones que ocupan toda la pantalla ===== */
+.client-wrap.anonimo .client-actions {
+  height: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.client-wrap.anonimo .client-actions > ion-row {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+}
+
+.client-wrap.anonimo .client-actions ion-col {
+  flex: 1 1 50% !important;
+  min-height: 0 !important;
+  max-height: 50% !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  display: flex !important;
+}
+
+/* Quitamos paddings verticales de las columnas */
+.client-actions ion-col{
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Botones para cliente ANÓNIMO (2 botones que ocupan toda la pantalla) */
+.client-wrap.anonimo .client-actions ion-button {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  --border-radius: 8px;
   font-weight: 700;
-  letter-spacing: .2px;
-  text-transform: none;
-  height: clamp(110px, 24svh, 200px);
-  --border-radius: 24px;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  --background: #5d2222 !important;  /* Color rojo oscuro */
+  --color: #ffffff !important;
+  --background-hover: #7b2f2f;
+  --background-activated: #3f1717;
 }
-.cta::part(native){ justify-content: center; padding: 0 22px; }
-.cta [slot="start"]{ margin-inline-end: 12px; }
-.cta ion-icon{ font-size: 1.6em; }
 
-/* Ajustes para pantallas muy chicas */
-@media (max-width: 360px){
-  .cta{ height: clamp(96px, 22svh, 150px); }
+.client-wrap.anonimo .client-actions ion-button::part(native) {
+  height: 100% !important;
+  width: 100% !important;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px;
+  color: #ffffff !important;
+}
+
+.client-actions ion-button [slot="start"],
+.client-actions ion-button ion-icon { 
+  font-size: 2em !important; 
+  margin-right: 12px !important;
+  color: #ffffff !important;
+  --color: #ffffff !important;
+}
+
+/* Forzar color con ::ng-deep para asegurar que se aplique */
+::ng-deep .client-actions ion-button {
+  --background: #5d2222 !important;
+  --color: #ffffff !important;
+}
+
+::ng-deep .client-actions ion-button[color="secondary"],
+::ng-deep .client-actions ion-button[color="tertiary"],
+::ng-deep .client-actions ion-button[color="medium"] {
+  --background: #5d2222 !important;
+  --color: #ffffff !important;
+}
+
+::ng-deep .client-actions ion-button::part(native) {
+  background: #5d2222 !important;
+  color: #ffffff !important;
 }
 
 /* ===== FAB Logout: súbelo por encima de la barra gestual ===== */
@@ -86,9 +121,8 @@ ion-fab.fab-salir{
 }
 
 
-/* (Extra) deja más aire si el dispositivo es súper bajo en alto */
+/* Ajustes para pantallas muy bajas */
 @media (max-height: 640px){
-  .client-wrap{ padding-bottom: calc(var(--safe-bottom) + 112px); }
   ion-fab.fab-salir{ bottom: calc(var(--safe-bottom) + 32px) !important; }
 }
 /* ===== Paleta base (ya la tenés, refuerzo por si falta) ===== */

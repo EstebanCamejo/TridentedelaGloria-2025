@@ -1,13 +1,14 @@
-<ion-header class="client-header">
-  <ion-toolbar>
-    <div class="nav-pill">
-      BIENVENIDO | {{ ((email$ | async) || '—') | uppercase }}
-    </div>
+<ion-header>
+  <ion-toolbar style="--background: #5d2222; --color: #fff;">
+    <ion-title style="text-align: center; font-weight: 700; text-transform: uppercase;">
+      BIENVENIDO{{ nombreCliente ? ' ' + nombreCliente.toUpperCase() : '' }}
+    </ion-title>
   </ion-toolbar>
 </ion-header>
-<ion-content class="client-content" fullscreen>
+
+<ion-content [fullscreen]="true" class="client-content">
   <div class="client-wrap" [class.anonimo]="!esClienteRegistrado">
-    
+
     <!-- Mensaje alusivo para factura lista -->
     <div *ngIf="facturaUrl" class="factura-message empty-message">
       <div class="empty-icon">🧾</div>
@@ -37,38 +38,36 @@
       </div>
     </div>
 
-    <div class="client-stack">
-      <ion-button class="cta btn-scan" fill="solid" expand="block" size="large" (click)="scanQr()">
-        <ion-icon slot="start" name="qr-code-outline"></ion-icon>
-        ESCANEAR QR
-      </ion-button>
-      
-      <ion-button
-        *ngIf="esClienteRegistrado"
-        class="cta btn-reserva"
-        fill="solid"
-        expand="block"
-        size="large"
-        (click)="hacerReserva()">
-        <ion-icon slot="start" name="calendar-outline"></ion-icon>
-        HACER RESERVA
-      </ion-button>
+    <ion-grid fixed class="client-actions">
+      <ion-row class="gap-y">
+        <ion-col size="12">
+          <ion-button expand="block" size="large" (click)="scanQr()">
+            <ion-icon slot="start" name="qr-code-outline"></ion-icon>
+            ESCANEAR QR
+          </ion-button>
+        </ion-col>
+        
+        <ion-col size="12" *ngIf="esClienteRegistrado">
+          <ion-button expand="block" size="large" color="secondary" (click)="hacerReserva()">
+            <ion-icon slot="start" name="calendar-outline"></ion-icon>
+            HACER RESERVA
+          </ion-button>
+        </ion-col>
 
-      <ion-button
-        *ngIf="esClienteRegistrado"
-        class="cta btn-delivery"
-        fill="solid"
-        expand="block"
-        size="large"
-        (click)="hacerPedidoDelivery()">
-        <ion-icon slot="start" name="bicycle-outline"></ion-icon>
-        PEDIDO REPARTIDOR
-      </ion-button>
+        <ion-col size="12" *ngIf="esClienteRegistrado">
+          <ion-button expand="block" size="large" color="tertiary" (click)="hacerPedidoDelivery()">
+            <ion-icon slot="start" name="bicycle-outline"></ion-icon>
+            PEDIDO REPARTIDOR
+          </ion-button>
+        </ion-col>
 
-      <ion-button class="cta btn-history" fill="solid" expand="block" size="large" (click)="verEncuestas()">
-        <ion-icon slot="start" name="albums-outline"></ion-icon>
-        VER ENCUESTAS ANTERIORES
-      </ion-button>
-    </div>
+        <ion-col size="12">
+          <ion-button expand="block" size="large" color="medium" (click)="verEncuestas()">
+            <ion-icon slot="start" name="albums-outline"></ion-icon>
+            VER ENCUESTAS ANTERIORES
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </div>
 </ion-content>

@@ -26,25 +26,29 @@
 /* Sube los FABs unos px; respeta safe-area en móviles con notch */
 ion-fab.fab-up{
   position: fixed; /* por las dudas */
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 55px); /* <- ajustá 28px a gusto */
   z-index: 10;
 }
 
-/* FAB derecho - Empleados */
+/* FAB derecho - Empleados (más abajo) */
 ion-fab.fab-employees{
   right: calc(env(safe-area-inset-right, 0px) + 12px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 85px); /* 30px más abajo que la posición original */
 }
 
-/* FAB izquierdo - Clientes */
+/* FAB izquierdo - Clientes (más arriba) */
 ion-fab.fab-clients{
   left: calc(env(safe-area-inset-left, 0px) + 12px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 25px); /* 30px más arriba que la posición original */
 }
 
 /* Mejorar visualización de los FABs cuando hay dos */
 @media (max-width: 768px) {
-  /* En móviles, ajustar posición para evitar solapamiento */
+  /* En móviles, mantener la separación */
+  ion-fab.fab-employees {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 85px);
+  }
   ion-fab.fab-clients {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 25px);
   }
 }
 

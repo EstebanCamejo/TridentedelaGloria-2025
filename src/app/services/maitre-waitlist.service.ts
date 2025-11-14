@@ -81,6 +81,7 @@ export interface EsperaItem {
 export interface MesaLite {
   id: string;      // uuid
   numero: number;  // int
+  capacidad: number; // capacidad de la mesa
 }
 
 @Injectable({ providedIn: 'root' })
@@ -133,7 +134,7 @@ export class MaitreWaitlistService {
     // 1. Obtener mesas con estado 'libre'
     const { data: mesasLibres, error: mesasError } = await this.supa.client
       .from('mesas')
-      .select('id, numero')
+      .select('id, numero, capacidad')
       .eq('estado', 'libre')
       .order('numero', { ascending: true });
     

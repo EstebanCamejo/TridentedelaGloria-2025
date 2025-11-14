@@ -57,55 +57,47 @@
 </ion-content> -->
 
 <ion-header>
-  <ion-toolbar>
-    <ion-title>MESAS</ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button (click)="cargarMesas()">
-        <ion-icon name="refresh"></ion-icon>
-      </ion-button>
-      <ion-button (click)="crearMesa()">
-        <ion-icon name="add"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+  <ion-toolbar style="--background: #5d2222; --color: #fff;">
+    <ion-title style="text-align: center; font-weight: 700; text-transform: uppercase; width: 100%;">MESAS</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="mesas-content">
   <ion-refresher slot="fixed" (ionRefresh)="cargarMesas($event)">
     <ion-refresher-content refreshingSpinner="circles"></ion-refresher-content>
   </ion-refresher>
 
-  <ion-list inset="true">
-    <ion-item
-      button
-      detail
-      *ngFor="let m of mesas; trackBy: trackById"
-      (click)="editarMesa(m)"
-    >
-      <ion-avatar slot="start">
-        <img [src]="m.foto_url || phSvg" alt="mesa" />
-      </ion-avatar>
+  <div class="mesas-header-actions">
+    <ion-button class="btn-add-mesa" (click)="crearMesa()">
+      <ion-icon name="add"></ion-icon>
+      <span>AGREGAR MESA</span>
+    </ion-button>
+  </div>
 
-      <ion-label>
-        <div class="row1">
-          <span class="nro">MESA #{{ m.numero }}</span>
-          <ion-badge [color]="estadoColor(m.estado)">{{ estadoTexto(m.estado) }}</ion-badge>
+  <div class="mesas-grid" *ngIf="!cargando && mesas.length > 0">
+    <div class="mesa-card" *ngFor="let m of mesas; trackBy: trackById" (click)="mostrarOpcionesMesa(m)">
+      <div class="mesa-card-photo">
+        <img [src]="m.foto_url || phSvg" alt="Mesa {{ m.numero }}" />
+      </div>
+      
+      <div class="mesa-card-content">
+        <div class="mesa-card-header">
+          <h2 class="mesa-numero">MESA #{{ m.numero }}</h2>
         </div>
-        <div class="row2">
-          <span>TIPO: {{ m.tipo.toUpperCase() }}</span>
-          <span>CAP: {{ m.capacidad }}</span>
+        <div class="mesa-estado-container">
+          <ion-badge [color]="estadoColor(m.estado)" class="mesa-estado">{{ estadoTexto(m.estado) }}</ion-badge>
         </div>
-      </ion-label>
+        
+        <div class="mesa-card-info">
+          <p class="mesa-tipo"><strong>{{ tipoTexto(m.tipo) }}</strong></p>
+          <p class="mesa-capacidad"><strong>PLAZAS:</strong> {{ m.capacidad }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      <ion-buttons slot="end">
-        <ion-button fill="clear" (click)="$event.stopPropagation(); editarMesa(m)">
-          <ion-icon name="pencil"></ion-icon>
-        </ion-button>
-        <ion-button fill="clear" color="danger" (click)="$event.stopPropagation(); eliminarMesa(m)">
-          <ion-icon name="trash"></ion-icon>
-        </ion-button>
-      </ion-buttons>
-    </ion-item>
-  </ion-list>
+  <div *ngIf="!cargando && mesas.length === 0" class="empty">
+    <p>No hay mesas aún.</p>
+    <ion-button size="small" (click)="crearMesa()">Crear mesa</ion-button>
+  </div>
 </ion-content>

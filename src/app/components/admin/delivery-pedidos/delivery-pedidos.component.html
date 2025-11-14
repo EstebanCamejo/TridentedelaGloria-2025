@@ -1,6 +1,6 @@
 <ion-header class="mz-header">
-  <ion-toolbar>
-    <div class="nav-pill title-large">PEDIDOS DE REPARTIDOR | {{ (email | async) || '—' }}</div>
+  <ion-toolbar style="--background: #5d2222; --color: #fff;">
+    <ion-title style="text-align: center; font-weight: 700; text-transform: uppercase;">PEDIDOS DE REPARTIDOR</ion-title>
   </ion-toolbar>
 
   <!-- tira con fondo sólido/blur -->
@@ -11,7 +11,7 @@
         <ion-label>PENDIENTES</ion-label>
       </ion-segment-button>
       <ion-segment-button value="listos">
-        <ion-label>LISTOS PARA ENTREGAR</ion-label>
+        <ion-label>LISTOS</ion-label>
       </ion-segment-button>
     </ion-segment>
   </div>
@@ -36,57 +36,90 @@
       <div *ngIf="!cargandoPendientes && pedidosPendientes.length === 0" class="empty-message">
         <ion-icon name="checkmark-circle-outline" class="empty-icon"></ion-icon>
         <div class="empty-title">¡NO HAY PEDIDOS DE REPARTIDOR PENDIENTES!</div>
-        <div class="empty-subtitle">NO HAY PEDIDOS DE REPARTIDOR ESPERANDO CONFIRMACIÓN</div>
-        <div class="empty-description">TODOS LOS PEDIDOS DE REPARTIDOR ESTÁN PROCESADOS CORRECTAMENTE</div>
       </div>
 
-      <!-- Lista de pedidos pendientes -->
-      <ion-card class="pedido pendiente" *ngFor="let p of pedidosPendientes">
-        <ion-card-header>
-          <ion-card-title>REPARTIDOR #{{ p.id }}</ion-card-title>
-          <ion-card-subtitle>{{ p.cantidad_items }} PRODUCTOS</ion-card-subtitle>
-        </ion-card-header>
+      <!-- Carrusel de pedidos pendientes -->
+      <div *ngIf="!cargandoPendientes && pedidosPendientes.length > 0" class="carrusel-wrapper-container">
+        <div #carruselContainerPendientes class="carrusel-container">
+          <div class="carrusel-wrapper" [style.transform]="getTransformPendientes()">
+            <div *ngFor="let p of pedidosPendientes; let i = index" class="pedido-slide">
+              <ion-card class="pedido pendiente">
+                <ion-card-header>
+                  <ion-card-title>REPARTIDOR #{{ p.id }}</ion-card-title>
+                </ion-card-header>
 
-        <ion-card-content>
-          <div class="info">
-            <div>CLIENTE: <strong>{{ p.cliente_email }}</strong></div>
-            <div>FECHA: <strong>{{ p.created_at | date:'dd/MM/yy HH:mm:ss' }}</strong></div>
-            <div>TOTAL: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
-            <div>TIEMPO ESTIMADO: <strong>{{ p.tiempo_estimado }} MINUTOS</strong></div>
-            <div *ngIf="p.direccion_entrega" class="direccion">
-              <ion-icon name="location-outline"></ion-icon>
-              <strong>DIRECCIÓN:</strong> {{ p.direccion_entrega }}
+                <ion-card-content>
+                  <div class="info">
+                    <div class="info-item">
+                      <strong>CLIENTE:</strong> {{ p.cliente_nombre }}
+                    </div>
+                    <div class="info-item">
+                      <strong>FECHA:</strong> {{ obtenerFecha(p.created_at) }}
+                    </div>
+                    <div class="info-item">
+                      <strong>HORARIO:</strong> {{ obtenerHorario(p.created_at) }}
+                    </div>
+                    <div class="info-item">
+                      <strong>TOTAL:</strong> {{ p.total | currency:'ARS':'symbol-narrow' }}
+                    </div>
+                    <div *ngIf="p.direccion_entrega" class="direccion-container">
+                      <div class="direccion-label">DIRECCIÓN:</div>
+                      <div class="direccion">
+                        {{ p.direccion_entrega.toUpperCase() }}
+                      </div>
+                    </div>
+                    <div class="productos-button-container">
+                      <ion-button 
+                        class="btn-productos" 
+                        expand="block"
+                        fill="solid"
+                        (click)="verProductos(p)">
+                        {{ p.cantidad_items }} PRODUCTOS
+                      </ion-button>
+                    </div>
+                  </div>
+
+                  <!-- Botones para pedido pendiente -->
+                  <div class="button-group">
+                    <ion-button 
+                      class="btn-rechazar-icon" 
+                      expand="block"
+                      [disabled]="rechazandoId === p.id"
+                      (click)="rechazarPedidoDelivery(p)">
+                      <ion-spinner *ngIf="rechazandoId === p.id"></ion-spinner>
+                    </ion-button>
+
+                    <ion-button 
+                      class="btn-confirmar-icon" 
+                      expand="block"
+                      [disabled]="confirmandoId === p.id"
+                      (click)="confirmarPedidoDelivery(p)">
+                      <ion-spinner *ngIf="confirmandoId === p.id"></ion-spinner>
+                    </ion-button>
+                  </div>
+                </ion-card-content>
+              </ion-card>
             </div>
           </div>
+        </div>
 
-          <!-- Botones para pedido pendiente -->
-          <div class="button-group">
-            <ion-button 
-              class="btn-confirmar" 
-              expand="block" 
-              fill="solid"
-              color="success"
-              [disabled]="confirmandoId === p.id"
-              (click)="confirmarPedidoDelivery(p)">
-              <ion-spinner *ngIf="confirmandoId === p.id" slot="start"></ion-spinner>
-              <ion-icon *ngIf="confirmandoId !== p.id" name="checkmark-circle-outline" slot="start"></ion-icon>
-              {{ confirmandoId === p.id ? 'CONFIRMANDO...' : 'CONFIRMAR PEDIDO' }}
-            </ion-button>
-
-            <ion-button 
-              class="btn-rechazar" 
-              expand="block" 
-              fill="outline"
-              color="danger"
-              [disabled]="rechazandoId === p.id"
-              (click)="rechazarPedidoDelivery(p)">
-              <ion-spinner *ngIf="rechazandoId === p.id" slot="start"></ion-spinner>
-              <ion-icon *ngIf="rechazandoId !== p.id" name="close-circle-outline" slot="start"></ion-icon>
-              {{ rechazandoId === p.id ? 'RECHAZANDO...' : 'RECHAZAR PEDIDO' }}
-            </ion-button>
-          </div>
-        </ion-card-content>
-      </ion-card>
+        <!-- Controles del carrusel -->
+        <div *ngIf="pedidosPendientes.length > 1" class="carrusel-controls">
+          <ion-button 
+            (click)="anteriorPendiente()" 
+            [disabled]="indicePendienteActual === 0"
+            class="btn-nav">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </ion-button>
+          <span class="indicador">{{ indicePendienteActual + 1 }} / {{ pedidosPendientes.length }}</span>
+          <ion-button 
+            (click)="siguientePendiente()" 
+            [disabled]="indicePendienteActual >= pedidosPendientes.length - 1"
+            class="btn-nav">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
     </ng-container>
 
     <!-- ====== TAB LISTOS PARA ENTREGAR ====== -->
@@ -101,45 +134,87 @@
       <div *ngIf="!cargandoListos && pedidosListos.length === 0" class="empty-message">
         <ion-icon name="bicycle-outline" class="empty-icon"></ion-icon>
         <div class="empty-title">¡NO HAY PEDIDOS LISTOS!</div>
-        <div class="empty-subtitle">NO HAY PEDIDOS DE REPARTIDOR LISTOS PARA ENTREGAR</div>
-        <div class="empty-description">LOS PEDIDOS ESTARÁN AQUÍ CUANDO ESTÉN LISTOS</div>
       </div>
 
-      <!-- Lista de pedidos listos -->
-      <ion-card class="pedido listo" *ngFor="let p of pedidosListos">
-        <ion-card-header>
-          <ion-card-title>REPARTIDOR #{{ p.id }}</ion-card-title>
-          <ion-card-subtitle>{{ p.cantidad_items }} PRODUCTOS</ion-card-subtitle>
-        </ion-card-header>
+      <!-- Carrusel de pedidos listos -->
+      <div *ngIf="!cargandoListos && pedidosListos.length > 0" class="carrusel-wrapper-container">
+        <div #carruselContainerListos class="carrusel-container">
+          <div class="carrusel-wrapper" [style.transform]="getTransformListos()">
+            <div *ngFor="let p of pedidosListos; let i = index" class="pedido-slide">
+              <ion-card class="pedido listo">
+                <ion-card-header>
+                  <ion-card-title>REPARTIDOR #{{ p.id }}</ion-card-title>
+                </ion-card-header>
 
-        <ion-card-content>
-          <div class="info">
-            <div>CLIENTE: <strong>{{ p.cliente_email }}</strong></div>
-            <div>FECHA: <strong>{{ p.created_at | date:'dd/MM/yy HH:mm:ss' }}</strong></div>
-            <div>TOTAL: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
-            <div>TIEMPO ESTIMADO: <strong>{{ p.tiempo_estimado }} MINUTOS</strong></div>
-            <div *ngIf="p.direccion_entrega" class="direccion">
-              <ion-icon name="location-outline"></ion-icon>
-              <strong>DIRECCIÓN:</strong> {{ p.direccion_entrega }}
+                <ion-card-content>
+                  <div class="info">
+                    <div class="info-item">
+                      <strong>CLIENTE:</strong> {{ p.cliente_nombre }}
+                    </div>
+                    <div class="info-item">
+                      <strong>FECHA:</strong> {{ obtenerFecha(p.created_at) }}
+                    </div>
+                    <div class="info-item">
+                      <strong>HORARIO:</strong> {{ obtenerHorario(p.created_at) }}
+                    </div>
+                    <div class="info-item">
+                      <strong>TOTAL:</strong> {{ p.total | currency:'ARS':'symbol-narrow' }}
+                    </div>
+                    <div *ngIf="p.direccion_entrega" class="direccion-container">
+                      <div class="direccion-label">DIRECCIÓN:</div>
+                      <div class="direccion">
+                        {{ p.direccion_entrega.toUpperCase() }}
+                      </div>
+                    </div>
+                    <div class="productos-button-container">
+                      <ion-button 
+                        class="btn-productos" 
+                        expand="block"
+                        fill="solid"
+                        (click)="verProductos(p)">
+                        {{ p.cantidad_items }} PRODUCTOS
+                      </ion-button>
+                    </div>
+                  </div>
+
+                  <!-- Botón para asignar a delivery -->
+                  <div class="asignar-button-container">
+                    <ion-button 
+                      class="btn-asignar" 
+                      expand="block" 
+                      fill="solid"
+                      color="primary"
+                      [disabled]="asignandoId === p.id"
+                      (click)="asignarPedidoADelivery(p)">
+                      <ion-spinner *ngIf="asignandoId === p.id" slot="start"></ion-spinner>
+                      <ion-icon *ngIf="asignandoId !== p.id" name="bicycle-outline" slot="start"></ion-icon>
+                      {{ asignandoId === p.id ? 'ASIGNANDO...' : 'ASIGNAR A REPARTIDOR' }}
+                    </ion-button>
+                  </div>
+                </ion-card-content>
+              </ion-card>
             </div>
           </div>
+        </div>
 
-          <!-- Botón para asignar a delivery -->
+        <!-- Controles del carrusel -->
+        <div *ngIf="pedidosListos.length > 1" class="carrusel-controls">
           <ion-button 
-            class="btn-asignar" 
-            expand="block" 
-            fill="solid"
-            color="primary"
-            [disabled]="asignandoId === p.id"
-            (click)="asignarPedidoADelivery(p)">
-            <ion-spinner *ngIf="asignandoId === p.id" slot="start"></ion-spinner>
-            <ion-icon *ngIf="asignandoId !== p.id" name="bicycle-outline" slot="start"></ion-icon>
-            {{ asignandoId === p.id ? 'ASIGNANDO...' : 'ASIGNAR A REPARTIDOR' }}
+            (click)="anteriorListo()" 
+            [disabled]="indiceListoActual === 0"
+            class="btn-nav">
+            <ion-icon name="chevron-back-outline"></ion-icon>
           </ion-button>
-        </ion-card-content>
-      </ion-card>
+          <span class="indicador">{{ indiceListoActual + 1 }} / {{ pedidosListos.length }}</span>
+          <ion-button 
+            (click)="siguienteListo()" 
+            [disabled]="indiceListoActual >= pedidosListos.length - 1"
+            class="btn-nav">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
     </ng-container>
 
   </div>
 </ion-content>
-

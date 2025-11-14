@@ -1,35 +1,178 @@
-// :host { display:block; }
-// .empty{
-//   margin: 24px auto;
-//   text-align: center;
-//   opacity: .8;
-// }
-// ion-avatar img{
-//   object-fit: cover;
-// }
 :host { display: block; }
 
-ion-item {
-  --inner-padding-top: 16px;
-  --inner-padding-bottom: 16px;
+/* Centrar título del navbar */
+ion-header ion-toolbar ion-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.mesas-content {
+  --background: #fbf3e4;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+}
+
+.mesas-header-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.btn-add-mesa {
+  --background: #5d2222;
+  --background-activated: #4a1a1a;
+  --color: #fff;
+  --border-radius: 14px;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --padding-top: 0.8rem;
+  --padding-bottom: 0.8rem;
+  width: 100%;
+  max-width: 420px;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.btn-add-mesa ion-icon {
+  margin-right: 8px;
+  font-size: 1.2rem;
+}
+
+.mesas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 0;
+}
+
+.mesa-card {
+  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(61,43,43,.22), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mesa-card-photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #7b2f2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mesa-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mesa-card-content {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 6px;
+}
+
+.mesa-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 8px;
 }
 
-.row1 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-.row1 .nro {
+.mesa-numero {
+  margin: 0;
+  font-size: 1.7rem;
   font-weight: 700;
+  color: #f3e7da;
+  font-family: "Inter", sans-serif;
+  text-transform: uppercase;
+  line-height: 1.2;
+  text-align: center;
+  width: 100%;
 }
 
-.row2 {
+.mesa-estado-container {
   display: flex;
-  gap: 12px;
-  opacity: .9;
-  font-size: .95rem;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.mesa-estado {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.mesa-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  align-items: center;
+  text-align: center;
+}
+
+.mesa-tipo,
+.mesa-capacidad {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #f3e7da;
+  font-family: "Inter", sans-serif;
+  opacity: 0.9;
+  line-height: 1.4;
+  text-align: center;
+  width: 100%;
+}
+
+.mesa-tipo strong,
+.mesa-capacidad strong {
+  font-weight: 600;
+  color: #ffe9d3;
+}
+
+.mesa-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mesa-card:active {
+  transform: scale(0.98);
+}
+
+.empty {
+  margin: 48px auto;
+  text-align: center;
+  opacity: 0.8;
+  color: #5d2222;
+  font-family: "Inter", sans-serif;
+}
+
+.empty p {
+  margin-bottom: 16px;
+  font-size: 1.1rem;
 }
 
 /* Estilos para el alert personalizado con colores del cartel */

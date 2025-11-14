@@ -1,8 +1,8 @@
 
 // home-cliente.component.ts
-import { Component ,NgZone, OnInit, OnDestroy } from '@angular/core';
+import { Component ,NgZone, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {  IonContent, IonButton, IonIcon, IonHeader, IonToolbar, AlertController
+import {  IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonGrid, IonRow, IonCol, IonTitle, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { qrCodeOutline, albumsOutline, calendarOutline, bicycleOutline, downloadOutline, documentTextOutline } from 'ionicons/icons';
@@ -24,9 +24,10 @@ import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 @Component({
   selector: 'app-home-cliente',
   standalone: true,
-  imports: [CommonModule, IonContent, IonButton, IonIcon, IonHeader, IonToolbar],
+  imports: [CommonModule, IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonGrid, IonRow, IonCol, IonTitle],
   templateUrl: './home-cliente.component.html',
   styleUrls: ['./home-cliente.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class HomeClienteComponent implements OnInit, OnDestroy {
   email$!: Observable<string | null>;
@@ -35,6 +36,7 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
   loadingLiberar = false;
   esClienteRegistrado = false;
   facturaUrl: string | null = null; // URL de la factura cuando llega la notificación
+  nombreCliente: string = ''; // Nombre del cliente para mostrar en el navbar
   private facturaSubscription?: Subscription;
 
   constructor(
@@ -63,6 +65,9 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     console.log('🔍 [HomeCliente] Llamando a verificarTipoCliente...');
     await this.verificarTipoCliente();
     console.log('✅ [HomeCliente] verificarTipoCliente completado');
+    
+    // Cargar nombre del cliente
+    await this.cargarNombreCliente();
     
     try {
       // Iniciar el servicio de notificaciones para cliente
@@ -479,7 +484,7 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
           message: 'AÚN NO TIENES UNA MESA ASIGNADA.\n\nPOR FAVOR ESPERA A QUE EL MAÎTRE TE ASIGNE UNA MESA',
           buttons: [
             {
-              text: 'CONFIRMAR',
+              text: '✓',
               cssClass: 'alert-button-confirm'
             }
           ],
@@ -697,6 +702,58 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('❌ Error al verificar tipo de cliente:', error);
       this.esClienteRegistrado = false;
+    }
+  }
+
+  /**
+   * Carga el nombre del cliente (registrado o anónimo)
+   */
+  async cargarNombreCliente() {
+    try {
+      // Esperar a que el perfil esté cargado para tener datos de sesión disponibles
+      await this.esperarPerfilCargado();
+      
+      const userId = this.supa.idUsuario;
+      if (!userId) {
+        console.warn('[HomeCliente] No hay usuario logueado, no se puede cargar nombre');
+        this.nombreCliente = '';
+        return;
+      }
+
+      // Para clientes registrados, usar datos de sesión
+      if (this.esClienteRegistrado && this.sesion.usuarioBD) {
+        const nombres = this.sesion.usuarioBD.nombres || '';
+        const apellidos = this.sesion.usuarioBD.apellidos || '';
+        this.nombreCliente = `${nombres} ${apellidos}`.trim() || this.sesion.usuarioBD.email || 'Cliente';
+        console.log('[HomeCliente] Nombre cargado desde sesión:', this.nombreCliente);
+        return;
+      }
+
+      // Para clientes anónimos o si no hay datos en sesión, consultar BD
+      const { data: usuario, error } = await this.supa.client
+        .from('usuarios')
+        .select('nombres, apellidos, email')
+        .eq('auth_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[HomeCliente] Error al obtener nombre del cliente:', error);
+        this.nombreCliente = 'Cliente';
+        return;
+      }
+
+      if (usuario) {
+        const nombres = usuario.nombres || '';
+        const apellidos = usuario.apellidos || '';
+        this.nombreCliente = `${nombres} ${apellidos}`.trim() || usuario.email || 'Cliente';
+        console.log('[HomeCliente] Nombre cargado desde BD:', this.nombreCliente);
+      } else {
+        this.nombreCliente = 'Cliente';
+        console.log('[HomeCliente] No se encontró usuario, usando "Cliente" por defecto');
+      }
+    } catch (error) {
+      console.error('[HomeCliente] Error al cargar nombre del cliente:', error);
+      this.nombreCliente = 'Cliente';
     }
   }
 

@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar style="--background: #5d2222; --color: #fff;">
+    <ion-title style="text-align: center; font-weight: 700; text-transform: uppercase;">DELIVERY</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="delivery-content">
+  <ion-grid class="delivery-grid">
+    <ion-row class="delivery-row">
+      <ion-col size="12" sizeMd="12" sizeLg="12">
+        <ion-button expand="block" size="large" color="success" (click)="irAPedidosRepartidor()" class="delivery-button">
+          <ion-icon slot="start" name="bicycle-outline"></ion-icon>
+          PEDIDOS DE REPARTIDOR
+        </ion-button>
+      </ion-col>
+      <ion-col size="12" sizeMd="12" sizeLg="12">
+        <ion-button expand="block" size="large" color="warning" (click)="irAConfirmarPagos()" class="delivery-button">
+          <ion-icon slot="start" name="receipt-outline"></ion-icon>
+          CONFIRMAR PAGOS
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+

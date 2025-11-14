@@ -91,10 +91,9 @@
                 [disabled]="pedido.estado === 'listo para entregar' || estaSectorListo(pedido) || estaProcesando(pedido.id)">
                 <ion-spinner *ngIf="estaProcesando(pedido.id)" name="crescent"></ion-spinner>
                 <span *ngIf="!estaProcesando(pedido.id)">
-                  {{ pedido.estado === 'pedido en curso' ? 'ACEPTAR PRODUCTOS' : 
-                     pedido.estado === 'en preparación' ? 'LISTO PARA ENTREGAR' : 
-                     pedido.estado === 'en preparación parcial' ? 'LISTO PARA ENTREGAR' : 
-                     pedido.estado === 'listo para entregar' ? 'LISTO PARA ENTREGAR' : 'ACEPTAR PRODUCTOS' }}
+                  {{ (!pedido.estado_sector_cocina || pedido.estado_sector_cocina === null) ? 'ACEPTAR PRODUCTOS' : 
+                     pedido.estado_sector_cocina === 'en preparación' ? 'LISTO PARA ENTREGAR' : 
+                     pedido.estado_sector_cocina === 'listo para entregar' ? 'LISTO PARA ENTREGAR' : 'ACEPTAR PRODUCTOS' }}
                 </span>
               </ion-button>
             </ion-card>

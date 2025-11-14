@@ -29,6 +29,254 @@
 /* Leaflet CSS for maps */
 @import "leaflet/dist/leaflet.css";
 
+/* Centrar inputs de número en alta-mesa */
+.item-capacidad input[type="number"],
+.item-capacidad ion-input input[type="number"],
+.item-capacidad ion-input::part(native) input {
+  text-align: center !important;
+  text-align-last: center !important;
+  direction: ltr !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* Estilos para alertas de opciones en mesas */
+.alert-wrapper.mesas-alert-options {
+  .alert-head {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+    padding: 28px 20px 20px 20px !important;
+    color: #000000 !important;
+  }
+
+  .alert-message {
+    display: none !important;
+  }
+
+  .alert-button-group {
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px !important;
+    gap: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .alert-button {
+    flex: 1 1 50% !important;
+    width: calc(50% - 7.5px) !important;
+    min-width: calc(50% - 7.5px) !important;
+    max-width: calc(50% - 7.5px) !important;
+    height: 150px !important;
+    min-height: 150px !important;
+    font-size: 80px !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
+    border-radius: 16px !important;
+    margin: 0 !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: 0 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .mesas-alert-btn-edit.alert-button {
+    --background: #28a745 !important;
+    --background-activated: #218838 !important;
+    --background-hover: #218838 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    border: 4px solid #1e7e34 !important;
+  }
+
+  .mesas-alert-btn-delete.alert-button {
+    --background: #dc3545 !important;
+    --background-activated: #c82333 !important;
+    --background-hover: #c82333 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    border: 4px solid #bd2130 !important;
+  }
+
+  .alert-button:active {
+    transform: scale(0.95) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  }
+}
+
+/* Estilos para alertas de confirmación en mesas */
+.alert-wrapper.mesas-alert-confirm {
+  .alert-head {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+    padding: 28px 20px 20px 20px !important;
+    color: #000000 !important;
+  }
+
+  .alert-message {
+    display: none !important;
+  }
+
+  .alert-button-group {
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px !important;
+    gap: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .alert-button {
+    flex: 1 1 50% !important;
+    width: calc(50% - 7.5px) !important;
+    min-width: calc(50% - 7.5px) !important;
+    max-width: calc(50% - 7.5px) !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    font-size: 64px !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
+    border-radius: 12px !important;
+    margin: 0 !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: 0 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .mesas-alert-btn-cancel.alert-button {
+    --background: #dc3545 !important;
+    --background-activated: #c82333 !important;
+    --background-hover: #c82333 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    border: 4px solid #bd2130 !important;
+    font-size: 64px !important;
+    font-weight: 700 !important;
+  }
+
+  .mesas-alert-btn-confirm.alert-button {
+    --background: #28a745 !important;
+    --background-activated: #218838 !important;
+    --background-hover: #218838 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    border: 4px solid #1e7e34 !important;
+    font-size: 64px !important;
+    font-weight: 700 !important;
+  }
+
+  .alert-button:active {
+    transform: scale(0.95) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  }
+}
+
+/* Estilos para alertas de confirmación en pendientes */
+.alert-wrapper.pend-alert-confirm {
+  .alert-head {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+    padding: 28px 20px 20px 20px !important;
+    color: #000000 !important;
+  }
+
+  .alert-message {
+    display: none !important;
+  }
+
+  .alert-button-group {
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px !important;
+    gap: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .alert-button {
+    flex: 1 1 50% !important;
+    width: calc(50% - 7.5px) !important;
+    min-width: calc(50% - 7.5px) !important;
+    max-width: calc(50% - 7.5px) !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    font-size: 64px !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
+    border-radius: 12px !important;
+    margin: 0 !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: 0 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .pend-alert-btn-cancel.alert-button {
+    --background: #dc3545 !important;
+    --background-activated: #c82333 !important;
+    --background-hover: #c82333 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    border: 4px solid #bd2130 !important;
+    font-size: 64px !important;
+    font-weight: 700 !important;
+  }
+
+  .pend-alert-btn-confirm.alert-button {
+    --background: #28a745 !important;
+    --background-activated: #218838 !important;
+    --background-hover: #218838 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    border: 4px solid #1e7e34 !important;
+    font-size: 64px !important;
+    font-weight: 700 !important;
+  }
+
+  .pend-alert-btn-reject.alert-button {
+    --background: #dc3545 !important;
+    --background-activated: #c82333 !important;
+    --background-hover: #c82333 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    border: 4px solid #bd2130 !important;
+    font-size: 64px !important;
+    font-weight: 700 !important;
+  }
+
+  .alert-button:active {
+    transform: scale(0.95) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  }
+}
+
 
 /**
  * Ionic Dark Mode

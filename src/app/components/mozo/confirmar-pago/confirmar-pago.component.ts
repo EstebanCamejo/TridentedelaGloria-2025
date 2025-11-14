@@ -5,10 +5,10 @@ import { Router } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonCardSubtitle, IonIcon, IonLoading, IonRefresher, IonRefresherContent
+  IonIcon, IonLoading, IonRefresher, IonRefresherContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkCircleOutline, timeOutline, receiptOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, timeOutline, receiptOutline, restaurantOutline } from 'ionicons/icons';
 import { ToastrService } from 'ngx-toastr';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
@@ -44,7 +44,7 @@ interface PagoPendiente {
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonButton, IonCard, IonCardContent,
-    IonCardHeader, IonCardTitle, IonCardSubtitle, IonIcon, IonLoading,
+    IonCardHeader, IonCardTitle, IonIcon, IonLoading,
     IonRefresher, IonRefresherContent
   ]
 })
@@ -60,7 +60,7 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
     private router: Router,
     private mozoRt: MozoRealtimeService
   ) {
-    addIcons({ checkmarkCircleOutline, timeOutline, receiptOutline });
+    addIcons({ checkmarkCircleOutline, timeOutline, receiptOutline, restaurantOutline });
   }
 
   async ngOnInit() {

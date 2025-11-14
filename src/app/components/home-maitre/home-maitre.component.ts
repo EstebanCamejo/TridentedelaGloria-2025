@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonContent,
-  IonButton, IonIcon
+  IonButton, IonIcon, IonGrid, IonRow, IonCol, IonTitle
 } from '@ionic/angular/standalone';
 import { RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';
@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
   imports: [
     CommonModule, RouterLink,
     IonHeader, IonToolbar, IonContent,
-    IonButton, IonIcon
+    IonButton, IonIcon, IonGrid, IonRow, IonCol, IonTitle
   ],
   templateUrl: './home-maitre.component.html',
 })

@@ -339,102 +339,53 @@
   font-style: italic;
   margin-top: 0.5rem;
 }
-/* === ActionSheet claro con acentos bordó === */
-.mesa-sheet-light{
-  --background:#ffffff;
-  --ion-color-step-850:#ffffff;
-  --ion-color-step-900:#ffffff;
-  --ion-text-color:#2c2222;
-}
-
-.mesa-sheet-light .action-sheet-title{ color:#2c2222; font-weight:700; }
-.mesa-sheet-light .action-sheet-sub-title{ color:#4a3a3a; }
-
-.mesa-sheet-light .action-sheet-group{
-  background:#fff;
-  border-top: 1px solid #eee4d5;
-}
-
-/* filas “Mesa N” en bordó */
-.mesa-sheet-light .action-sheet-button{
-  color:#5d2222;
-  font-weight:600;
-  border-bottom:1px solid #f0e6d8;
-}
-
-/* Cancelar gris oscuro o rojo: elegí uno */
-.mesa-sheet-light .action-sheet-cancel{
-  background:#5d2222;   /* ← ponelo en gris #f5f0e6 si querés neutro */
-  color:#fbf3e4;
-  font-weight:700;
-}
-.mesa-sheet-light .action-sheet-cancel .button-inner{ justify-content:center; }
-
-/* === ActionSheet oscuro para asignar mesa === */
-.mesa-sheet-dark {
-  --background: rgba(0, 0, 0, 0.95);
-  --ion-text-color: #ffffff;
-}
-
-.mesa-sheet-dark .action-sheet-title {
-  color: #ffffff;
-  font-weight: 800;
-  font-size: 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.mesa-sheet-dark .action-sheet-header {
-  position: relative !important;
-  padding: 20px 50px 16px 16px !important;
-  min-height: 60px;
-}
-
-.mesa-close-btn {
-  position: absolute !important;
-  top: 8px !important;
-  right: 8px !important;
-  width: 44px !important;
-  height: 44px !important;
-  background: rgba(255, 255, 255, 0.15) !important;
-  border: 2px solid rgba(255, 255, 255, 0.4) !important;
-  border-radius: 50% !important;
-  color: #ffffff !important;
-  font-size: 28px !important;
-  font-weight: bold !important;
-  cursor: pointer !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 1000 !important;
-  transition: all 0.2s ease !important;
-}
-
-.mesa-close-btn:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  transform: scale(1.1) !important;
-}
-
-.mesa-close-btn:active {
-  transform: scale(0.95) !important;
-}
-
-.mesa-sheet-dark .action-sheet-group {
-  background: rgba(0, 0, 0, 0.95);
-}
-
-/* Agrandar letras de las mesas */
-.mesa-sheet-dark .action-sheet-button.mesa-item {
-  color: #ffffff !important;
-  font-size: 1.4rem !important;
-  font-weight: 700 !important;
-  padding: 20px 16px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 1px !important;
-}
-
-.mesa-sheet-dark .action-sheet-button.mesa-item ion-icon {
-  font-size: 1.6em !important;
-  margin-inline-end: 12px !important;
+/* === ActionSheet de Mesas (igual que admin/reservas) === */
+::ng-deep .mesas-action-sheet {
+  .action-sheet-container {
+    .action-sheet-group {
+      // Ocultar header y subHeader si existen
+      .action-sheet-title {
+        display: none !important;
+      }
+      
+      .action-sheet-sub-title {
+        display: none !important;
+      }
+      
+      .action-sheet-button {
+        font-size: 1.3rem !important;
+        font-weight: 600 !important;
+        min-height: 56px !important;
+        padding: 16px 20px !important;
+        
+        // Botón de cerrar (X) - arriba
+        &.close-button {
+          order: -1; // Mover al inicio
+          justify-content: center !important;
+          align-items: center !important;
+          min-height: 48px !important;
+          padding: 12px !important;
+          border-bottom: 2px solid rgba(0, 0, 0, 0.1) !important;
+            
+          ion-icon {
+            font-size: 2rem !important;
+            color: #dc3545 !important;
+          }
+        }
+        
+        // Botones de mesas
+        &.mesa-button {
+          font-size: 1.4rem !important;
+          font-weight: 700 !important;
+          text-align: left !important;
+          padding: 18px 24px !important;
+          
+          ion-icon {
+            font-size: 1.8rem !important;
+            margin-right: 12px !important;
+          }
+        }
+      }
+    }
+  }
 }

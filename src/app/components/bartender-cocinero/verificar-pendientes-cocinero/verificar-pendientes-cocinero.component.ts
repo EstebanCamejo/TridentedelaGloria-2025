@@ -72,8 +72,11 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
       this.pedidosProcesando.add(pedido.id);
       this.spinner.show({ immediate: true, minMs: 500 });
       
-      // Si el pedido está en 'pedido en curso', cambiar a 'en preparación'
-      if (pedido.estado === 'pedido en curso') {
+      // ✅ CORRECCIÓN: Usar estado_sector_cocina en lugar de pedido.estado para decidir la acción
+      const estadoSectorCocina = pedido.estado_sector_cocina || null;
+      
+      // CASO 1: Pedido aún no aceptado por el cocinero (estado_sector_cocina es NULL)
+      if (!estadoSectorCocina || estadoSectorCocina === null) {
         // Verificar si es un pedido multi-sector
         const esMultiSector = await this.verificarSiEsMultiSector(pedido.id);
         
@@ -97,18 +100,18 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
             'cocina'
           );
 
-            // Actualizar la lista local
-            const pedidoIndex = this.pedidosPendientes.findIndex(p => p.id === pedido.id);
-            if (pedidoIndex !== -1) {
-              this.pedidosPendientes[pedidoIndex].estado = 'en preparación';
-              this.pedidosPendientes[pedidoIndex].estado_sector_cocina = 'en preparación';
-            }
-            // Recargar pedidos para actualizar las listas
-            await this.cargarPedidos();
+          // Actualizar la lista local
+          const pedidoIndex = this.pedidosPendientes.findIndex(p => p.id === pedido.id);
+          if (pedidoIndex !== -1) {
+            this.pedidosPendientes[pedidoIndex].estado = 'en preparación';
+            this.pedidosPendientes[pedidoIndex].estado_sector_cocina = 'en preparación';
+          }
+          // Recargar pedidos para actualizar las listas
+          await this.cargarPedidos();
         }
       }
-      // Si el pedido está en 'en preparación' o 'en preparación parcial', cambiar a 'listo para entregar'
-      else if (pedido.estado === 'en preparación' || pedido.estado === 'en preparación parcial') {
+      // CASO 2: Pedido en preparación (estado_sector_cocina = 'en preparación')
+      else if (estadoSectorCocina === 'en preparación') {
         // Verificar si es un pedido multi-sector
         const esMultiSector = await this.verificarSiEsMultiSector(pedido.id);
         
@@ -117,6 +120,7 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
           const todosLosSectoresListos = await this.verificarTodosLosSectoresListos(pedido.id);
           
           if (todosLosSectoresListos) {
+            // Todos los sectores están listos, cambiar estado general y sector
             await this.service.actualizarEstadoPedido(
               pedido.id, 
               'listo para entregar', 
@@ -126,8 +130,8 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
 
             await this.verificarPedido(pedido.id);
 
-          // Recargar pedidos (el pedido se eliminará de la vista porque el flujo normal lo maneja)
-          await this.cargarPedidos();
+            // Recargar pedidos (el pedido se eliminará de la vista porque el flujo normal lo maneja)
+            await this.cargarPedidos();
           } else {
             // Marcar este sector como listo y verificar si ahora todos están listos
             await this.service.actualizarEstadoPedido(
@@ -173,6 +177,8 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
           await this.cargarPedidos();
         }
       }
+      // CASO 3: Pedido ya está listo (estado_sector_cocina = 'listo para entregar')
+      // No hacer nada, el pedido ya está listo
 
     } catch (error) {
       console.error('Error al procesar el pedido:', error);
@@ -222,17 +228,17 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
   async cargarPedidos() {
     const todosLosPedidos = await this.service.obtenerPedidosCocina();
     // Separar pedidos en pendientes y listos
-    // PENDIENTES: solo "pedido en curso"
+    // 🆕 PENDIENTES: pedidos donde estado_sector_cocina es NULL (aún no aceptados por cocina)
     this.pedidosPendientes = todosLosPedidos.filter(pedido => 
-      pedido.estado === 'pedido en curso'
+      !pedido.estado_sector_cocina || pedido.estado_sector_cocina === null
     );
-    // LISTOS: "listo para entregar" y "en preparación"
+    // 🆕 LISTOS: pedidos donde estado_sector_cocina está en 'en preparación' o 'listo para entregar'
     this.pedidosListos = todosLosPedidos.filter(pedido => 
-      pedido.estado === 'listo para entregar' || 
-      pedido.estado === 'en preparación'
+      pedido.estado_sector_cocina === 'en preparación' || 
+      pedido.estado_sector_cocina === 'listo para entregar'
     );
-    console.log('✅ Pedidos pendientes:', this.pedidosPendientes);
-    console.log('✅ Pedidos listos:', this.pedidosListos);
+    console.log('✅ Pedidos pendientes (cocina):', this.pedidosPendientes);
+    console.log('✅ Pedidos listos (cocina):', this.pedidosListos);
   }
 
   async handleRefresh(ev: CustomEvent) {

@@ -1,285 +1,116 @@
-<!-- <ion-header>
-  <ion-toolbar>
-    <ion-title>Clientes pendientes</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true">
-
-  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content
-      pullingIcon="refresh"
-      pullingText="Deslizá para actualizar"
-      refreshingSpinner="lines"
-      refreshingText="Actualizando...">
-    </ion-refresher-content>
-  </ion-refresher>
-
-
-  <ion-searchbar
-    placeholder="Buscar por nombre o email"
-    (ionInput)="onSearchChange($event)"
-    debounce="300">
-  </ion-searchbar>
-
-
-  <ion-list *ngIf="!loading && filtered.length; else estado">
-    <ion-item *ngFor="let it of filtered; trackBy: trackById">
-      <ion-avatar slot="start">
-        <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
-      </ion-avatar>
-
-      <ion-label>
-        <h2>{{ it.nombres }} {{ it.apellidos }}</h2>
-        <p class="email">{{ it.email }}</p>
-        <div class="meta">
-          <ion-badge color="medium">pendiente</ion-badge>
-          <small>Creado: {{ it.created_at | date:'short' }}</small>
-        </div>
-      </ion-label>
-
-      <ion-button
-        fill="clear"
-        color="success"
-        [disabled]="loading || actionBusyId === it.id"
-        (click)="confirmarAprobacion(it)"
-        aria-label="Aprobar">
-        <ion-icon name="checkmark-circle" slot="icon-only"></ion-icon>
-      </ion-button>
-
-      <ion-button
-        fill="clear"
-        color="danger"
-        [disabled]="loading || actionBusyId === it.id"
-        (click)="confirmarRechazo(it)"
-        aria-label="Rechazar">
-        <ion-icon name="close-circle" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-item>
-  </ion-list>
-
-  <ng-template #estado>
-    <div class="estado-ctr">
-      <ng-container *ngIf="loading; else vacio">
-        <p>CARGANDO PENDIENTES…</p>
-      </ng-container>
-      <ng-template #vacio>
-        <p>NO HAY CLIENTES EN ESPERA</p>
-        <ion-button size="small" (click)="load()">REFRESCAR</ion-button>
-      </ng-template>
+<ion-header class="client-header" style="background: #5d2222 !important; color: #ffffff !important; --background: #5d2222 !important; --color: #ffffff !important;">
+  <ion-toolbar style="--background: #5d2222 !important; --color: #ffffff !important; background: #5d2222 !important; color: #ffffff !important;">
+    <div class="nav-pill title-large" style="background: #5d2222 !important; color: #ffffff !important;">
+      CLIENTES PENDIENTES
     </div>
-  </ng-template>
-</ion-content> -->
-
-
-
-<!-- 
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Clientes pendientes</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
- 
-  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content
-      pullingIcon="refresh"
-      pullingText="Deslizá para actualizar"
-      refreshingSpinner="lines"
-      refreshingText="Actualizando...">
-    </ion-refresher-content>
-  </ion-refresher>
-
- 
-  <ion-searchbar
-    placeholder="Buscar por nombre o email"
-    (ionInput)="search($event.detail?.value || '')"
-    debounce="300">
-  </ion-searchbar>
-
-  
-  <ion-list *ngIf="!loading && filtered.length; else estado">
- 
-    <ion-item *ngFor="let it of filtered">
-      <ion-avatar slot="start">
-        <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
-      </ion-avatar>
-
-      <ion-label>
-        <h2>{{ it.nombres }} {{ it.apellidos }}</h2>
-        <p class="email">{{ it.email }}</p>
-        <div class="meta">
-          <ion-badge color="medium">pendiente</ion-badge>
-          <small>Creado: {{ it.created_at | date:'short' }}</small>
-        </div>
-      </ion-label>
-
-   
-    <ion-button
-      fill="clear"
-      color="success"
-      [disabled]="loading || loadingId === it.id"
-      (click)="confirmarAprobacion(it)"
-      [attr.aria-busy]="loadingId === it.id ? 'true' : null"
-      aria-label="Aprobar">
-      <ng-container *ngIf="loadingId === it.id; else approveIcon">
-        <ion-spinner slot="icon-only"></ion-spinner>
-      </ng-container>
-      <ng-template #approveIcon>
-        <ion-icon name="checkmark-circle" slot="icon-only"></ion-icon>
-      </ng-template>
-    </ion-button>
-
-   
-    <ion-button
-      fill="clear"
-      color="danger"
-      [disabled]="loading || loadingId === it.id"
-      (click)="confirmarRechazo(it)"
-      [attr.aria-busy]="loadingId === it.id ? 'true' : null"
-      aria-label="Rechazar">
-      <ng-container *ngIf="loadingId === it.id; else rejectIcon">
-        <ion-spinner slot="icon-only"></ion-spinner>
-      </ng-container>
-      <ng-template #rejectIcon>
-        <ion-icon name="close-circle" slot="icon-only"></ion-icon>
-      </ng-template>
-    </ion-button>
-
-    </ion-item>
-  </ion-list>
-
-
-  <ng-template #estado>
-    <div class="estado-ctr">
-      <ng-container *ngIf="loading; else vacio">
-        <p>CARGANDO PENDIENTES…</p>
-      </ng-container>
-      <ng-template #vacio>
-        <p>NO HAY CLIENTES EN ESPERA</p>
-        <ion-button size="small" (click)="load()">REFRESCAR</ion-button>
-      </ng-template>
-    </div>
-  </ng-template>
-</ion-content> -->
-
-<ion-header>
-  <ion-toolbar style="--background:#5d2222; --color:#fff">
-    <ion-title>CLIENTES PENDIENTES</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="pend-content" [fullscreen]="true">
-  <!-- Pull to refresh -->
-  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content
-      pullingIcon="refresh"
-      pullingText="DESLIZÁ PARA ACTUALIZAR"
-      refreshingSpinner="lines"
-      refreshingText="ACTUALIZANDO...">
-    </ion-refresher-content>
-  </ion-refresher>
-
-  <!-- Search (sticky bajo el header) -->
-<ion-searchbar
-  class="pend-search search--maroon"   
-  mode="md"                          
-  placeholder="BUSCAR POR NOMBRE O CORREO"
-  (ionInput)="search($event.detail.value || '')"
-  debounce="300">
-</ion-searchbar>
-  <!-- Lista -->
-  <ion-list class="pend-list" *ngIf="!loading && filtered.length; else estado">
-    <ion-item class="pend-item" *ngFor="let it of filtered">
-      <ion-avatar slot="start">
-        <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" />
-      </ion-avatar>
-
-<ion-label>
-  <h2 class="name">{{ it.nombres }} {{ it.apellidos }}</h2>
-  <p class="email">{{ it.email }}</p>
-  <div class="meta">
-    <ion-badge color="medium">PENDIENTE</ion-badge>
-    <br>
-    <small>{{ it.created_at | date:'short' }}</small>
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="pend-search-container" *ngIf="!loading && filtered.length">
+    <ion-searchbar
+      [(ngModel)]="searchQuery"
+      (ionInput)="search($event.detail.value)"
+      placeholder="Buscar usuario"
+      class="pend-searchbar">
+    </ion-searchbar>
   </div>
-</ion-label>
 
+  <div class="waitlist-container" *ngIf="!loading && filtered.length; else estado" style="display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: space-between !important; max-width: 800px !important; margin: 0 auto !important; padding: 16px !important; width: 100% !important; height: calc(100vh - 240px) !important; position: relative !important; gap: 8px !important;">
+      <swiper-container
+        #swiperPendientes
+        class="waitlist-swiper"
+        style="width: 100% !important; flex: 1 !important; padding-bottom: 0 !important; display: flex !important; justify-content: center !important; align-items: center !important; min-height: 0 !important;"
+        slides-per-view="1"
+        space-between="20"
+        centered-slides="true"
+        pagination="false"
+        navigation="false"
+        speed="300"
+        (swiperslidechange)="onSlideChange($event)">
+        <swiper-slide *ngFor="let it of filtered; trackBy: trackById">
+          <ion-card class="pend-card" style="background: rgba(0,0,0,.86) !important; border: 1px solid rgba(255,255,255,.06) !important; border-radius: 20px !important; overflow: hidden !important; box-shadow: 0 12px 28px rgba(0,0,0,.25) !important; height: 100% !important; max-height: 100% !important; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; margin: 0 !important; width: 100% !important; min-height: 0 !important; flex: 1 1 auto !important;">
+            <!-- Cuerpo: avatar + nombre -->
+            <div class="pend-body" style="display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 24px !important; padding: 40px 24px !important; flex: 1 1 auto !important; min-height: 0 !important; overflow: hidden !important;">
+              <ion-avatar class="pend-avatar" style="--size: 300px !important; width: 300px !important; height: 300px !important; --border-radius: 0 !important; border: 4px solid rgba(255,255,255,.2) !important; border-radius: 0 !important; overflow: hidden !important; box-shadow: 0 8px 24px rgba(0,0,0,.4) !important; aspect-ratio: 1 / 1 !important;">
+                <img [src]="it.foto_url || 'assets/imagenes/agregar-usuario.png'" alt="foto" style="width: 100% !important; height: 100% !important; object-fit: cover !important; object-position: center !important; border-radius: 0 !important; aspect-ratio: 1 / 1 !important;" />
+              </ion-avatar>
+              <div class="pend-info" style="min-width: 0 !important; text-align: center !important;">
+                <h3 class="pend-name" style="margin: 0 !important; color: #fff !important; font-size: 1.8rem !important; line-height: 1.2 !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 1px !important;">{{ (it.nombres + ' ' + it.apellidos).toUpperCase() }}</h3>
+              </div>
+            </div>
 
-<!-- <ion-button class="action-btn" fill="clear" color="success"
-  [disabled]="loading || loadingId === it.id"
-  (click)="confirmarAprobacion(it)" aria-label="Aprobar">
-  <ng-container *ngIf="loadingId === it.id; else approveIcon">
-    <ion-spinner slot="icon-only"></ion-spinner>
-  </ng-container>
-  <ng-template #approveIcon>
-    <ion-icon name="checkmark-circle" slot="icon-only"></ion-icon>
-  </ng-template>
-</ion-button>
+            <!-- Fecha -->
+            <div class="pend-date-section" style="padding: 0 24px 20px 24px !important; flex-shrink: 0 !important;">
+              <div class="pend-date-box" style="background: rgba(93, 34, 34, 0.8) !important; border-radius: 10px !important; padding: 16px 20px !important; display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important;">
+                <p class="pend-date" style="margin: 0 !important; padding: 0 !important; font-size: 1.6rem !important; font-weight: 700 !important; color: #ffffff !important; text-align: center !important; text-transform: uppercase !important; width: 100% !important; line-height: 1.4 !important; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important; letter-spacing: 1px !important; box-sizing: border-box !important;">{{ it.created_at | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </div>
 
-<ion-button class="action-btn" fill="clear" color="danger"
-  [disabled]="loading || loadingId === it.id"
-  (click)="confirmarRechazo(it)" aria-label="Rechazar">
-  <ng-container *ngIf="loadingId === it.id; else rejectIcon">
-    <ion-spinner slot="icon-only"></ion-spinner>
-  </ng-container>
-  <ng-template #rejectIcon>
-    <ion-icon name="close-circle" slot="icon-only"></ion-icon>
-  </ng-template>
-</ion-button> -->
+            <!-- Zona de acción: Botones APROBAR/RECHAZAR -->
+            <div class="pend-actions" style="padding: 12px 16px 20px 16px !important; background: rgba(255,255,255,.02) !important; border-top: 1px solid rgba(255,255,255,.06) !important; display: flex !important; gap: 16px !important; flex-shrink: 0 !important; align-items: center !important; justify-content: center !important; width: 100% !important; box-sizing: border-box !important; margin-top: 0 !important;">
+              <ion-button
+                expand="block"
+                color="danger"
+                [disabled]="loading || loadingId === it.id"
+                (click)="confirmarRechazo(it)"
+                class="pend-btn"
+                style="flex: 1 1 50% !important; --border-radius: 16px !important; --ripple-color: rgba(251,243,228,.35) !important; height: 64px !important; font-size: 1rem !important; font-weight: 700 !important; box-shadow: 0 6px 16px rgba(93,34,34,.35) !important; text-transform: uppercase !important; margin: 0 !important; min-width: 0 !important; max-width: calc(50% - 8px) !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;">
+                <ng-container *ngIf="loadingId === it.id; else rejectIcon">
+                  <ion-spinner slot="start"></ion-spinner>
+                  <span>RECHAZANDO...</span>
+                </ng-container>
+                <ng-template #rejectIcon>
+                  <ion-icon name="close-circle" slot="start"></ion-icon>
+                  <span>RECHAZAR</span>
+                </ng-template>
+              </ion-button>
 
-<!-- Aprobar (XL) -->
-<ion-button
-  slot="end"
-  fill="clear"
-  color="success"
-  [disabled]="loading || loadingId === it.id"
-  (click)="confirmarAprobacion(it)"
-  aria-label="Aprobar"
-  style="
-    --padding-start:18px; --padding-end:18px;
-    --padding-top:16px; --padding-bottom:16px;
-    --border-radius:16px;
-    margin-inline-start:8px;
-  ">
-  <ng-container *ngIf="loadingId === it.id; else approveIcon">
-    <ion-spinner slot="icon-only" style="width:34px; height:34px;"></ion-spinner>
-  </ng-container>
-  <ng-template #approveIcon>
-    <ion-icon name="checkmark-circle" slot="icon-only" style="font-size:36px;"></ion-icon>
-  </ng-template>
-</ion-button>
-
-<!-- Rechazar (XL) -->
-<ion-button
-  slot="end"
-  fill="clear"
-  color="danger"
-  [disabled]="loading || loadingId === it.id"
-  (click)="confirmarRechazo(it)"
-  aria-label="Rechazar"
-  style="
-    --padding-start:18px; --padding-end:18px;
-    --padding-top:16px; --padding-bottom:16px;
-    --border-radius:16px;
-    margin-inline-start:6px;
-  ">
-  <ng-container *ngIf="loadingId === it.id; else rejectIcon">
-    <ion-spinner slot="icon-only" style="width:34px; height:34px;"></ion-spinner>
-  </ng-container>
-  <ng-template #rejectIcon>
-    <ion-icon name="close-circle" slot="icon-only" style="font-size:36px;"></ion-icon>
-  </ng-template>
-</ion-button>
-
-
-
-    </ion-item>
-  </ion-list>
+              <ion-button
+                expand="block"
+                color="success"
+                [disabled]="loading || loadingId === it.id"
+                (click)="confirmarAprobacion(it)"
+                class="pend-btn"
+                style="flex: 1 1 50% !important; --border-radius: 16px !important; --ripple-color: rgba(251,243,228,.35) !important; height: 64px !important; font-size: 1rem !important; font-weight: 700 !important; box-shadow: 0 6px 16px rgba(93,34,34,.35) !important; text-transform: uppercase !important; margin: 0 !important; min-width: 0 !important; max-width: calc(50% - 8px) !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;">
+                <ng-container *ngIf="loadingId === it.id; else approveIcon">
+                  <ion-spinner slot="start"></ion-spinner>
+                  <span>APROBANDO...</span>
+                </ng-container>
+                <ng-template #approveIcon>
+                  <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+                  <span>APROBAR</span>
+                </ng-template>
+              </ion-button>
+            </div>
+          </ion-card>
+        </swiper-slide>
+      </swiper-container>
+      
+      <!-- Paginación personalizada -->
+      <div *ngIf="filtered.length > 0" class="custom-pagination" style="display: flex !important; align-items: center !important; justify-content: center !important; gap: 16px !important; padding: 16px 24px !important; background: #5d2222 !important; border-radius: 12px !important; margin-top: 4px !important; width: fit-content !important; margin-left: auto !important; margin-right: auto !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important; flex-shrink: 0 !important;">
+        <button 
+          class="pagination-btn"
+          (click)="goToPrevious(swiperPendientes)"
+          [disabled]="currentSlide === 0"
+          style="width: 50px !important; height: 50px !important; display: flex !important; align-items: center !important; justify-content: center !important; background: #5d2222 !important; border: 2px solid rgba(255,255,255,.3) !important; border-radius: 50% !important; color: #ffffff !important; cursor: pointer !important; transition: all 0.3s ease !important; padding: 0 !important;">
+          <ion-icon name="chevron-back-outline" style="font-size: 28px !important; color: #ffffff !important;"></ion-icon>
+        </button>
+        <div class="pagination-counter" style="background: #5d2222 !important; color: #ffffff !important; padding: 12px 20px !important; border-radius: 8px !important; font-size: 18px !important; font-weight: 700 !important; min-width: 80px !important; text-align: center !important; font-family: 'Inter', sans-serif !important; border: 2px solid rgba(255,255,255,.3) !important;">
+          {{ currentSlide + 1 }}/{{ filtered.length }}
+        </div>
+        <button 
+          class="pagination-btn"
+          (click)="goToNext(swiperPendientes)"
+          [disabled]="currentSlide === filtered.length - 1"
+          style="width: 50px !important; height: 50px !important; display: flex !important; align-items: center !important; justify-content: center !important; background: #5d2222 !important; border: 2px solid rgba(255,255,255,.3) !important; border-radius: 50% !important; color: #ffffff !important; cursor: pointer !important; transition: all 0.3s ease !important; padding: 0 !important;">
+          <ion-icon name="chevron-forward-outline" style="font-size: 28px !important; color: #ffffff !important;"></ion-icon>
+        </button>
+      </div>
+  </div>
 
   <ng-template #estado>
-    <div class="estado-ctr">
+    <div class="pend-empty">
       <ng-container *ngIf="loading; else vacio">
         <p>CARGANDO PENDIENTES…</p>
       </ng-container>

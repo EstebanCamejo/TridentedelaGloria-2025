@@ -32,6 +32,8 @@ export class MozoChatRealtimeService implements OnDestroy {
     console.log('[MozoChatRealtimeService] Iniciando servicio de chat para mozos...');
 
     // Escuchar INSERT en chat_messages para notificar a TODOS los mozos
+    // IMPORTANTE: Solo notifica mensajes de salas de MESA (no delivery)
+    // Los mensajes de delivery solo se notifican al repartidor asignado
     this.ch = this.supa.client
       .channel('mozo_chat_notifications')
       .on('postgres_changes', {
@@ -59,7 +61,7 @@ export class MozoChatRealtimeService implements OnDestroy {
 
         console.log('[MozoChatRealtimeService] Cliente detectado por from_email:', mensaje.from_email);
 
-        // Obtener información de la mesa desde la sala de chat
+        // Obtener información de la sala de chat
         const { data: sala, error: salaError } = await this.supa.client
           .from('chat_rooms')
           .select('*')
@@ -67,6 +69,18 @@ export class MozoChatRealtimeService implements OnDestroy {
           .single();
 
         console.log('[MozoChatRealtimeService] Sala de chat:', sala, 'Error:', salaError);
+
+        if (salaError || !sala) {
+          console.log('[MozoChatRealtimeService] Error al obtener sala o sala no encontrada, saltando notificación');
+          return;
+        }
+
+        // 🆕 IMPORTANTE: Solo notificar a mozos si es una sala de MESA (no delivery)
+        // Si tipo_pedido es 'delivery', NO notificar a mozos (solo al repartidor asignado)
+        if (sala.tipo_pedido === 'delivery') {
+          console.log('[MozoChatRealtimeService] ⚠️ Mensaje de sala de delivery detectado, saltando notificación a mozos (solo se notifica al repartidor asignado)');
+          return;
+        }
 
         // Intentar diferentes nombres de campo para el número de mesa
         const numeroMesa = sala?.mesa_num || sala?.mesa_numero || sala?.numero_mesa || sala?.mesa || '?';

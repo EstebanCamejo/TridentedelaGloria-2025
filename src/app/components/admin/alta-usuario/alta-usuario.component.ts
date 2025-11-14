@@ -2,7 +2,7 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { IonButton, IonIcon, IonModal, IonContent } from '@ionic/angular/standalone';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { SupabaseService } from 'src/app/services/supabase.service';
@@ -24,7 +24,7 @@ import { from } from 'rxjs';
   standalone: true,
   templateUrl: './alta-usuario.component.html',
   styleUrls: ['./alta-usuario.component.scss'],
-  imports: [CommonModule, FormsModule, IonButton, IonIcon],
+  imports: [CommonModule, FormsModule, IonButton, IonIcon, IonModal, IonContent],
 })
 export class AltaUsuarioComponent {
   // tus bindings del template
@@ -35,7 +35,7 @@ export class AltaUsuarioComponent {
   email = '';
   password = '';
   confirm = '';
-  perfil: 'maitre' | 'mozo' | 'cocinero' | 'bartender' | null = null;
+  perfil: 'maitre' | 'mozo' | 'cocinero' | 'bartender' | 'delivery' | null = null;
 
   loading = false;
   errorMsg = '';
@@ -43,6 +43,9 @@ export class AltaUsuarioComponent {
 
   photoPreview: string | null = null; // muestra en UI
   photoBase64: string | null = null;  // se envía a la Edge Function
+  showPhotoModal = false;              // control del modal
+  tempPhotoPreview: string | null = null;  // foto temporal antes de confirmar
+  photoFile: File | null = null;        // archivo listo para subir
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
@@ -85,27 +88,96 @@ export class AltaUsuarioComponent {
   // ===== Cámara: foto comprimida =====
   async tomarFoto() {
     try {
-      if (!this.isNative()) { this.toastError('LA CÁMARA REQUIERE DISPOSITIVO MÓVIL'); return; }
+      if (this.isNative()) {
+        const perms = await Camera.requestPermissions({ permissions: ['camera'] });
+        if (perms.camera !== 'granted') { this.toastError('HABILITÁ LA CÁMARA'); return; }
 
-      const perms = await Camera.requestPermissions({ permissions: ['camera'] });
-      if (perms.camera !== 'granted') { this.toastError('HABILITÁ LA CÁMARA'); return; }
+        const img = await Camera.getPhoto({
+          quality: 75,
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Prompt,   // mostrará el action sheet
+          allowEditing: false,
+          saveToGallery: false,
+          promptLabelHeader: 'Foto',
+          promptLabelPhoto: 'Elegir de la galería',
+          promptLabelPicture: 'Tomar foto',
+          promptLabelCancel: 'Cancelar',
+        });
 
-      const img = await Camera.getPhoto({
-        resultType: CameraResultType.Base64,
-        source: CameraSource.Camera,
-        quality: 55,     // más liviana
-        width: 900,      // limita lado mayor
-        allowEditing: false,
-      });
-
-      if (!img?.base64String) { this.toastError('NO SE OBTUVO LA FOTO'); return; }
-
-      const mime = img.format ? `image/${img.format}` : 'image/jpeg';
-      this.photoBase64 = `data:${mime};base64,${img.base64String}`;
-      this.photoPreview = this.photoBase64;
+        if (img?.webPath) {
+          this.tempPhotoPreview = img.webPath;
+          this.showPhotoModal = true;
+        }
+      } else {
+        // Web/desktop: usar input file
+        this.fileInput?.nativeElement.click();
+      }
     } catch (e) {
-      console.warn('Cámara cancelada/error:', e);
+      console.warn('Cámara cancelada o error:', e);
     }
+  }
+
+  onFileSelected(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const f = input.files[0];
+    this.tempPhotoPreview = URL.createObjectURL(f);
+    this.showPhotoModal = true;
+  }
+
+  // Convierte un webPath/base64 a File para subirlo
+  private async uriToFile(uri: string, fileName: string): Promise<File> {
+    const res = await fetch(uri);
+    const blob = await res.blob();
+    const ext = (blob.type?.split('/')?.[1]) || 'jpg';
+    return new File([blob], `${fileName}.${ext}`, { type: blob.type || 'image/jpeg' });
+  }
+
+  confirmPhoto() {
+    if (this.tempPhotoPreview) {
+      this.photoPreview = this.tempPhotoPreview;
+      // Convertir la URI temporal a base64 si es necesario
+      if (this.isNative() && this.tempPhotoPreview.startsWith('file://')) {
+        this.uriToFile(this.tempPhotoPreview, `perfil-${Date.now()}`).then(file => {
+          this.photoFile = file;
+          // Convertir a base64 para enviar
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            this.photoBase64 = reader.result as string;
+          };
+          reader.readAsDataURL(file);
+        });
+      } else if (this.tempPhotoPreview.startsWith('blob:')) {
+        // Si es blob URL, convertir a base64
+        fetch(this.tempPhotoPreview)
+          .then(res => res.blob())
+          .then(blob => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              this.photoBase64 = reader.result as string;
+            };
+            reader.readAsDataURL(blob);
+          });
+      } else {
+        // Si ya es base64
+        this.photoBase64 = this.tempPhotoPreview;
+      }
+      this.closePhotoModal();
+    }
+  }
+
+  cancelPhoto() {
+    this.tempPhotoPreview = null;
+    this.closePhotoModal();
+  }
+
+  closePhotoModal() {
+    this.showPhotoModal = false;
+    // Limpiar blob URL si existe
+    if (this.tempPhotoPreview && this.tempPhotoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(this.tempPhotoPreview);
+    }
+    this.tempPhotoPreview = null;
   }
 
   // ===== Lector de DNI (PDF417) =====
@@ -196,7 +268,7 @@ export class AltaUsuarioComponent {
     const email     = (this.email    || '').trim().toLowerCase();
     const password  = this.password || '';
     const confirm   = this.confirm  || '';
-    const perfil    = (this.perfil  || null) as 'maitre'|'mozo'|'cocinero'|'bartender'|null;
+    const perfil    = (this.perfil  || null) as 'maitre'|'mozo'|'cocinero'|'bartender'|'delivery'|null;
     const photoBase64 = this.photoBase64 || null;
 
     const fail = (msg: string) => { this.errorMsg = msg.toUpperCase(); this.toastError(msg); };

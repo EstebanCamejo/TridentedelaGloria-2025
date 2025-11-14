@@ -2,9 +2,10 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonButton, IonButtons, IonContent, IonHeader, IonImg, IonInput, IonItem, IonLabel,
+  IonButton, IonButtons, IonContent, IonHeader, IonInput, IonItem,
   IonSelect, IonSelectOption, IonTitle, IonToolbar, IonIcon
 } from '@ionic/angular/standalone';
+import { ViewChild, ElementRef } from '@angular/core';
 import { addIcons } from 'ionicons';
 import { camera, save } from 'ionicons/icons';
 import { Capacitor } from '@capacitor/core';
@@ -23,8 +24,8 @@ import { ActivatedRoute, Router } from '@angular/router';
   imports: [
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonItem, IonLabel, IonInput, IonSelect, IonSelectOption,
-    IonButton, IonButtons, IonImg, IonIcon
+    IonItem, IonInput, IonSelect, IonSelectOption,
+    IonButton, IonButtons, IonIcon
   ],
   providers: [ModalController]
 })
@@ -43,6 +44,7 @@ export class AltaMesaComponent implements OnInit {
   // Foto
   fotoPreview: string | null = null; // UI
   private fotoBlob: Blob | null = null; // a subir
+  @ViewChild('fileInput', { static: false }) fileInput?: ElementRef<HTMLInputElement>;
 
   guardando = false;
   btnDisabled = true;
@@ -72,6 +74,9 @@ export class AltaMesaComponent implements OnInit {
       // CREACIÓN
       this.resetForm();
     }
+    
+    // Centrar input de capacidad después de inicializar
+    setTimeout(() => this.centrarInputCapacidad(), 300);
   }
 
   // ====== UI helpers ======
@@ -86,6 +91,30 @@ export class AltaMesaComponent implements OnInit {
       !this.tipo ||
       (!!this.mesaId ? false : !this.fotoBlob) || // en edición la foto puede ser opcional
       this.guardando;
+    
+    // Centrar el input de capacidad después de actualizar
+    setTimeout(() => this.centrarInputCapacidad(), 50);
+  }
+
+  private centrarInputCapacidad() {
+    const applyCentering = () => {
+      const inputs = document.querySelectorAll('.item-capacidad input[type="number"], .item-numero input[type="number"]') as NodeListOf<HTMLInputElement>;
+      inputs.forEach(input => {
+        if (input) {
+          input.style.setProperty('text-align', 'center', 'important');
+          input.style.setProperty('text-align-last', 'center', 'important');
+          input.style.setProperty('width', '100%', 'important');
+          input.style.setProperty('margin', '0 auto', 'important');
+          input.style.setProperty('padding', '0', 'important');
+          input.style.setProperty('text-indent', '0', 'important');
+          input.style.setProperty('direction', 'ltr', 'important');
+        }
+      });
+    };
+
+    setTimeout(applyCentering, 10);
+    setTimeout(applyCentering, 50);
+    setTimeout(applyCentering, 100);
   }
 
   // ====== FOTO ======
@@ -128,43 +157,76 @@ export class AltaMesaComponent implements OnInit {
 
   async tomarFoto() {
     if (this.takingPhoto) return;
+    
+    // Si es web/desktop, usar input file
+    if (!Capacitor.isNativePlatform()) {
+      this.fileInput?.nativeElement.click();
+      return;
+    }
+
     this.takingPhoto = true;
     try {
-      await Camera.requestPermissions({ permissions: ['camera', 'photos'] });
+      const img = await Camera.getPhoto({
+        source: CameraSource.Prompt,
+        quality: 90,
+        resultType: CameraResultType.Uri,
+        correctOrientation: true,
+        saveToGallery: false,
+        promptLabelHeader: 'Foto',
+        promptLabelPhoto: 'Elegir de la galería',
+        promptLabelPicture: 'Tomar foto',
+        promptLabelCancel: 'Cancelar',
+      });
+
+      if (img?.webPath) {
+        // Leemos el blob de la URI
+        const rawBlob = await fetch(img.webPath).then(r => r.blob());
   
-      // Pedimos URI: más liviano que Base64/DataURL
-      let shot = await this.getPhotoWithTimeout(12000, 'camera').catch(() => null);
-      if (!shot && this.isAndroid()) {
-        shot = await this.getPhotoWithTimeout(12000, 'photos').catch(() => null);
+        // Compactamos (máx lado + calidad más baja en Android)
+        const maxSide  = this.isAndroid() ? 900 : 1024;
+        const quality  = this.isAndroid() ? 0.6 : 0.72;
+        const compact  = rawBlob.size < 350_000 ? rawBlob : await this.downscaleToJpeg(rawBlob, maxSide, quality);
+        this.fotoBlob  = compact;
+  
+        // Preview: generamos un ObjectURL chiquito (y revocamos el anterior)
+        if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
+        this.previewObjectUrl = URL.createObjectURL(compact);
+        this.fotoPreview = this.previewObjectUrl;
+  
+        this.updateBtnDisabled();
       }
-      if (!shot || !shot.webPath) {
-        this.err('NO SE PUDO CAPTURAR LA IMAGEN');
-        return;
-      }
-  
-      // Leemos el blob de la URI
-      const rawBlob = await fetch(shot.webPath).then(r => r.blob());
-  
-      // Compactamos (máx lado + calidad más baja en Android)
-      const maxSide  = this.isAndroid() ? 900 : 1024;
-      const quality  = this.isAndroid() ? 0.6 : 0.72;
-      const compact  = rawBlob.size < 350_000 ? rawBlob : await this.downscaleToJpeg(rawBlob, maxSide, quality);
-      this.fotoBlob  = compact;
-  
-      // Preview: generamos un ObjectURL chiquito (y revocamos el anterior)
-      if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
-      this.previewObjectUrl = URL.createObjectURL(compact);
-      this.fotoPreview = this.previewObjectUrl;
-  
-      this.updateBtnDisabled();
     } catch (e: any) {
       const msg = String(e?.message || e || '');
-      if (msg.includes('timeout')) this.err('LA CÁMARA TARDÓ DEMASIADO. REINTENTÁ');
-      else if (msg.toLowerCase().includes('permission')) this.err('NECESITAMOS PERMISO DE CÁMARA');
-      else if (!msg.includes('User cancelled')) this.err('NO SE PUDO TOMAR LA FOTO');
+      if (!msg.includes('User cancelled')) {
+        this.err('NO SE PUDO TOMAR LA FOTO');
+      }
     } finally {
       this.takingPhoto = false;
     }
+  }
+
+  onFileSelected(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    
+    // Leer el archivo como blob
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      // Convertir dataUrl a blob
+      fetch(dataUrl)
+        .then(res => res.blob())
+        .then(blob => {
+          this.fotoBlob = blob;
+          // Preview
+          if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
+          this.previewObjectUrl = URL.createObjectURL(blob);
+          this.fotoPreview = this.previewObjectUrl;
+          this.updateBtnDisabled();
+        });
+    };
+    reader.readAsDataURL(file);
   }
   
 
@@ -302,8 +364,21 @@ export class AltaMesaComponent implements OnInit {
   /** CARGA para modo edición */
   private async cargarMesa(id: string) {
     try {
-      const m = await (this.mesas as any).getMesaById?.(id);
-      if (!m) return;
+      console.log('[alta-mesa] Cargando mesa con ID:', id);
+      if (!id) {
+        console.error('[alta-mesa] ID de mesa es null o undefined');
+        this.err('NO SE PUDO CARGAR LA MESA: ID INVÁLIDO');
+        return;
+      }
+      
+      const m = await this.mesas.getMesaById(id);
+      console.log('[alta-mesa] Mesa cargada:', m);
+      
+      if (!m) {
+        console.error('[alta-mesa] Mesa no encontrada para ID:', id);
+        this.err('NO SE ENCONTRÓ LA MESA');
+        return;
+      }
       
       this.numero = m.numero ?? null;
       this.numeroOriginal = m.numero ?? null; // guardo el original para evitar editar
@@ -312,7 +387,13 @@ export class AltaMesaComponent implements OnInit {
       this.fotoPreview = m.foto_url ?? null;  // si tu API devuelve URL
       this.fotoBlob = null;
       this.updateBtnDisabled();
-    } catch { /* opcional: toast */ }
+      
+      // Centrar el input de capacidad después de cargar
+      setTimeout(() => this.centrarInputCapacidad(), 200);
+    } catch (e: any) {
+      console.error('[alta-mesa] Error al cargar mesa:', e);
+      this.err(e?.message || 'NO SE PUDO CARGAR LA MESA');
+    }
   }
 
   /** Limpia el form para crear */
@@ -405,5 +486,139 @@ export class AltaMesaComponent implements OnInit {
   cancelar() {
     try { this.modalCtrl.dismiss(null, 'cancel'); }
     catch { this.router.navigateByUrl('/admin/mesas'); }
+  }
+
+  getCapacidadPlaceholder(): string {
+    return 'CAPACIDAD (1-12)';
+  }
+
+  getTipoDisplayText(): string {
+    if (!this.tipo) return 'SELECCIONA UN TIPO';
+    return 'TIPO: ' + this.tipoTexto(this.tipo);
+  }
+
+  tipoTexto(tipo: MesaTipo): string {
+    switch (tipo) {
+      case 'vip': return 'EXCLUSIVA';
+      case 'estandar': return 'ESTÁNDAR';
+      case 'mov_reducida': return 'MOVILIDAD REDUCIDA';
+      default: return String(tipo).toUpperCase();
+    }
+  }
+
+  onTipoSelectOpen() {
+    // Aplicar estilos a los botones del popover después de que se abra
+    setTimeout(() => {
+      this.estilizarBotonesSelect();
+    }, 100);
+  }
+
+  private estilizarBotonesSelect() {
+    const applyStyles = () => {
+      // Buscar el popover del select
+      const selectors = [
+        'ion-popover',
+        '.select-popover',
+        'ion-popover.select-popover'
+      ];
+      
+      let popover: Element | null = null;
+      for (const selector of selectors) {
+        popover = document.querySelector(selector);
+        if (popover) break;
+      }
+      
+      if (!popover) return;
+      
+      // Buscar botones de acción (cancelar y confirmar)
+      const buttonSelectors = [
+        'ion-button[type="button"]',
+        '.select-interface-option',
+        'button'
+      ];
+      
+      let buttons: NodeListOf<Element> | null = null;
+      for (const selector of buttonSelectors) {
+        buttons = popover.querySelectorAll(selector);
+        if (buttons && buttons.length >= 2) break;
+      }
+      
+      if (!buttons || buttons.length < 2) return;
+      
+      // Aplicar estilos a los botones
+      buttons.forEach((btn: any, index: number) => {
+        if (!btn || !btn.style) return;
+        
+        const buttonText = btn.textContent || btn.innerText || '';
+        const isCancel = buttonText.includes('✗') || index === 0;
+        const isConfirm = buttonText.includes('✓') || index === buttons.length - 1;
+        
+        if (isCancel || isConfirm) {
+          btn.style.setProperty('width', 'calc(50% - 7.5px)', 'important');
+          btn.style.setProperty('height', '100px', 'important');
+          btn.style.setProperty('font-size', '64px', 'important');
+          btn.style.setProperty('font-weight', '700', 'important');
+          btn.style.setProperty('color', '#ffffff', 'important');
+          btn.style.setProperty('display', 'flex', 'important');
+          btn.style.setProperty('align-items', 'center', 'important');
+          btn.style.setProperty('justify-content', 'center', 'important');
+          btn.style.setProperty('flex', '1 1 50%', 'important');
+          btn.style.setProperty('border-radius', '12px', 'important');
+          btn.style.setProperty('box-shadow', '0 8px 16px rgba(0, 0, 0, 0.5)', 'important');
+          btn.style.setProperty('margin', '0', 'important');
+          
+          if (isCancel) {
+            btn.style.setProperty('background', '#dc3545', 'important');
+            btn.style.setProperty('border', '4px solid #bd2130', 'important');
+          } else if (isConfirm) {
+            btn.style.setProperty('background', '#28a745', 'important');
+            btn.style.setProperty('border', '4px solid #1e7e34', 'important');
+          }
+          
+          const buttonInner = btn.querySelector('.button-inner') || btn.querySelector('span');
+          if (buttonInner) {
+            (buttonInner as HTMLElement).style.setProperty('font-size', '64px', 'important');
+            (buttonInner as HTMLElement).style.setProperty('color', '#ffffff', 'important');
+          }
+        }
+      });
+      
+      // Ajustar el contenedor de botones
+      const buttonContainer = popover.querySelector('.select-interface-option')?.parentElement || 
+                             popover.querySelector('ion-button')?.parentElement;
+      if (buttonContainer) {
+        (buttonContainer as HTMLElement).style.setProperty('display', 'flex', 'important');
+        (buttonContainer as HTMLElement).style.setProperty('flex-direction', 'row', 'important');
+        (buttonContainer as HTMLElement).style.setProperty('gap', '15px', 'important');
+        (buttonContainer as HTMLElement).style.setProperty('width', '100%', 'important');
+        (buttonContainer as HTMLElement).style.setProperty('padding', '20px', 'important');
+      }
+    };
+
+    // Aplicar múltiples veces
+    setTimeout(applyStyles, 50);
+    setTimeout(applyStyles, 150);
+    setTimeout(applyStyles, 300);
+    setTimeout(applyStyles, 500);
+
+    // MutationObserver
+    const observer = new MutationObserver(() => {
+      applyStyles();
+    });
+
+    setTimeout(() => {
+      const popoverElement = document.querySelector('ion-popover');
+      if (popoverElement) {
+        observer.observe(popoverElement, {
+          childList: true,
+          subtree: true,
+          attributes: true
+        });
+        
+        setTimeout(() => {
+          observer.disconnect();
+        }, 2000);
+      }
+    }, 100);
   }
 }

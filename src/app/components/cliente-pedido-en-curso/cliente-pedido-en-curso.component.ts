@@ -57,7 +57,6 @@ export class ClientePedidoEnCursoComponent implements OnInit, OnDestroy, AfterVi
   direccionEntrega?: string;
   repartidorInfo?: { nombres?: string; apellidos?: string; email?: string };
   estadoDeliveryTexto = ''; // Texto amigable del estado para delivery
-  recepcionConfirmada = false; // 🆕 Flag para saber si el cliente ya confirmó recepción
   private ultimoEstadoEncuesta = false; // 🆕 Para detectar cuando se habilita el botón
   @ViewChild('botonEncuesta', { read: ElementRef }) botonEncuesta?: ElementRef; // 🆕 Referencia al botón de encuesta
   @ViewChild(IonContent, { static: false }) ionContent?: IonContent; // 🆕 Referencia a IonContent para scroll agresivo
@@ -348,7 +347,6 @@ async ngOnInit() {
     this.direccionEntrega = undefined;
     this.repartidorInfo = undefined;
     this.estadoDeliveryTexto = '';
-    this.recepcionConfirmada = false; // 🆕 Resetear flag
     
     // ✅ LIMPIAR PedidosService cuando no hay pedido
     this.pedidosSvc.setPedidoActual(null);
@@ -529,7 +527,6 @@ async ngOnInit() {
     // Verificar que el botón de encuesta esté habilitado (no completó encuesta)
     const encuestaHabilitada = this.estado === 'entregado' && 
                                !this.yaCompletoEncuesta && 
-                               !(this.esDelivery && !this.recepcionConfirmada) &&
                                !this.esClienteAnonimo;
     
     // Si el estado cambió y el botón debería estar visible
@@ -596,6 +593,30 @@ async ngOnInit() {
       this.spinner.show({ immediate: true });
       console.log(`[ClientePedidoEnCursoComponent] Aceptando pedido ${this.pedidoId}...`);
       
+      // Verificar que el pedido está en estado 'pendiente aceptación'
+      const { data: pedidoVerificar, error: errorVerificar } = await this.supa.client
+        .from('pedidos')
+        .select('id, estado, tipo_pedido, idDelivery')
+        .eq('id', this.pedidoId)
+        .single();
+
+      if (errorVerificar) {
+        console.error('Error al verificar el pedido:', errorVerificar);
+        this.toast.error('ERROR AL VERIFICAR EL PEDIDO: ' + (errorVerificar.message || 'ERROR DESCONOCIDO').toUpperCase(), '', {
+          positionClass: 'toast-center',
+          timeOut: 4000
+        });
+        return;
+      }
+
+      if (pedidoVerificar.estado !== 'pendiente aceptación') {
+        this.toast.warning('EL PEDIDO NO ESTÁ EN ESTADO PENDIENTE DE ACEPTACIÓN', '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
+        return;
+      }
+
       // Actualizar el estado del pedido a 'entregado'
       const { error } = await this.supa.client
         .from('pedidos')
@@ -612,6 +633,45 @@ async ngOnInit() {
           timeOut: 4000
         });
         return;
+      }
+
+      // 🆕 Si es delivery, notificar al repartidor que el cliente aceptó el pedido
+      if (this.esDelivery && pedidoVerificar.idDelivery) {
+        try {
+          const { data: userData } = await this.supa.client.auth.getUser();
+          const clienteId = userData?.user?.id;
+          
+          const deliveryChannel = this.supa.client.channel(`notificacion_delivery_recepcion_${pedidoVerificar.idDelivery}`);
+          
+          // Suscribirse antes de enviar
+          deliveryChannel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              deliveryChannel.send({
+                type: 'broadcast' as const,
+                event: 'recepcion_confirmada',
+                payload: {
+                  pedido_id: this.pedidoId,
+                  cliente_id: clienteId,
+                  timestamp: new Date().toISOString()
+                }
+              }).then(() => {
+                console.log('[ClientePedidoEnCurso] ✅ Notificación enviada al delivery');
+                setTimeout(() => {
+                  this.supa.client.removeChannel(deliveryChannel);
+                }, 1000);
+              }).catch(err => {
+                console.error('[ClientePedidoEnCurso] ⚠️ Error al enviar notificación (no crítico):', err);
+                this.supa.client.removeChannel(deliveryChannel);
+              });
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('[ClientePedidoEnCurso] ⚠️ Error en canal (no crítico)');
+              this.supa.client.removeChannel(deliveryChannel);
+            }
+          });
+        } catch (notifError) {
+          console.error('[ClientePedidoEnCurso] ⚠️ Error al enviar notificación al delivery (no crítico):', notifError);
+          // No lanzar error, solo registrar
+        }
       }
 
       console.log(`[ClientePedidoEnCursoComponent] ✅ Pedido ${this.pedidoId} aceptado`);
@@ -685,121 +745,6 @@ async ngOnInit() {
     }
   }
 
-  /**
-   * 🆕 Confirma la recepción del pedido repartidor
-   */
-  async confirmarRecepcionDelivery() {
-    if (!this.pedidoId || !this.esDelivery) {
-      console.log('[ClientePedidoEnCurso] ⚠️ No se puede confirmar: pedidoId o esDelivery faltante');
-      return;
-    }
-    
-    if (this.estado !== 'entregado') {
-      this.toast.warning('EL PEDIDO AÚN NO HA SIDO ENTREGADO', '', {
-        positionClass: 'toast-center',
-        timeOut: 3000
-      });
-      return;
-    }
-
-    try {
-      this.spinner.show({ immediate: true });
-      console.log(`[ClientePedidoEnCurso] Confirmando recepción del pedido repartidor ${this.pedidoId}...`);
-      
-      // 🆕 Verificar que el pedido realmente está en estado 'entregado'
-      const { data: pedidoVerificar, error: errorVerificar } = await this.supa.client
-        .from('pedidos')
-        .select('id, estado, tipo_pedido')
-        .eq('id', this.pedidoId)
-        .single();
-
-      if (errorVerificar) {
-        console.error('[ClientePedidoEnCurso] ❌ Error al verificar pedido:', errorVerificar);
-        throw new Error('ERROR AL VERIFICAR EL ESTADO DEL PEDIDO');
-      }
-
-      if (!pedidoVerificar || pedidoVerificar.tipo_pedido !== 'delivery') {
-        throw new Error('ESTE PEDIDO NO ES DE TIPO REPARTIDOR');
-      }
-
-      if (pedidoVerificar.estado !== 'entregado') {
-        this.toast.warning(`EL PEDIDO ESTÁ EN ESTADO: ${pedidoVerificar.estado.toUpperCase()}. DEBE ESTAR ENTREGADO PARA CONFIRMAR RECEPCIÓN`, '', {
-          positionClass: 'toast-center',
-          timeOut: 4000
-        });
-        this.spinner.hide();
-        return;
-      }
-
-      // Obtener idDelivery del pedido para notificar al delivery correcto
-      const { data: pedidoCompleto } = await this.supa.client
-        .from('pedidos')
-        .select('idDelivery')
-        .eq('id', this.pedidoId)
-        .single();
-
-      const deliveryUid = pedidoCompleto?.idDelivery;
-
-      // Notificar vía realtime al delivery específico
-      if (deliveryUid) {
-        try {
-          const { data: userData } = await this.supa.client.auth.getUser();
-          const clienteId = userData?.user?.id;
-          
-          const deliveryChannel = this.supa.client.channel(`notificacion_delivery_recepcion_${deliveryUid}`);
-          
-          // Suscribirse antes de enviar
-          deliveryChannel.subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-              deliveryChannel.send({
-                type: 'broadcast' as const,
-                event: 'recepcion_confirmada',
-                payload: {
-                  pedido_id: this.pedidoId,
-                  cliente_id: clienteId,
-                  timestamp: new Date().toISOString()
-                }
-              }).then(() => {
-                console.log('[ClientePedidoEnCurso] ✅ Notificación enviada al delivery');
-                setTimeout(() => {
-                  this.supa.client.removeChannel(deliveryChannel);
-                }, 1000);
-              }).catch(err => {
-                console.error('[ClientePedidoEnCurso] ⚠️ Error al enviar notificación (no crítico):', err);
-                this.supa.client.removeChannel(deliveryChannel);
-              });
-            } else if (status === 'CHANNEL_ERROR') {
-              console.error('[ClientePedidoEnCurso] ⚠️ Error en canal (no crítico)');
-              this.supa.client.removeChannel(deliveryChannel);
-            }
-          });
-        } catch (notifError) {
-          console.error('[ClientePedidoEnCurso] ⚠️ Error al enviar notificación (no crítico):', notifError);
-          // No lanzar error, solo registrar
-        }
-      }
-
-      // Marcar recepción como confirmada
-      this.recepcionConfirmada = true;
-      this.cdr.detectChanges(); // Forzar actualización de UI
-
-      this.toast.success('RECEPCIÓN CONFIRMADA. YA PODÉS ACCEDER AL RESTO DE LAS FUNCIONES', '', {
-        positionClass: 'toast-center',
-        timeOut: 4000
-      });
-
-      console.log(`[ClientePedidoEnCurso] ✅ Recepción del pedido repartidor ${this.pedidoId} confirmada`);
-      
-    } catch (error: any) {
-      console.error('[ClientePedidoEnCurso] ❌ Error al confirmar recepción:', error);
-      this.toast.error('ERROR AL CONFIRMAR LA RECEPCIÓN: ' + (error?.message || 'ERROR INESPERADO').toUpperCase(), '', {
-        positionClass: 'toast-center',
-        timeOut: 4000
-      });
-    } finally {
-      this.spinner.hide();
-    }
-  }
 
   async pedirCuenta() {
     try {
@@ -814,18 +759,66 @@ async ngOnInit() {
         return;
       }
 
-      // Para pedidos de mesa, usar el flujo original
-      const waitStatus = await this.supa.getWaitStatusDetail();
-      if (!waitStatus || !waitStatus.numero_mesa) {
-        throw new Error('NO SE PUDO OBTENER INFORMACIÓN DE LA MESA');
+      // Para pedidos de mesa, intentar obtener la mesa
+      let numeroMesa: number | null = null;
+
+      // ESTRATEGIA 1: Intentar obtener desde getWaitStatusDetail() (para clientes registrados)
+      try {
+        const waitStatus = await this.supa.getWaitStatusDetail();
+        if (waitStatus && waitStatus.numero_mesa) {
+          numeroMesa = waitStatus.numero_mesa;
+          console.log('[ClientePedidoEnCurso] ✅ Mesa obtenida desde getWaitStatusDetail():', numeroMesa);
+        }
+      } catch (error) {
+        console.log('[ClientePedidoEnCurso] ⚠️ No se pudo obtener mesa desde getWaitStatusDetail(), intentando alternativa...');
       }
 
-      // Enviar notificación al mozo
-      await this.supa.solicitarCuenta(waitStatus.numero_mesa);
-      this.toast.success('SOLICITUD DE CUENTA ENVIADA AL MOZO', '', {
-        positionClass: 'toast-center',
-        timeOut: 3000
-      });
+      // ESTRATEGIA 2: Si no se obtuvo, intentar desde lista_espera usando idCliente del pedido (para clientes anónimos)
+      if (!numeroMesa && this.pedidoId) {
+        try {
+          // Obtener idCliente del pedido
+          const { data: pedido, error: pedidoError } = await this.supa.client
+            .from('pedidos')
+            .select('idCliente')
+            .eq('id', this.pedidoId)
+            .single();
+
+          if (!pedidoError && pedido?.idCliente) {
+            console.log('[ClientePedidoEnCurso] 🔍 Buscando mesa para idCliente:', pedido.idCliente);
+            
+            // Buscar en lista_espera
+            const { data: listaEspera, error: listaError } = await this.supa.client
+              .from('lista_espera')
+              .select('numero_mesa')
+              .eq('usuario_id', pedido.idCliente)
+              .eq('estado', 'asignado')
+              .maybeSingle();
+
+            if (!listaError && listaEspera?.numero_mesa) {
+              numeroMesa = listaEspera.numero_mesa;
+              console.log('[ClientePedidoEnCurso] ✅ Mesa obtenida desde lista_espera:', numeroMesa);
+            }
+          }
+        } catch (error) {
+          console.log('[ClientePedidoEnCurso] ⚠️ Error al obtener mesa desde lista_espera:', error);
+        }
+      }
+
+      // Si se obtuvo la mesa, enviar notificación al mozo
+      if (numeroMesa) {
+        await this.supa.solicitarCuenta(numeroMesa);
+        this.toast.success('SOLICITUD DE CUENTA ENVIADA AL MOZO', '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
+      } else {
+        // Si no se pudo obtener la mesa, navegar igual pero sin enviar notificación
+        console.log('[ClientePedidoEnCurso] ⚠️ No se pudo obtener número de mesa, navegando directamente a cuenta');
+        this.toast.info('NAVEGANDO A LA CUENTA', '', {
+          positionClass: 'toast-center',
+          timeOut: 2000
+        });
+      }
 
       // Navegar al detalle de cuenta
       this.router.navigate(['/cliente-detalle-cuenta']);

@@ -1,6 +1,6 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>CONFIRMAR PAGOS DE REPARTIDOR</ion-title>
+  <ion-toolbar style="--background: #5d2222; --color: #fff;">
+    <ion-title style="text-align: center; font-weight: 700; text-transform: uppercase;">PAGOS DE REPARTIDOR</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -21,11 +21,6 @@
             <ion-icon name="bicycle-outline"></ion-icon>
             REPARTIDOR #{{ pago.id }}
           </ion-card-title>
-          <ion-card-subtitle class="delivery-subtitle">PAGO PENDIENTE DE CONFIRMACIÓN</ion-card-subtitle>
-          <div class="pago-badge">
-            <ion-icon name="time-outline"></ion-icon>
-            PENDIENTE
-          </div>
         </ion-card-header>
 
         <ion-card-content>
@@ -36,15 +31,10 @@
               <span class="cliente-value">{{ pago.cliente_nombre }}</span>
             </div>
             <div class="cliente-detail">
-              <span class="cliente-label">CORREO:</span>
-              <span class="cliente-value">{{ pago.cliente_email }}</span>
-            </div>
-            <div class="cliente-detail">
               <span class="cliente-label">FECHA:</span>
               <span class="cliente-value">{{ pago.fecha_solicitud | date:'dd/MM/yyyy HH:mm' }}</span>
             </div>
-            <div *ngIf="pago.direccion_entrega" class="cliente-detail direccion-detail">
-              <ion-icon name="location-outline"></ion-icon>
+            <div *ngIf="pago.direccion_entrega" class="cliente-detail">
               <span class="cliente-label">DIRECCIÓN:</span>
               <span class="cliente-value">{{ pago.direccion_entrega }}</span>
             </div>
@@ -87,7 +77,7 @@
 
           <!-- Resumen de totales -->
           <div class="totales-section">
-            <h4 class="section-subtitle">RESUMEN DE TOTALES:</h4>
+            <h4 class="section-subtitle totales-subtitle">RESUMEN DE TOTALES:</h4>
             <div class="totales-list">
               <div class="total-line subtotal">
                 <span class="total-label">SUBTOTAL:</span>
@@ -130,8 +120,6 @@
         <div class="empty-message">
           <ion-icon name="bicycle-outline" class="empty-icon"></ion-icon>
           <div class="empty-title">¡NO HAY PAGOS PENDIENTES!</div>
-          <div class="empty-subtitle">TODOS LOS PAGOS DE REPARTIDOR HAN SIDO CONFIRMADOS</div>
-          <div class="empty-description">LOS CLIENTES HAN COMPLETADO SUS TRANSACCIONES EXITOSAMENTE</div>
         </div>
       </div>
     </ng-template>

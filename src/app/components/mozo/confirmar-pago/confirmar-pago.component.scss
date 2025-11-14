@@ -11,6 +11,15 @@
   color: #1976d2;
   text-align: center;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  ion-icon {
+    font-size: 2rem;
+    color: #1976d2;
+  }
 }
 
 .mesa-subtitle {
@@ -41,10 +50,18 @@
 }
 
 .section-subtitle {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #333;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #ffffff;
   margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  
+  &.totales-subtitle {
+    color: #000000;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  }
 }
 
 /* ===== Cards principales ===== */
@@ -72,6 +89,29 @@
   
   &:last-child {
     margin-bottom: 0;
+  }
+}
+
+.direccion-detail {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+  
+  ion-icon {
+    color: #1976d2;
+    font-size: 18px;
+    margin-right: 6px;
+  }
+  
+  .cliente-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .cliente-value {
+    margin-left: 24px;
+    word-break: break-word;
   }
 }
 
@@ -170,7 +210,7 @@
 
 .totales-section {
   background: #f8f9fa;
-  padding: 16px;
+  padding: 20px;
   border-radius: 8px;
   margin-bottom: 16px;
   
@@ -178,24 +218,59 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #e0e0e0;
     
     &:last-child {
       border-bottom: none;
     }
     
+    .total-label {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #333;
+    }
+    
+    .total-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1976d2;
+    }
+    
+    &.subtotal {
+      .total-label, .total-value {
+        color: #333;
+      }
+    }
+    
+    &.descuento {
+      .total-label, .total-value {
+        color: #dc3545;
+      }
+    }
+    
     &.propina {
-      color: #4caf50;
+      .total-label, .total-value {
+        color: #4caf50;
+      }
     }
     
     &.total-final {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #1976d2;
-      border-top: 2px solid #1976d2;
-      margin-top: 8px;
-      padding-top: 12px;
+      border-top: 3px solid #1976d2;
+      margin-top: 12px;
+      padding-top: 16px;
+      
+      .total-label {
+        font-size: 1.6rem;
+        font-weight: 900;
+        color: #1976d2;
+      }
+      
+      .total-value {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: #1976d2;
+      }
     }
   }
 }
@@ -230,6 +305,7 @@
   font-size: 4rem;
   margin-bottom: 20px;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  color: #7b2f2f;
 }
 
 .empty-title {

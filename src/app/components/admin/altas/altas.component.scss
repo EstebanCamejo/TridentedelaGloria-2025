@@ -1,0 +1,55 @@
+.altas-content {
+  --background: #fbf3e4;
+}
+
+.altas-grid {
+  height: calc(100dvh - 56px);
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.altas-row {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+}
+
+.altas-row ion-col {
+  flex: 1 1 50% !important;
+  min-height: 0 !important;
+  max-height: 50% !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  display: flex !important;
+}
+
+.altas-button {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  --border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.altas-button::part(native) {
+  height: 100% !important;
+  width: 100% !important;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.altas-button [slot="start"] {
+  font-size: 2em;
+  margin-right: 12px;
+}
+

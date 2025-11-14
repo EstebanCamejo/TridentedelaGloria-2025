@@ -1,440 +1,242 @@
-// .client-content {
-//   --background: var(--cream-50);
-// }
-// :root{ --cream-25:#fbf3e4; --cream-50:#f6ecdc; --cream-100:#efe3cf; --cream-200:#e7dac4; --maroon-600:#7b2f2f; --maroon-700:#5d2222; --maroon-800:#3f1717; --ink:#3b2a2a; --ink-soft:#6b5858; --shadow: 0 10px 28px rgba(61,43,43,.22); --badge-size: clamp(96px, 22vw, 148px); --badge-y: -70%; --badge-clearance: clamp(92px, 16vw, 132px); --panel-max: 340px; }
-// /* Panel superior */
-// /* Nav fijo con color */
-// .client-header{
-//   position: sticky; top: 0; z-index: 10;
-//   background: var(--maroon-700);
-//   color: #5d2222;
-//   text-align: center;
-//   padding: 14px;
-//   box-shadow: 0 4px 8px rgba(61,43,43,.28);
-// }
-// /* ===== Header fijo (pill burdeos, igual que botones) ===== */
-// .client-header{
-//   position: sticky; top: 0; z-index: 10;
-//   padding: 10px 0;                /* deja aire para la píldora */
-//   background:#5d2222;        /* sin franja sólida detrás */
-//   backdrop-filter: blur(2px);
-// }
-// .nav-pill{
-//   width: min(520px, 92vw);
-//   margin: 0 auto;
-//   padding: 12px 16px;
-//   background: #5d2222;
-//   color: var(--cream-25);
-//   text-align: center;
-//   font-family: "Inter", sans-serif;
-//   letter-spacing: .2px;
-//   font-size: 1.25rem;
-// }
-// /* Centrado del stack */
-// .client-wrap{
-//   min-height: calc(100% - 64px);
-//   display: grid; place-items: center;
-//   padding: 18px;
-// }
-// .client-stack{
-//   width: min(520px, 92vw);
-//   display: grid; gap: 18px;
-// }
-// //* Nav fijo con color */
-// .client-header{
-//   position: sticky; top: 0; z-index: 10;
-//   background: #5d2222;
-//   color: var(--cream-25);
-//   text-align: center;
-//   padding: 14px;
-//   box-shadow: 0 4px 8px rgba(61,43,43,.28);
-// }
-// .client-header h2{
-//   margin:0; font-family:"Inter",sans-serif; font-weight:700; letter-spacing:.2px; font-size:1rem;
-// }
-// .cta::part(native){ justify-content: center; padding: 0 18px; }
-// .cta [slot="start"]{ margin-inline-end: 10px; }
-// .cta ion-icon{ font-size: 1.2em; }
-
-// /* ===== Botones GIGANTES centrados ===== */
-
-// /* Contenedor: un poco más ancho y con mayor separación */
-// .client-stack{
-//   width: min(620px, 94vw);
-//   display: grid;
-//   gap: 100px;
-// }
-
-// /* Botón base: mucho más alto y con radio grande */
-// .cta{
-//   font-family: "Inter", sans-serif;
-//   font-weight: 700;
-//   letter-spacing: .2px;
-//   text-transform: none;
-
-//   /* ALTURA GRANDE (ajusta el medio con 14–20svh si querés aún más) */
-//    height: clamp(120px, 24svh, 200px);  /* antes 88–140 */
-//   --border-radius: 24px;
-//   font-size: 1.25rem;   
-
-//   /* Bordes y sombra como el nav */
-//   --border-radius: 22px;
-
-// }
-
-// /* Asegura el centrado perfecto y más padding lateral real */
-// .cta::part(native){
-//   justify-content: center;
-//   padding: 0 22px;
-// }
-
-// /* Icono y spacing más grandes */
-// .cta [slot="start"]{ margin-inline-end: 12px; }
-// .cta ion-icon{ font-size: 1.6em; }
-
-// /* Ambos botones con el mismo color burdeos (si querés el 2º en crema, ver nota abajo) */
-
-
-// /* En pantallas MUY angostas, estirar aún más el alto */
-// @media (max-width: 360px){
-//   .cta{ height: clamp(96px, 22svh, 150px); }
-// }
-
-// /* Si querés que realmente ocupen TODO el ancho visual en móviles con bordes redondos */
-// .client-content .client-stack .cta{
-//   width: 100%;
-// }
-/* ===== Safe-areas (soporta notch / barra gestual) ===== */
+/* ===== Safe areas + medidas ===== */
 :root{
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-/* Deja que ion-header maneje el espacio superior */
-/* Color de fondo del header/toolbar y padding seguro arriba */
-.client-header { 
-  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
-}
-.client-header ion-toolbar {
-  --background: #5d2222;
-  --color: var(--cream-25);
-  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+  --safe-top:    var(--ion-safe-area-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--ion-safe-area-bottom, env(safe-area-inset-bottom, 0px));
+  --stack-gap: 24px;    /* separación vertical entre botones para registrado */
+  --wrap-x: clamp(12px, 4vw, 18px);
 }
 
-/* Fondo del content; sin fullscreen ni padding superior extra */
+/* ===== Content ===== */
 .client-content {
-  --background: var(--cream-50);
-  --padding-top: 0;
+  --background: #fbf3e4;
 }
 
-/* Asegurar que ion-content ocupe toda la altura sin scroll */
-ion-content.client-content {
-  --overflow: hidden;
-  height: 100vh;
-  overflow: hidden;
-}
-
-
-/* Header fijo: respeta la barra de estado (batería, hora) */
-.client-header{
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  padding: calc(var(--safe-top) + 10px) 0 10px; /* <- aire superior seguro */
-  background: #5d2222;
-  color: var(--cream-25);
-  backdrop-filter: blur(2px);
-  box-shadow: 0 4px 8px rgba(61,43,43,.28);
-}
-.nav-pill{
-  width: min(520px, 92vw);
-  margin: 0 auto;
-  padding: 12px 16px;
-  background: #5d2222;
-  color: var(--cream-25);
-  text-align: center;
-  font-family: "Inter", sans-serif;
-  letter-spacing: .2px;
-  font-size: 1.25rem;
-}
-
-/* Layout central para cliente registrado (tamaño original) */
+/* ===== Contenedor principal ===== */
 .client-wrap{
-  height: calc(100vh - 80px); /* altura sin header aproximado para evitar scroll */
-  min-height: 0;
-  max-height: calc(100vh - 80px);
-  display: grid;
-  place-items: center;
-  padding: clamp(30px, 6vh, 50px) clamp(10px, 4vw, 22px) calc(var(--safe-bottom) + 20px);
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-/* Layout central para cliente anónimo (botones grandes como bartender/cocinero) */
-.client-wrap.anonimo{
-  height: calc(100vh - 80px); /* altura sin header aproximado para evitar scroll */
-  min-height: 0;
-  max-height: calc(100vh - 80px);
+  height: calc(100dvh - 56px); /* altura menos el header */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centra los botones verticalmente */
+  padding: 0;
+  margin: 0;
+}
+
+/* ===== Zona de acciones para cliente REGISTRADO (4 botones) ===== */
+.client-actions{
+  height: 100%;
+  width: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex;
   align-items: center;
-  padding: 0 clamp(10px, 4vw, 22px) calc(var(--safe-bottom) + 20px);
-  box-sizing: border-box;
-  overflow: hidden;
+  justify-content: center;
 }
 
-.client-stack{
-  width: min(620px, 94vw);
-  display: grid;
-  gap: clamp(12px, 3svh, 24px); /* menos espacio entre botones para registrado */
+/* Forzamos al row a comportarse como columna con gap para registrado */
+.client-actions > ion-row{
+  width: 100% !important;
+  max-width: 600px;
+  height: auto !important;
+  margin: 0 auto;
+  display: flex !important;
+  flex-direction: column;
+  gap: var(--stack-gap);
+  padding: 20px;
+  justify-content: center;
 }
 
-/* Cliente anónimo: más espacio entre botones */
-.client-wrap.anonimo .client-stack{
-  gap: clamp(18px, 5svh, 80px);
-  margin-top: 0; /* Sin margin-top, el centrado se hace con justify-content */
+/* ===== Cliente ANÓNIMO: 2 botones que ocupan toda la pantalla (como delivery) ===== */
+.client-wrap.anonimo .client-actions {
+  height: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-/* Botones tamaño normal para cliente registrado */
-.cta{
-  font-family: "Inter", sans-serif;
+.client-wrap.anonimo .client-actions > ion-row {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+}
+
+.client-wrap.anonimo .client-actions ion-col {
+  flex: 1 1 50% !important;
+  min-height: 0 !important;
+  max-height: 50% !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  display: flex !important;
+}
+
+/* Quitamos paddings verticales de las columnas */
+.client-actions ion-col{
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Botones para cliente REGISTRADO (4 botones) - FORZAR COLOR ROJO OSCURO */
+.client-actions ion-button{
+  width: 100%;
+  --padding-top: 20px;
+  --padding-bottom: 20px;
+  --border-radius: 16px;
   font-weight: 700;
-  letter-spacing: .2px;
-  text-transform: none;
-  height: clamp(90px, 18svh, 140px); /* altura original */
-  --border-radius: 20px;
-  font-size: 1.3rem;
-  
-  /* Color de fondo igual para todos */
-  --background: #5d2222;
-  --color: #ffffff !important; /* blanco siempre, sin importar el tema */
-  --background-hover: #7b2f2f;
-  --background-activated: #3f1717;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  --background: #5d2222 !important;
+  --color: #ffffff !important;
+  --background-hover: #7b2f2f !important;
+  --background-activated: #3f1717 !important;
 }
 
-/* Botones grandes solo para cliente anónimo */
-.client-wrap.anonimo .cta{
-  height: clamp(160px, 32svh, 280px);
-  --border-radius: 28px;
-  font-size: 1.4rem;
+/* Forzar color rojo oscuro para TODOS los botones independientemente del atributo color */
+.client-actions ion-button:not([color]),
+.client-actions ion-button[color="secondary"],
+.client-actions ion-button[color="tertiary"],
+.client-actions ion-button[color="medium"],
+.client-actions ion-button[color="primary"],
+.client-actions ion-button[color="success"],
+.client-actions ion-button[color="warning"],
+.client-actions ion-button[color="danger"] {
+  --background: #5d2222 !important;
+  --color: #ffffff !important;
+  --background-hover: #7b2f2f !important;
+  --background-activated: #3f1717 !important;
 }
 
-.cta::part(native){ 
-  justify-content: center; 
-  padding: 0 22px;
-  color: #ffffff !important; /* asegurar texto blanco */
+/* Forzar estilos en el elemento nativo del botón */
+.client-actions ion-button::part(native){
+  min-height: 140px !important;
+  padding: 0 24px !important;
+  border: 2px solid rgba(0, 0, 0, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  background: #5d2222 !important;
+  color: #ffffff !important;
 }
 
-/* Cliente anónimo: más padding */
-.client-wrap.anonimo .cta::part(native){ 
-  padding: 0 28px;
+/* Forzar color en el contenido interno del botón */
+::ng-deep .client-actions ion-button .button-inner,
+::ng-deep .client-actions ion-button ion-label,
+::ng-deep .client-actions ion-button span {
+  color: #ffffff !important;
 }
 
-.cta::part(native) .button-inner {
-  color: #ffffff !important; /* asegurar texto blanco en el contenido */
-}
-.cta [slot="start"]{ 
-  margin-inline-end: 12px;
-  color: #ffffff !important; /* iconos blancos */
-}
-
-/* Cliente anónimo: más espacio para iconos */
-.client-wrap.anonimo .cta [slot="start"]{ 
-  margin-inline-end: 16px;
-}
-
-.cta ion-icon{ 
-  font-size: 1.8em; /* iconos más grandes */
-  color: #ffffff !important; /* iconos blancos */
-}
-
-/* Estilos específicos para el botón de reservas */
-.btn-reserva {
-  --background: #5d2222;
+/* Botones para cliente ANÓNIMO (2 botones que ocupan toda la pantalla) */
+.client-wrap.anonimo .client-actions ion-button {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  --border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  --background: #5d2222 !important;  /* Color rojo oscuro */
   --color: #ffffff !important;
   --background-hover: #7b2f2f;
   --background-activated: #3f1717;
 }
 
-/* Estilos específicos para el botón de delivery */
-.btn-delivery {
-  --background: #5d2222;
+.client-wrap.anonimo .client-actions ion-button::part(native) {
+  height: 100% !important;
+  width: 100% !important;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px;
+  color: #ffffff !important;
+}
+
+.client-actions ion-button [slot="start"],
+.client-actions ion-button ion-icon { 
+  font-size: 2em !important; 
+  margin-right: 12px !important;
+  color: #ffffff !important;
   --color: #ffffff !important;
-  --background-hover: #7b2f2f;
-  --background-activated: #3f1717;
 }
 
-/* Estilos para el botón de escanear QR */
-.btn-scan {
-  --background: #5d2222;
+/* Forzar color con ::ng-deep para asegurar que se aplique */
+::ng-deep .client-actions ion-button {
+  --background: #5d2222 !important;
   --color: #ffffff !important;
-  --background-hover: #7b2f2f;
-  --background-activated: #3f1717;
 }
 
-/* Estilos para el botón de historial */
-.btn-history {
-  --background: #5d2222;
+::ng-deep .client-actions ion-button[color="secondary"],
+::ng-deep .client-actions ion-button[color="tertiary"],
+::ng-deep .client-actions ion-button[color="medium"] {
+  --background: #5d2222 !important;
   --color: #ffffff !important;
-  --background-hover: #7b2f2f;
-  --background-activated: #3f1717;
 }
 
-/* Ajustes para pantallas muy chicas */
-@media (max-width: 360px){
-  .cta{ 
-    height: clamp(80px, 16svh, 110px); /* tamaño original para registrado */
-    font-size: 1.2rem;
-  }
-  .client-wrap.anonimo .cta{ 
-    height: clamp(140px, 28svh, 220px); /* tamaño grande para anónimo */
-    font-size: 1.25rem;
-  }
+::ng-deep .client-actions ion-button::part(native) {
+  background: #5d2222 !important;
+  color: #ffffff !important;
 }
 
-/* ===== FAB Logout - REMOVIDO: no se usa en este componente ===== */
-
-
-/* (Extra) ajusta para pantallas muy bajas para evitar scroll */
-@media (max-height: 640px){
-  .client-wrap{ 
-    padding: 8px clamp(10px, 4vw, 22px) calc(var(--safe-bottom) + 10px);
-  }
-  .cta {
-    height: clamp(70px, 12svh, 90px); /* altura reducida para pantallas bajas */
-    font-size: 1.1rem;
-  }
-  .client-stack {
-    gap: clamp(6px, 1.5svh, 12px); /* mínimo espacio */
-  }
-  .client-wrap.anonimo{ 
-    padding: 0 clamp(10px, 4vw, 22px) calc(var(--safe-bottom) + 10px);
-  }
-  .client-wrap.anonimo .cta {
-    height: clamp(120px, 24svh, 180px); /* tamaño reducido para anónimo en pantallas bajas */
-    font-size: 1.2rem;
-  }
-  .client-wrap.anonimo .client-stack {
-    gap: clamp(12px, 3svh, 40px);
-  }
+/* Ajustes en pantallas muy bajas (que sigan centrados) */
+@media (max-height: 700px){
+  .client-actions > ion-row{ gap: 18px; }
+  .client-actions ion-button::part(native){ min-height: 120px; }
+  .client-actions{ padding-top: 16px; }
 }
-.qr-preview-modal::part(content) {
-  --background: #000;         /* fondo negro tipo cámara */
+@media (max-height: 560px){
+  .client-actions > ion-row{ gap: 16px; }
+  .client-actions ion-button::part(native){ min-height: 100px; }
+  .client-actions{ padding-top: 12px; }
 }
 
-.qr-preview-wrap {
-  inline-size: 100%;
-  block-size: 100%;
-  display: grid;
-  place-items: center;
-  background: #000;
-}
-
-.qr-camera-fake {
-  position: relative;
-  inline-size: min(92vw, 520px);
-  block-size: min(92vh, 720px);
-  display: grid;
-  place-items: center;
-}
-
-.qr-frame {
-  inline-size: min(72vw, 360px);
-  block-size: min(72vw, 360px);
-  border: 3px solid rgba(255,255,255,.9);
-  border-radius: 12px;
-  box-shadow: 0 0 0 200vmax rgba(0,0,0,.35) inset;
-}
-
-.qr-hint {
-  position: absolute;
-  bottom: 24px;
-  left: 0; right: 0;
-  text-align: center;
-  color: #fff;
-  font-weight: 600;
-  opacity: .9;
-}
-
-/* Estilos para el alert personalizado con colores del cartel */
-.custom-alert {
-  --background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
-  --backdrop-filter: blur(6px) saturate(1.03);
-  --border-radius: 14px;
-  --box-shadow: 0 10px 28px rgba(61,43,43,.22), inset 0 1px 0 rgba(255,255,255,.06);
-}
-
-.custom-alert .alert-wrapper {
-  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 14px;
-  backdrop-filter: blur(6px) saturate(1.03);
-  box-shadow: 0 10px 28px rgba(61,43,43,.22), inset 0 1px 0 rgba(255,255,255,.06);
-}
-
-.custom-alert .alert-head {
-  color: #f3e7da;
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-}
-
-.custom-alert .alert-message {
-  color: #f3e7da;
-  font-family: "Inter", sans-serif;
-}
-
-.alert-button-confirm {
-  --color: #201212;
-  --background: linear-gradient(180deg, #ffe9d3, #f6ecdc);
-  --border-color: rgba(255,221,190,.75);
-  --border-width: 2px;
-  --border-radius: 14px;
-  font-weight: 800;
-}
-
-/* ===== Mensaje alusivo para factura lista ===== */
+/* ===== Mensaje de factura ===== */
 .factura-message {
-  background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
-  border: 2px solid #7b2f2f;
-  border-radius: 20px;
+  flex-shrink: 0;
+  margin-bottom: 20px;
+}
+
+/* Cliente anónimo ya usa height: 100% en los botones, no necesita min-height */
+
+/* ===== Estilos para el mensaje de factura ===== */
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 40px 30px;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
-  max-width: 500px;
-  width: 100%;
-  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  margin-bottom: 24px;
 }
 
-.factura-message .empty-icon {
+.empty-icon {
   font-size: 4rem;
   margin-bottom: 20px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
-.factura-message .empty-title {
-  color: #fff;
+.empty-title {
   font-size: 1.8rem;
-  font-weight: 800;
-  margin-bottom: 16px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-  letter-spacing: 1px;
-}
-
-.factura-message .empty-subtitle {
-  color: #d0d0d0;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: #5d2222;
   margin-bottom: 12px;
-  opacity: 0.9;
+  text-transform: uppercase;
 }
 
-.factura-message .empty-description {
-  color: #d0d0d0;
-  font-size: 0.95rem;
-  opacity: 0.8;
-  line-height: 1.4;
+.empty-subtitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #7b2f2f;
+  margin-bottom: 16px;
+}
+
+.empty-description {
+  font-size: 1rem;
+  color: #666;
   margin-bottom: 24px;
 }
 
@@ -442,27 +244,17 @@ ion-content.client-content {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 20px;
+  width: 100%;
 }
 
 .btn-descargar-factura {
-  --color: #fff;
-  --background: #7b2f2f;
-  --background-hover: #6b2727;
-  --border-radius: 12px;
-  font-weight: 700;
-  height: 50px;
-}
-
-.btn-descargar-factura ion-icon {
-  font-size: 1.4em;
+  --background: #5d2222;
+  --color: #ffffff !important;
+  --background-hover: #7b2f2f;
 }
 
 .btn-cerrar-factura {
-  --color: #d0d0d0;
-  --border-color: #7b2f2f;
-  --border-width: 2px;
-  --border-radius: 12px;
-  font-weight: 600;
-  height: 40px;
+  --background: transparent;
+  --color: #5d2222 !important;
+  --border-color: #5d2222;
 }

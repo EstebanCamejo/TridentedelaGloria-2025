@@ -150,13 +150,24 @@ export class AdminRealtimeService implements OnDestroy {
         const oldPedido: any = payload.old || {};
         
         // Notificar cuando un pedido delivery cambia a "listo para entregar"
+        // 🆕 IMPORTANTE: Verificar que TODOS los sectores estén listos antes de notificar (igual que mozo)
         if (pedido.tipo_pedido === 'delivery' && oldPedido.estado !== 'listo para entregar' && pedido.estado === 'listo para entregar') {
-          console.log('[AdminRealtimeService] ✅ Pedido delivery listo para entregar detectado!', {
+          console.log('[AdminRealtimeService] ✅ Cambio a "listo para entregar" detectado para delivery:', {
             pedidoId: pedido.id,
             tipo_pedido: pedido.tipo_pedido,
             estadoAnterior: oldPedido.estado,
             estadoNuevo: pedido.estado
           });
+
+          // 🆕 Verificar que TODOS los sectores estén listos antes de notificar
+          const todosLosSectoresListos = await this.verificarTodosLosSectoresListos(pedido.id);
+          
+          if (!todosLosSectoresListos) {
+            console.log('[AdminRealtimeService] ⚠️ No todos los sectores están listos para delivery, esperando...');
+            return;
+          }
+
+          console.log('[AdminRealtimeService] ✅ Todos los sectores están listos para delivery, enviando notificación!');
 
           try {
             await LocalNotifications.schedule({
@@ -216,6 +227,70 @@ export class AdminRealtimeService implements OnDestroy {
           console.log('[AdminRealtimeService] ❌ Error en suscripción del canal admin delivery');
         }
       });
+  }
+
+  /**
+   * Verifica que todos los sectores del pedido estén listos para entregar
+   * 🆕 Misma lógica que MozoRealtimeService para mantener consistencia
+   */
+  private async verificarTodosLosSectoresListos(pedidoId: number): Promise<boolean> {
+    try {
+      // Obtener los detalles del pedido para ver qué sectores están involucrados
+      const { data: detalles, error: detallesError } = await this.supa.client
+        .from('pedidos_detalles')
+        .select(`
+          menu!inner (
+            tipo
+          )
+        `)
+        .eq('idPedido', pedidoId);
+
+      if (detallesError) {
+        console.error('[AdminRealtimeService] Error al obtener detalles del pedido:', detallesError);
+        return false;
+      }
+
+      // Determinar qué sectores están involucrados
+      const tipos = detalles?.map(d => (d as any).menu?.tipo).filter(tipo => tipo) || [];
+      const tienePlatos = tipos.includes('plato');
+      const tieneBebidas = tipos.includes('bebida');
+
+      console.log('[AdminRealtimeService] Sectores involucrados:', { tienePlatos, tieneBebidas });
+
+      // Obtener el estado actual del pedido
+      const { data: pedido, error: pedidoError } = await this.supa.client
+        .from('pedidos')
+        .select('estado, estado_sector_cocina, estado_sector_bar')
+        .eq('id', pedidoId)
+        .single();
+
+      if (pedidoError) {
+        console.error('[AdminRealtimeService] Error al obtener estado del pedido:', pedidoError);
+        return false;
+      }
+
+      // Verificar que todos los sectores involucrados estén listos
+      let todosListos = true;
+
+      if (tienePlatos) {
+        const cocinaLista = pedido.estado_sector_cocina === 'listo para entregar';
+        console.log('[AdminRealtimeService] Cocina lista:', cocinaLista);
+        todosListos = todosListos && cocinaLista;
+      }
+
+      if (tieneBebidas) {
+        const barListo = pedido.estado_sector_bar === 'listo para entregar';
+        console.log('[AdminRealtimeService] Bar listo:', barListo);
+        todosListos = todosListos && barListo;
+      }
+
+      console.log('[AdminRealtimeService] Todos los sectores listos:', todosListos);
+      return todosListos;
+
+    } catch (error) {
+      console.error('[AdminRealtimeService] Error en verificarTodosLosSectoresListos:', error);
+      return false;
+    }
   }
 
   dispose() {

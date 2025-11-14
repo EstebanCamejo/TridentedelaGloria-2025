@@ -105,7 +105,7 @@
 //ultimo
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonModal } from '@ionic/angular/standalone';
+import { IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonModal, IonGrid, IonRow, IonCol, IonTitle } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { qrCodeOutline, albumsOutline } from 'ionicons/icons';
@@ -123,7 +123,7 @@ addIcons({ qrCodeOutline, albumsOutline, checkmarkCircleOutline, hourglassOutlin
   templateUrl: './ingreso-cliente.component.html',
   styleUrls: ['./ingreso-cliente.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule ,IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonModal],
+  imports: [CommonModule, FormsModule ,IonContent, IonButton, IonIcon, IonHeader, IonToolbar, IonModal, IonGrid, IonRow, IonCol, IonTitle],
 })
 
 export class IngresoClienteComponent implements OnInit {

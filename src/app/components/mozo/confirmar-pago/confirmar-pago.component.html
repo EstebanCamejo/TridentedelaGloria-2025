@@ -1,6 +1,6 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>CONFIRMAR PAGOS</ion-title>
+  <ion-toolbar style="--background: #5d2222; --color: #fff;">
+    <ion-title style="text-align: center; font-weight: 700; text-transform: uppercase;">CONFIRMAR PAGOS</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -17,12 +17,10 @@
     <div *ngIf="pagosPendientes.length > 0; else noPagos">
       <ion-card *ngFor="let pago of pagosPendientes" class="pago-card">
         <ion-card-header>
-          <ion-card-title class="mesa-title">MESA {{ pago.numero_mesa }}</ion-card-title>
-          <ion-card-subtitle class="mesa-subtitle">PAGO PENDIENTE DE CONFIRMACIÓN</ion-card-subtitle>
-          <div class="pago-badge">
-            <ion-icon name="time-outline"></ion-icon>
-            PENDIENTE
-          </div>
+          <ion-card-title class="mesa-title">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            MESA {{ pago.numero_mesa }}
+          </ion-card-title>
         </ion-card-header>
 
         <ion-card-content>
@@ -75,7 +73,7 @@
 
           <!-- Resumen de totales -->
           <div class="totales-section">
-            <h4 class="section-subtitle">RESUMEN DE TOTALES:</h4>
+            <h4 class="section-subtitle totales-subtitle">RESUMEN DE TOTALES:</h4>
             <div class="totales-list">
               <div class="total-line subtotal">
                 <span class="total-label">SUBTOTAL:</span>

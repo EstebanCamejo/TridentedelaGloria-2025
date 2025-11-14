@@ -97,7 +97,7 @@ import {
   IonRefresher, IonButton, IonIcon, IonCard
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { refresh, reorderThreeOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
+import { refresh, reorderThreeOutline, chevronBackOutline, chevronForwardOutline, closeOutline, restaurantOutline } from 'ionicons/icons';
 import { AlertController, ToastController, ActionSheetController ,ActionSheetButton} from '@ionic/angular';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { MaitreWaitlistService, EsperaItem, MesaLite } from 'src/app/services/maitre-waitlist.service';
@@ -133,7 +133,7 @@ export class ListaEsperaComponent implements OnDestroy {
     private spinner: SpinnerService,
     private maitreRt: MaitreRealtimeService
   ) {
-    addIcons({ refresh, reorderThreeOutline, chevronBackOutline, chevronForwardOutline });
+    addIcons({ refresh, reorderThreeOutline, chevronBackOutline, chevronForwardOutline, closeOutline, restaurantOutline });
     register(); // Registrar Swiper
   }
     async ionViewWillEnter() {
@@ -190,51 +190,42 @@ async atender(it: EsperaItem) {
   }
   const prioridad = this.prioridadDe(it);
 
-  // 👇 tipado explícito
-  const btns: ActionSheetButton[] = this.mesasLibres.map(m => ({
-    text: `MESA ${m.numero}`,
+  // Crear action sheet con las mesas disponibles (igual que admin/reservas)
+  const buttons: ActionSheetButton[] = [
+    // Botón de cerrar (X) al inicio
+    {
+      text: '',
+      role: 'cancel',
+      icon: 'close-outline',
+      cssClass: 'close-button'
+    },
+    // Mesas disponibles
+    ...this.mesasLibres.map(m => ({
+      text: `Mesa ${m.numero} (Capacidad: ${m.capacidad})`,
       icon: 'restaurant-outline',
-  cssClass: 'mesa-item',
-    handler: async () => {
-      try {
-        this.spinner.show({ immediate: true, minMs: 1000 });
-        const numero = await this.svc.assignAtomic(it.id, m.id);
-        this.items = this.items.filter(x => x.id !== it.id);
-        this.mesasLibres = this.mesasLibres.filter(x => x.id !== m.id);
-        this.msg(`MESA ${numero} ASIGNADA A ${it.nombre.toUpperCase()}`, false);
-      } catch (e: any) {
-        this.msg((e?.message || 'NO SE PUDO ASIGNAR LA MESA').toUpperCase(), true);
-      } finally {
-        this.spinner.hide();
+      cssClass: 'mesa-button',
+      handler: async () => {
+        try {
+          this.spinner.show({ immediate: true, minMs: 1000 });
+          const numero = await this.svc.assignAtomic(it.id, m.id);
+          this.items = this.items.filter(x => x.id !== it.id);
+          this.mesasLibres = this.mesasLibres.filter(x => x.id !== m.id);
+          this.msg(`MESA ${numero} ASIGNADA A ${it.nombre.toUpperCase()}`, false);
+        } catch (e: any) {
+          this.msg((e?.message || 'NO SE PUDO ASIGNAR LA MESA').toUpperCase(), true);
+        } finally {
+          this.spinner.hide();
+        }
       }
-    }
-  }));
+    }))
+  ];
 
-const s = await this.sheet.create({
-  header: 'ASIGNAR MESA',
-  buttons: btns,
-  cssClass: 'mesa-sheet-dark'
-});
+  const actionSheet = await this.sheet.create({
+    buttons: buttons,
+    cssClass: 'mesas-action-sheet'
+  });
 
-await s.present();
-
-// Agregar botón de cerrar después de que se presente el sheet
-setTimeout(() => {
-  const actionSheet = document.querySelector('ion-action-sheet.mesa-sheet-dark');
-  if (actionSheet) {
-    const header = actionSheet.querySelector('.action-sheet-header') as HTMLElement;
-    if (header && !header.querySelector('.mesa-close-btn')) {
-      const closeBtn = document.createElement('button');
-      closeBtn.innerHTML = '✕';
-      closeBtn.className = 'mesa-close-btn';
-      closeBtn.onclick = () => s.dismiss();
-      header.style.position = 'relative';
-      header.appendChild(closeBtn);
-    }
-  }
-}, 200);
-
-
+  await actionSheet.present();
   }
 
   trackById(_: number, it: EsperaItem) { return it.id; }

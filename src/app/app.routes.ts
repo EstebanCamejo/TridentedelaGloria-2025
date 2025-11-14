@@ -80,6 +80,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/altas',
+    loadComponent: () =>
+      import('./components/admin/altas/altas.component').then(
+        (m) => m.AltasComponent
+      ),
+  },
+  {
     path: 'admin/alta-usuario',
     loadComponent: () =>
       import('./components/admin/alta-usuario/alta-usuario.component').then(
@@ -118,6 +125,13 @@ export const routes: Routes = [
       import(
         './components/admin/resultados-encuestas/resultados-encuestas.component'
       ).then((m) => m.ResultadosEncuestasComponent),
+  },
+  {
+    path: 'admin/delivery',
+    loadComponent: () =>
+      import('./components/admin/delivery/delivery.component').then(
+        (m) => m.DeliveryComponent
+      ),
   },
   {
     path: 'admin/delivery-pedidos',

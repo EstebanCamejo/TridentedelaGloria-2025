@@ -3,6 +3,16 @@
 
 :host { display:block; }
 
+/* Centrar título del navbar */
+ion-header ion-toolbar ion-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
 /* Paleta usada en el registro */
 :root{
   --cream-25:#fbf3e4;
@@ -11,21 +21,55 @@
   --maroon-700:#5d2222;
 }
 
+/* Contenedor principal */
+.alta-mesa-content {
+  --background: #fbf3e4;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+}
+
+.alta-mesa-form {
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 12px;
+  min-height: fit-content;
+}
+
 /* ===== PANEL OSCURO (como el registro) para cada fila ===== */
 ion-item{
   --background: transparent;           /* limpiamos fondo ionic */
   --padding-start: 0;
   --inner-padding-start: 0;
   --inner-padding-end: 0;
-  margin: 10px 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 ion-item::part(native){
   background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
   border: 1px solid rgba(255,255,255,.06);
   border-radius: 14px;
-  padding: 12px;
+  padding: 12px !important;
   box-shadow: 0 10px 28px rgba(61,43,43,.22), inset 0 1px 0 rgba(255,255,255,.06);
   backdrop-filter: blur(6px) saturate(1.03);
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  position: relative;
+  align-items: stretch !important;
+}
+
+/* Item de tipo en horizontal */
+.item-tipo::part(native) {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
 }
 
 /* Mantener el panel oscuro al focus */
@@ -34,12 +78,31 @@ ion-item.item-has-focus::part(native){
   box-shadow: 0 0 0 3px rgba(255,221,190,.28), inset 0 1px 0 rgba(255,255,255,.06);
 }
 
-/* ===== Etiquetas (labels) claras como el registro ===== */
+/* Labels removidos - ahora usamos placeholders */
+
+/* Asegurar que el select/input esté después del label */
+.item-capacidad ion-input,
+.item-numero ion-input {
+  order: 1 !important;
+  flex: 0 0 auto !important;
+}
+
+/* Select de tipo al lado del label, ocupando menos espacio */
+.item-tipo ion-select {
+  order: 1 !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 60% !important;
+}
+
+/* ===== Etiquetas (labels) - ocultas ya que usamos placeholders ===== */
 ion-label{
-  color:#f3e7da;
-  font-family:"Inter",sans-serif;
-  font-weight:600;
-  margin: 4px 2px 8px;
+  display: none !important;
+  position: absolute !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* ===== Inputs/select con caja crema y texto legible ===== */
@@ -48,6 +111,101 @@ ion-select{
   --color:#f3e7da;              /* texto claro SIEMPRE */
   --placeholder-color:#d9c8bf;  /* placeholder del registro */
   font-size: 16px;
+}
+
+/* Input de capacidad y número más grandes */
+.item-capacidad .input-capacidad,
+.item-numero .input-numero {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+}
+
+.item-capacidad ion-input::part(native),
+.item-numero ion-input::part(native) {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  height: 56px !important;
+  text-align: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.item-capacidad ion-input input,
+.item-numero ion-input input {
+  text-align: center !important;
+  width: 100% !important;
+  text-align-last: center !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* Aplicar estilos directamente al input usando ::ng-deep o selector global */
+.item-capacidad input[type="number"],
+.item-numero input[type="number"] {
+  text-align: center !important;
+  text-align-last: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* Label de tipo en la misma línea que el select */
+.tipo-label {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #ffe9d3 !important;
+  font-family: "Inter", sans-serif;
+  text-transform: uppercase;
+  margin: 0 !important;
+  margin-right: 12px !important;
+  text-align: left;
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  order: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  line-height: 1.2 !important;
+  padding: 0 !important;
+}
+
+/* Select de tipo más grande y consistente */
+.item-tipo .select-tipo {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+}
+
+.item-tipo ion-select::part(text) {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #f3e7da !important;
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+.item-tipo ion-select::part(container) {
+  height: 46px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding: 0 12px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.item-tipo ion-select::part(icon) {
+  margin-left: auto !important;
 }
 
 /* Caja del input/select (idéntica a la del registro) */
@@ -59,6 +217,26 @@ ion-select::part(container){
   border: 1.5px solid rgba(255,221,190,.55);
   background: linear-gradient(180deg, var(--cream-50), var(--cream-25));
   color:#f3e7da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Centrar el input de texto dentro del native */
+ion-input::part(native) input {
+  text-align: center !important;
+  width: 100% !important;
+  text-align-last: center !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* Centrar específicamente inputs de tipo number */
+ion-input input[type="number"] {
+  text-align: center !important;
+  text-align-last: center !important;
+  direction: ltr !important;
 }
 
 /* Focus: NO blanquear el panel, sólo resaltar el borde de la caja */
@@ -70,8 +248,20 @@ ion-select:focus-within::part(container){
 }
 
 /* Icono y texto del select en claro */
-ion-select::part(text){ color:#f3e7da; }
-ion-select::part(icon){ color:#f3e7da; opacity:.95; }
+ion-select::part(text){ 
+  color:#f3e7da; 
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+ion-select::part(icon){ 
+  color:#f3e7da; 
+  opacity:.95; 
+  position: absolute !important;
+  right: 12px !important;
+}
 
 /* Estilos para el popover/dropdown del select */
 ion-popover {
@@ -154,32 +344,101 @@ ion-popover ion-item::part(native) {
 }
 
 /* ===== Botones con el look del registro ===== */
-ion-button{
-  --background: var(--maroon-700);     /* bordo */
-  --background-activated:#4b1d1d;
-  --color:#ffe9d3;                     /* crema */
-  --border-radius: 12px;
-  --padding-start: 14px;
-  --padding-end: 14px;
-  font-weight: 800;
+.alta-mesa-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
 }
-ion-button[color="primary"]{
-  --background:#ffe9d3;                /* botón Guardar estilo registro */
-  --background-activated:#f6dfc7;
-  --color:#201212;
-  --border-radius:14px;
-  border:2px solid rgba(255,221,190,.75);
-}
-ion-button.button-disabled{ --opacity:.55; }
 
-/* ===== Previsualización de foto: tamaño moderado ===== */
-:root{ --preview-w: 160px; }         /* ajusta si querés más/menos */
-ion-img{
-  width: var(--preview-w);
-  max-width: var(--preview-w);
-  height: auto;
+.btn-tomar-foto {
+  --background: #28a745;
+  --background-activated: #218838;
+  --background-hover: #34ce57;
+  --color: #ffffff;
+  --border-radius: 14px;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --padding-top: 0.9rem;
+  --padding-bottom: 0.9rem;
+  width: 100%;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  --box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+  border: 2px solid #1e7e34;
+}
+
+.btn-guardar {
+  --background: #ffe9d3;
+  --background-activated: #f6dfc7;
+  --color: #201212;
+  --border-radius: 14px;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --padding-top: 0.9rem;
+  --padding-bottom: 0.9rem;
+  width: 100%;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid rgba(255,221,190,.75);
+  margin: 0;
+}
+
+.btn-guardar.button-disabled {
+  --opacity: 0.55;
+}
+
+/* ===== Contenedor de foto clickeable (igual que alta-usuario) ===== */
+.foto-mesa-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.avatar-ctr {
+  width: 220px;
+  height: 220px;
   border-radius: 12px;
-  display: block;
-  margin: 0 auto;
-  box-shadow: 0 2px 12px rgba(0,0,0,.18);
+  background: #7b2f2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 3px solid #7b2f2f;
+  box-shadow: 0 2px 8px rgba(123, 47, 47, 0.3);
+  position: relative;
+  cursor: pointer;
+}
+
+.avatar-ctr img {
+  width: 100%;
+  height: 100%;
+  border-radius: 9px;
+  object-fit: cover;
+  background: #eee;
+  border: 2px solid #fff;
+  position: relative;
+  z-index: 1;
+}
+
+.avatar-ctr .camera-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 9px;
+  object-fit: contain;
+  background: transparent;
+  border: none;
+  padding: 20px;
+}
+
+.file-hidden {
+  display: none;
 }

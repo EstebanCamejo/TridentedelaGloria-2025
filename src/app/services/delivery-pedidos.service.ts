@@ -209,19 +209,19 @@ export class DeliveryPedidosService {
       // No lanzar error, pero registrar el warning
     }
 
-    // Actualizar el estado a 'entregado'
-    console.log('[DeliveryPedidosService] 📝 Actualizando estado del pedido a "entregado"...');
+    // Actualizar el estado a 'pendiente aceptación' (el cliente debe aceptar antes de que sea "entregado")
+    console.log('[DeliveryPedidosService] 📝 Actualizando estado del pedido a "pendiente aceptación"...');
     console.log('[DeliveryPedidosService] 📤 Datos de actualización:', {
       pedidoId,
       idDelivery,
-      estadoNuevo: 'entregado',
+      estadoNuevo: 'pendiente aceptación',
       updated_at: new Date().toISOString()
     });
 
     const { data: pedidoActualizado, error } = await this.supa.client
       .from('pedidos')
       .update({ 
-        estado: 'entregado',
+        estado: 'pendiente aceptación',
         updated_at: new Date().toISOString()
       })
       .eq('id', pedidoId)

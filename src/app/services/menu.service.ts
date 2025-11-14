@@ -346,6 +346,8 @@ async crearPedido(pedido: {
     numero_mesa: number;
     fecha: string;
     productos: { nombre: string; cantidad: number }[];
+    estado_sector_cocina: string | null;
+    tipo_pedido?: string;
   })[]> {
     console.log('🔍 Iniciando obtención de pedidos de cocina...');
 
@@ -370,7 +372,7 @@ async crearPedido(pedido: {
           )
         `)
         .eq('pedidos_detalles.menu.tipo', 'plato')
-        .in('estado', ['pedido en curso', 'en preparación', 'en preparación parcial'])  // ✅ Pedidos en curso, en preparación y en preparación parcial
+        .in('estado', ['pedido en curso', 'en preparación', 'en preparación parcial', 'listo para entregar'])  // ✅ Incluir también 'listo para entregar'
         .order('created_at', { ascending: true }); // Ordenar por fecha más antigua primero
 
       console.log('🔎 Resultado de consulta filtrada:', data);
@@ -388,14 +390,25 @@ async crearPedido(pedido: {
 
       console.log(`✅ Se encontraron ${data.length} pedidos con productos de cocina`);
 
+      // 🆕 Filtrar por estado_sector_cocina: mostrar pedidos no aceptados (NULL) o en preparación/listos
+      const pedidosFiltrados = data.filter(pedido => {
+        const estadoSector = pedido.estado_sector_cocina;
+        return !estadoSector || 
+               estadoSector === null || 
+               estadoSector === 'en preparación' || 
+               estadoSector === 'listo para entregar';
+      });
+
+      console.log(`✅ Después del filtro por estado_sector_cocina: ${pedidosFiltrados.length} pedidos`);
+
       // Verificar los estados de los pedidos encontrados
-      data.forEach(pedido => {
+      pedidosFiltrados.forEach(pedido => {
         console.log(`📋 Pedido ${pedido.id}: estado=${pedido.estado}, estado_sector_cocina=${pedido.estado_sector_cocina}`);
       });
 
-      // 🆕 Separar pedidos de mesa y delivery
-      const pedidosMesa = data.filter(p => !p.tipo_pedido || p.tipo_pedido === 'mesa');
-      const pedidosDelivery = data.filter(p => p.tipo_pedido === 'delivery');
+      // 🆕 Separar pedidos de mesa y delivery (usar datos filtrados)
+      const pedidosMesa = pedidosFiltrados.filter(p => !p.tipo_pedido || p.tipo_pedido === 'mesa');
+      const pedidosDelivery = pedidosFiltrados.filter(p => p.tipo_pedido === 'delivery');
 
       // Procesar pedidos de mesa (buscar mesas solo para estos)
       const idClientesMesa = pedidosMesa.map(pedido => pedido.idCliente).filter(id => id !== null);
@@ -422,8 +435,8 @@ async crearPedido(pedido: {
         });
       }
 
-      // Procesar todos los pedidos (mesa + delivery)
-      const pedidosProcesados = data.map(pedido => {
+      // Procesar todos los pedidos (mesa + delivery) - usar datos filtrados
+      const pedidosProcesados = pedidosFiltrados.map(pedido => {
         const productosCocina = pedido.pedidos_detalles
           .map((detalle: any) => ({
             nombre: detalle.menu.nombre,
@@ -463,6 +476,9 @@ async crearPedido(pedido: {
     numero_mesa: number;
     fecha: string;
     productos: { nombre: string; cantidad: number }[];
+    estado_sector_cocina: string | null;
+    estado_sector_bar: string | null;
+    tipo_pedido?: string;
   })[]> {
     console.log('🔍 Iniciando obtención de pedidos de bar...');
 
@@ -475,6 +491,7 @@ async crearPedido(pedido: {
           id,
           created_at,
           estado,
+          estado_sector_cocina,
           estado_sector_bar,
           idCliente,
           tipo_pedido,
@@ -487,7 +504,7 @@ async crearPedido(pedido: {
           )
         `)
         .eq('pedidos_detalles.menu.tipo', 'bebida')
-        .in('estado', ['pedido en curso', 'en preparación', 'en preparación parcial'])  // ✅ Pedidos en curso, en preparación y en preparación parcial
+        .in('estado', ['pedido en curso', 'en preparación', 'en preparación parcial', 'listo para entregar'])  // ✅ Incluir también 'listo para entregar'
         .order('created_at', { ascending: true }); // Ordenar por fecha más antigua primero
 
       console.log('🔎 Resultado de consulta filtrada:', data);
@@ -505,20 +522,32 @@ async crearPedido(pedido: {
 
       console.log(`✅ Se encontraron ${data.length} pedidos con productos de bebida`);
 
+      // 🆕 Filtrar por estado_sector_bar: mostrar pedidos no aceptados (NULL) o en preparación/listos
+      const pedidosFiltrados = data.filter(pedido => {
+        const estadoSector = pedido.estado_sector_bar;
+        return !estadoSector || 
+               estadoSector === null || 
+               estadoSector === 'en preparación' || 
+               estadoSector === 'listo para entregar';
+      });
+
+      console.log(`✅ Después del filtro por estado_sector_bar: ${pedidosFiltrados.length} pedidos`);
+
       // Verificar los estados de los pedidos encontrados
-      data.forEach(pedido => {
+      pedidosFiltrados.forEach(pedido => {
         console.log(`📋 Pedido ${pedido.id}: estado=${pedido.estado}, estado_sector_bar=${pedido.estado_sector_bar}`);
       });
 
       // Resto del código se mantiene igual...
-      const idClientes = data.map(pedido => pedido.idCliente).filter(id => id !== null);
+      const idClientes = pedidosFiltrados.map(pedido => pedido.idCliente).filter(id => id !== null);
       console.log('👥 ID Clientes a buscar:', idClientes);
 
       if (idClientes.length === 0) {
         console.log('⚠️ No hay idClientes válidos para buscar mesas');
-        return data.map(pedido => ({
+        return pedidosFiltrados.map(pedido => ({
           id: pedido.id,
           estado: pedido.estado,
+          estado_sector_cocina: pedido.estado_sector_cocina, // 🆕 Agregar estado_sector_cocina
           estado_sector_bar: pedido.estado_sector_bar,
           created_at: pedido.created_at,
           fecha: pedido.created_at,
@@ -532,9 +561,9 @@ async crearPedido(pedido: {
         }));
       }
 
-      // 🆕 Separar pedidos de mesa y delivery
-      const pedidosMesa = data.filter(p => !p.tipo_pedido || p.tipo_pedido === 'mesa');
-      const pedidosDelivery = data.filter(p => p.tipo_pedido === 'delivery');
+      // 🆕 Separar pedidos de mesa y delivery (usar datos filtrados)
+      const pedidosMesa = pedidosFiltrados.filter(p => !p.tipo_pedido || p.tipo_pedido === 'mesa');
+      const pedidosDelivery = pedidosFiltrados.filter(p => p.tipo_pedido === 'delivery');
 
       // Procesar pedidos de mesa (buscar mesas solo para estos)
       const idClientesMesa = pedidosMesa.map(pedido => pedido.idCliente).filter(id => id !== null);
@@ -579,7 +608,8 @@ async crearPedido(pedido: {
         return {
           id: pedido.id,
           estado: pedido.estado,
-          estado_sector_cocina: pedido.estado_sector_bar,
+          estado_sector_cocina: pedido.estado_sector_cocina, // Mantener para compatibilidad
+          estado_sector_bar: pedido.estado_sector_bar, // 🆕 Estado del sector bar
           created_at: pedido.created_at,
           fecha: pedido.created_at,
           numero_mesa: numero_mesa,

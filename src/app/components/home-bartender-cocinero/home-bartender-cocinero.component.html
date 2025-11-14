@@ -1,91 +1,54 @@
-<ion-content class="pa-4 client-content" fullscreen>
-  <div class="bartender-cocinero-wrap">
-    
-    <ion-header class="client-header">
-      <ion-toolbar>
-        <div class="nav-pill">
-          BIENVENIDO | {{ (nombre$ || '—') | uppercase }}
-        </div>
-      </ion-toolbar>
-    </ion-header>
+<ion-header>
+  <ion-toolbar style="--background: #5d2222; --color: #fff;">
+    <ion-title style="text-align: center; font-weight: 700; text-transform: uppercase;">
+      BIENVENIDO | {{ (nombre$ || '—') | uppercase }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
 
-    <ion-content class="client-content" fullscreen>
-      <div class="client-wrap">
-        <div class="client-stack">
+<ion-content [fullscreen]="true" class="client-content">
+  <div class="client-wrap" [class.anonimo]="true">
+    <ion-grid fixed class="client-actions">
+      <ion-row class="gap-y">
+        <ion-col size="12">
           <ion-button
             *ngIf="perfil === 'cocinero'"
-            class="cta btn-scan"
-            fill="solid"
             expand="block"
             size="large"
-            (click)="irAAgregarNuevoPlato()"
-          >
+            (click)="irAAgregarNuevoPlato()">
             <ion-icon slot="start" name="add-circle-outline"></ion-icon>
             AGREGAR NUEVO PLATO
           </ion-button>
-
-        <ion-button
-          *ngIf="perfil === 'bartender'"
-          class="cta btn-history"
-          fill="solid"
-          expand="block"
-          size="large"
-          (click)="irAAgregarNuevaBebida()"
-        >
-          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-          AGREGAR NUEVA BEBIDA
-        </ion-button>
-
-        <ion-button
-          *ngIf="perfil === 'cocinero'"
-          class="cta btn-pendientes"
-          fill="solid"
-          expand="block"
-          size="large"
-          (click)="irAVerificarPendientesCocinero()"
-        >
-          <ion-icon slot="start" name="list-circle-outline"></ion-icon>
-          VERIFICAR PEDIDOS PENDIENTES
-        </ion-button>
-
-          <!-- <ion-button
-          *ngIf="perfil === 'cocinero'"
-            class="cta btn-pendientes"
-            fill="solid"
-            expand="block"
-            size="large"
-            color="secondary"
-            (click)="irAVerificarPendientesCocinero()"
-          >
-            <ion-icon slot="start" name="list-circle-outline"></ion-icon>
-            Verificar pedidos pendientes
-          </ion-button> -->
-
-          <!-- <ion-button
-            *ngIf="perfil === 'bartender'"
-            class="cta btn-pendientes"
-            fill="solid"
-            expand="block"
-            size="large"
-            color="secondary"
-            (click)="irAVerificarPendientesBartender()"
-          >
-            <ion-icon slot="start" name="list-circle-outline"></ion-icon>
-            Verificar pedidos pendientes
-          </ion-button> -->
+          
           <ion-button
             *ngIf="perfil === 'bartender'"
-            class="cta btn-pendientes"
-            fill="solid"
             expand="block"
             size="large"
-            (click)="irAVerificarPendientesBartender()"
-          >
+            (click)="irAAgregarNuevaBebida()">
+            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+            AGREGAR NUEVA BEBIDA
+          </ion-button>
+        </ion-col>
+        <ion-col size="12">
+          <ion-button
+            *ngIf="perfil === 'cocinero'"
+            expand="block"
+            size="large"
+            (click)="irAVerificarPendientesCocinero()">
             <ion-icon slot="start" name="list-circle-outline"></ion-icon>
             VERIFICAR PEDIDOS PENDIENTES
           </ion-button>
-
-      </div>
-
+          
+          <ion-button
+            *ngIf="perfil === 'bartender'"
+            expand="block"
+            size="large"
+            (click)="irAVerificarPendientesBartender()">
+            <ion-icon slot="start" name="list-circle-outline"></ion-icon>
+            VERIFICAR PEDIDOS PENDIENTES
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </div>
 </ion-content>

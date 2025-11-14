@@ -5,7 +5,7 @@ import {
   IonButton, IonIcon, IonTitle, IonToolbar, IonHeader } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneCircle, personAdd, restaurant, create , statsChart, calendarOutline, bicycleOutline, receiptOutline} from 'ionicons/icons';
+import { checkmarkDoneCircle, personAdd, statsChart, calendarOutline, bicycleOutline } from 'ionicons/icons';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { ToastrService } from 'ngx-toastr';
@@ -35,7 +35,7 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
     private adminReservasRt: AdminReservasRealtimeService
   ) {
     addIcons({ 
-      checkmarkDoneCircle, personAdd, restaurant, statsChart, create, calendarOutline, bicycleOutline, receiptOutline });    
+      checkmarkDoneCircle, personAdd, statsChart, calendarOutline, bicycleOutline });    
   }
 
   async ngOnInit() {
@@ -138,19 +138,9 @@ export class HomeAdminComponent implements OnInit , OnDestroy{
   }
 
   irAListaDeEspera() { this.router.navigate(['/admin/pendientes']); }
-  irAAltaUsuarios()  { this.router.navigate(['/admin/alta-usuario']); }
-  irAResultados()    { this.router.navigate(['/pagina-resultados-encuestas']); }
-  irAMesas()         { this.router.navigate(['/admin/mesas']);}
-  irAReservas()      { this.router.navigate(['/admin/reservas']);}
-  irADeliveryPedidos() { 
-    console.log('[HomeAdminComponent] Navegando a delivery-pedidos...');
-    this.router.navigate(['/admin/delivery-pedidos']).catch(err => {
-      console.error('[HomeAdminComponent] Error al navegar a delivery-pedidos:', err);
-    });
-  }
-  
-  irADeliveryConfirmarPago() { 
-    this.router.navigate(['/admin/delivery-confirmar-pago']); 
-  }
+  irAAltas()          { this.router.navigate(['/admin/altas']); }
+  irAResultados()     { this.router.navigate(['/pagina-resultados-encuestas']); }
+  irAReservas()       { this.router.navigate(['/admin/reservas']); }
+  irADelivery()       { this.router.navigate(['/admin/delivery']); }
 
 }
