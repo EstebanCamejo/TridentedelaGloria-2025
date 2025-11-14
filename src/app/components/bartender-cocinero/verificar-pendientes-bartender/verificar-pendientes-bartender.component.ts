@@ -227,10 +227,11 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
       const estadoBar = (pedido as any).estado_sector_bar;
       return !estadoBar || estadoBar === null;
     });
-    // 🆕 LISTOS: pedidos donde estado_sector_bar está en 'en preparación' o 'listo para entregar'
+    // 🆕 LISTOS: pedidos donde estado_sector_bar está en 'en preparación' (excluir 'listo para entregar')
+    // Los pedidos "listo para entregar" desaparecen de todas las listas
     this.pedidosListos = todosLosPedidos.filter(pedido => {
       const estadoBar = (pedido as any).estado_sector_bar;
-      return estadoBar === 'en preparación' || estadoBar === 'listo para entregar';
+      return estadoBar === 'en preparación';
     });
     console.log('✅ Pedidos pendientes (bar):', this.pedidosPendientes);
     console.log('✅ Pedidos listos (bar):', this.pedidosListos);

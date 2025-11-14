@@ -1,6 +1,6 @@
 <ion-header class="mz-header">
   <ion-toolbar>
-    <div class="nav-pill title-large">REPARTIDOR | {{ (email | async) || '—' }}</div>
+    <div class="nav-pill title-large">BIENVENIDO | {{ (nombre || '—') | uppercase }}</div>
   </ion-toolbar>
 
   <!-- tira con fondo sólido/blur -->
@@ -11,7 +11,7 @@
         <ion-label>ASIGNADOS</ion-label>
       </ion-segment-button>
       <ion-segment-button value="en-camino">
-        <ion-label>EN CAMINO</ion-label>
+        <ion-label>EN CURSO</ion-label>
       </ion-segment-button>
       <ion-segment-button value="consultas">
         <ion-label>CONSULTAS</ion-label>
@@ -39,127 +39,190 @@
       <div *ngIf="!cargandoAsignados && pedidosAsignados.length === 0" class="empty-message">
         <ion-icon name="checkmark-circle-outline" class="empty-icon"></ion-icon>
         <div class="empty-title">¡NO HAY PEDIDOS ASIGNADOS!</div>
-        <div class="empty-subtitle">NO HAY PEDIDOS ASIGNADOS A TU USUARIO REPARTIDOR</div>
-        <div class="empty-description">LOS PEDIDOS APARECERÁN AQUÍ CUANDO TE SEAN ASIGNADOS</div>
+        <div class="empty-description">ESPERANDO ASIGNACIÓN DE PEDIDOS</div>
       </div>
 
       <!-- Lista de pedidos asignados -->
-      <ion-card class="pedido asignado" *ngFor="let p of pedidosAsignados">
-        <ion-card-header>
-          <ion-card-title>PEDIDO #{{ p.id }}</ion-card-title>
-          <ion-card-subtitle>{{ p.cantidad_items }} PRODUCTOS</ion-card-subtitle>
-        </ion-card-header>
+      <div class="pedidos-container">
+        <swiper-container
+          #swiperAsignados
+          class="pedidos-swiper"
+          slides-per-view="1"
+          space-between="20"
+          centered-slides="true"
+          pagination="false"
+          navigation="false"
+          speed="300"
+          (swiperslidechange)="onSlideChangeAsignados($event)">
+          <swiper-slide *ngFor="let p of pedidosAsignados">
+            <ion-card class="pedido asignado">
+              <ion-card-header>
+                <ion-card-title>PEDIDO #{{ p.id }}</ion-card-title>
+                <ion-card-subtitle>{{ p.cantidad_items }} PRODUCTOS</ion-card-subtitle>
+              </ion-card-header>
 
-        <ion-card-content>
-          <div class="info">
-            <div>CLIENTE: <strong>{{ p.cliente_email }}</strong></div>
-            <div>FECHA: <strong>{{ p.created_at | date:'dd/MM/yy HH:mm:ss' }}</strong></div>
-            <div>TOTAL: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
-            <div>TIEMPO ESTIMADO: <strong>{{ p.tiempo_estimado }} MINUTOS</strong></div>
-            <div *ngIf="p.direccion_entrega" class="direccion">
-              <ion-icon name="location-outline"></ion-icon>
-              <strong>DIRECCIÓN:</strong> {{ p.direccion_entrega }}
-            </div>
+              <ion-card-content>
+                <div class="info">
+                  <div *ngIf="p.direccion_entrega" class="direccion">
+                    <div class="direccion-header">
+                      <ion-icon name="location-outline"></ion-icon>
+                      <strong>DIRECCIÓN:</strong>
+                    </div>
+                    <span class="direccion-texto">{{ p.direccion_entrega }}</span>
+                  </div>
+                  <div class="fecha-hora">
+                    <div class="fecha">FECHA: <strong>{{ p.created_at | date:'dd/MM/yy' }}</strong></div>
+                    <div class="hora">HORA: <strong>{{ p.created_at | date:'HH:mm:ss' }}</strong></div>
+                  </div>
+                  <div class="total">TOTAL: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
+                </div>
+
+                <!-- Botón para confirmar recepción -->
+                <ion-button 
+                  class="btn-confirmar-recepcion" 
+                  expand="block" 
+                  fill="solid"
+                  color="success"
+                  [disabled]="confirmandoId === p.id"
+                  (click)="confirmarRecepcionPedido(p)">
+                  <ion-spinner *ngIf="confirmandoId === p.id" slot="start"></ion-spinner>
+                  <ion-icon *ngIf="confirmandoId !== p.id" name="checkmark-circle-outline" slot="start"></ion-icon>
+                  {{ confirmandoId === p.id ? 'CONFIRMANDO...' : 'CONFIRMAR RECEPCIÓN' }}
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </swiper-slide>
+        </swiper-container>
+        
+        <!-- Paginación personalizada -->
+        <div *ngIf="pedidosAsignados.length > 0" class="custom-pagination">
+          <button 
+            class="pagination-btn"
+            (click)="goToPreviousAsignados(swiperAsignados)"
+            [disabled]="currentSlideAsignados === 0">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+          <div class="pagination-counter">
+            {{ currentSlideAsignados + 1 }}/{{ pedidosAsignados.length }}
           </div>
-
-          <!-- Botón para confirmar recepción -->
-          <ion-button 
-            class="btn-confirmar-recepcion" 
-            expand="block" 
-            fill="solid"
-            color="success"
-            [disabled]="confirmandoId === p.id"
-            (click)="confirmarRecepcionPedido(p)">
-            <ion-spinner *ngIf="confirmandoId === p.id" slot="start"></ion-spinner>
-            <ion-icon *ngIf="confirmandoId !== p.id" name="checkmark-circle-outline" slot="start"></ion-icon>
-            {{ confirmandoId === p.id ? 'CONFIRMANDO...' : 'CONFIRMAR RECEPCIÓN' }}
-          </ion-button>
-        </ion-card-content>
-      </ion-card>
+          <button 
+            class="pagination-btn"
+            (click)="goToNextAsignados(swiperAsignados)"
+            [disabled]="currentSlideAsignados === pedidosAsignados.length - 1">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
     </ng-container>
 
-    <!-- ====== TAB EN CAMINO ====== -->
+    <!-- ====== TAB EN CURSO ====== -->
     <ng-container *ngSwitchCase="'en-camino'">
       <!-- Cargando -->
       <div *ngIf="cargandoEnCamino" class="loading-state">
         <ion-spinner name="crescent"></ion-spinner>
-        <p>CARGANDO PEDIDOS EN CAMINO...</p>
+        <p>CARGANDO PEDIDOS EN CURSO...</p>
       </div>
 
-      <!-- Sin pedidos en camino -->
+      <!-- Sin pedidos en curso -->
       <div *ngIf="!cargandoEnCamino && pedidosEnCamino.length === 0" class="empty-message">
         <ion-icon name="navigate-outline" class="empty-icon"></ion-icon>
-        <div class="empty-title">¡NO HAY PEDIDOS EN CAMINO!</div>
-        <div class="empty-subtitle">NO HAY PEDIDOS CONFIRMADOS PARA ENTREGAR</div>
-        <div class="empty-description">LOS PEDIDOS APARECERÁN AQUÍ CUANDO CONFIRMES SU RECEPCIÓN</div>
+        <div class="empty-title">¡NO HAY PEDIDOS EN CURSO!</div>
+        <div class="empty-description">CONFIRMA LA RECEPCIÓN DE UN PEDIDO PARA COMENZAR</div>
       </div>
 
       <!-- Lista de pedidos en camino -->
-      <ion-card class="pedido en-camino" *ngFor="let p of pedidosEnCamino">
-        <ion-card-header>
-          <ion-card-title>PEDIDO #{{ p.id }}</ion-card-title>
-          <ion-card-subtitle>{{ p.cantidad_items }} PRODUCTOS</ion-card-subtitle>
-        </ion-card-header>
+      <div class="pedidos-container">
+        <swiper-container
+          #swiperEnCamino
+          class="pedidos-swiper"
+          slides-per-view="1"
+          space-between="20"
+          centered-slides="true"
+          pagination="false"
+          navigation="false"
+          speed="300"
+          (swiperslidechange)="onSlideChangeEnCamino($event)">
+          <swiper-slide *ngFor="let p of pedidosEnCamino">
+            <ion-card class="pedido en-camino">
+              <ion-card-header>
+                <ion-card-title>PEDIDO #{{ p.id }}</ion-card-title>
+                <ion-card-subtitle>{{ p.cantidad_items }} PRODUCTOS</ion-card-subtitle>
+              </ion-card-header>
 
-        <ion-card-content>
-          <div class="info">
-            <div>CLIENTE: <strong>{{ p.cliente_email }}</strong></div>
-            <div>FECHA: <strong>{{ p.created_at | date:'dd/MM/yy HH:mm:ss' }}</strong></div>
-            <div>TOTAL: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
-            <div>TIEMPO ESTIMADO: <strong>{{ p.tiempo_estimado }} MINUTOS</strong></div>
-            <div *ngIf="p.direccion_entrega" class="direccion">
-              <ion-icon name="location-outline"></ion-icon>
-              <strong>DIRECCIÓN:</strong> {{ p.direccion_entrega }}
-            </div>
+              <ion-card-content>
+                <div class="info">
+                  <div *ngIf="p.direccion_entrega" class="direccion">
+                    <div class="direccion-header">
+                      <ion-icon name="location-outline"></ion-icon>
+                      <strong>DIRECCIÓN:</strong>
+                    </div>
+                    <span class="direccion-texto">{{ p.direccion_entrega }}</span>
+                  </div>
+                  <div class="fecha-hora">
+                    <div class="fecha">FECHA: <strong>{{ p.created_at | date:'dd/MM/yy' }}</strong></div>
+                    <div class="hora">HORA: <strong>{{ p.created_at | date:'HH:mm:ss' }}</strong></div>
+                  </div>
+                  <div class="total">TOTAL: <strong>{{ p.total | currency:'ARS':'symbol-narrow' }}</strong></div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="button-group">
+                  <ion-button 
+                    class="btn-ver-mapa" 
+                    expand="block" 
+                    fill="solid"
+                    color="primary"
+                    (click)="verMapaRuta(p)">
+                    <ion-icon name="location-outline" slot="start"></ion-icon>
+                    VER MAPA
+                  </ion-button>
+
+                  <ion-button 
+                    class="btn-chat" 
+                    expand="block" 
+                    fill="outline"
+                    color="tertiary"
+                    (click)="irAChat(p)">
+                    <ion-icon name="chatbubble-ellipses-outline" slot="start"></ion-icon>
+                    CHAT CON CLIENTE
+                  </ion-button>
+
+                  <ion-button 
+                    class="btn-entregar" 
+                    expand="block" 
+                    fill="solid"
+                    color="success"
+                    [disabled]="entregandoId === p.id"
+                    (click)="entregarPedidoAlCliente(p)">
+                    <ion-spinner *ngIf="entregandoId === p.id" slot="start"></ion-spinner>
+                    <ion-icon *ngIf="entregandoId !== p.id" name="checkmark-circle-outline" slot="start"></ion-icon>
+                    {{ entregandoId === p.id ? 'ENTREGANDO...' : 'ENTREGAR AL CLIENTE' }}
+                  </ion-button>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </swiper-slide>
+        </swiper-container>
+        
+        <!-- Paginación personalizada -->
+        <div *ngIf="pedidosEnCamino.length > 0" class="custom-pagination">
+          <button 
+            class="pagination-btn"
+            (click)="goToPreviousEnCamino(swiperEnCamino)"
+            [disabled]="currentSlideEnCamino === 0">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+          <div class="pagination-counter">
+            {{ currentSlideEnCamino + 1 }}/{{ pedidosEnCamino.length }}
           </div>
-
-          <!-- Botones de acción -->
-          <div class="button-group">
-            <ion-button 
-              class="btn-ver-mapa" 
-              expand="block" 
-              fill="outline"
-              color="primary"
-              (click)="verMapaRuta(p)">
-              <ion-icon name="location-outline" slot="start"></ion-icon>
-              VER MAPA
-            </ion-button>
-
-            <ion-button 
-              *ngIf="p.latitud && p.longitud"
-              class="btn-navegar" 
-              expand="block" 
-              fill="outline"
-              color="secondary"
-              (click)="abrirNavegacionExterna(p)">
-              <ion-icon name="navigate-outline" slot="start"></ion-icon>
-              ABRIR NAVEGACIÓN
-            </ion-button>
-
-            <ion-button 
-              class="btn-chat" 
-              expand="block" 
-              fill="outline"
-              color="tertiary"
-              (click)="irAChat(p)">
-              <ion-icon name="chatbubble-ellipses-outline" slot="start"></ion-icon>
-              CHAT CON CLIENTE
-            </ion-button>
-
-            <ion-button 
-              class="btn-entregar" 
-              expand="block" 
-              fill="solid"
-              color="success"
-              [disabled]="entregandoId === p.id"
-              (click)="entregarPedidoAlCliente(p)">
-              <ion-spinner *ngIf="entregandoId === p.id" slot="start"></ion-spinner>
-              <ion-icon *ngIf="entregandoId !== p.id" name="checkmark-circle-outline" slot="start"></ion-icon>
-              {{ entregandoId === p.id ? 'ENTREGANDO...' : 'ENTREGAR AL CLIENTE' }}
-            </ion-button>
-          </div>
-        </ion-card-content>
-      </ion-card>
+          <button 
+            class="pagination-btn"
+            (click)="goToNextEnCamino(swiperEnCamino)"
+            [disabled]="currentSlideEnCamino === pedidosEnCamino.length - 1">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
     </ng-container>
 
     <!-- ====== TAB CONSULTAS ====== -->
@@ -182,8 +245,7 @@
         <div class="empty-message">
           <ion-icon name="chatbubble-ellipses-outline" class="empty-icon"></ion-icon>
           <div class="empty-title">¡CONSULTAS VACÍAS!</div>
-        <div class="empty-subtitle">NO HAY CONSULTAS TODAVÍA</div>
-        <div class="empty-description">LOS CLIENTES AÚN NO HAN REALIZADO CONSULTAS</div>
+          <div class="empty-description">NO HAY MENSAJES DE CLIENTES</div>
         </div>
       </ng-template>
     </ng-container>

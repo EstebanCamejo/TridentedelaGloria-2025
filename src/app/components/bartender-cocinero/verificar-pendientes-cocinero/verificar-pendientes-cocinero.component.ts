@@ -232,10 +232,10 @@ export class VerificarPendientesCocineroComponent  implements OnInit {
     this.pedidosPendientes = todosLosPedidos.filter(pedido => 
       !pedido.estado_sector_cocina || pedido.estado_sector_cocina === null
     );
-    // 🆕 LISTOS: pedidos donde estado_sector_cocina está en 'en preparación' o 'listo para entregar'
+    // 🆕 LISTOS: pedidos donde estado_sector_cocina está en 'en preparación' (excluir 'listo para entregar')
+    // Los pedidos "listo para entregar" desaparecen de todas las listas
     this.pedidosListos = todosLosPedidos.filter(pedido => 
-      pedido.estado_sector_cocina === 'en preparación' || 
-      pedido.estado_sector_cocina === 'listo para entregar'
+      pedido.estado_sector_cocina === 'en preparación'
     );
     console.log('✅ Pedidos pendientes (cocina):', this.pedidosPendientes);
     console.log('✅ Pedidos listos (cocina):', this.pedidosListos);

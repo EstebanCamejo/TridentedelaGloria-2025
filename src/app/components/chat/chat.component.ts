@@ -11,6 +11,7 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 import { SesionService } from 'src/app/services/sesion.service';
 import { chevronBackOutline, sendOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
+import { Keyboard } from '@capacitor/keyboard';
 
 @Component({
   selector: 'app-chat',
@@ -31,8 +32,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   mesaNumero: number | null = null; // Número de mesa para mostrar en mensajes del mozo
   nombresCache = new Map<string, string>(); // Cache de nombres de usuarios (uid -> nombre)
   metaTextos = new Map<number, string>(); // Cache de textos meta por mensaje (id -> texto)
+  direccionCliente: string | null = null; // 🆕 Dirección del cliente para mostrar como "nick"
+  nombreRepartidor: string | null = null; // 🆕 Nombre del repartidor para mostrar como "Repartidor + NOMBRE"
 
   private sub?: Subscription;
+  private keyboardWillShowListener?: any;
+  private keyboardWillHideListener?: any;
   @ViewChild('bottom') bottom?: ElementRef;
   @ViewChild(IonContent) ionContent?: IonContent;
   constructor(
@@ -72,6 +77,9 @@ async ngOnInit() {
       this.esModoDelivery = true; // 🆕 El usuario actual es delivery
       this.roomId = +roomFromRoute;
       console.log('[ChatComponent] 🏠 Room ID:', this.roomId);
+      
+      // 🆕 Cargar dirección del cliente desde el pedido
+      await this.cargarDireccionCliente();
       
       this.sub = this.chat.streamMessages(this.roomId).subscribe(async arr => {
         console.log('[ChatComponent] 📨 Mensajes recibidos:', arr.length);
@@ -175,6 +183,9 @@ async ngOnInit() {
         delivery_uid
       );
       
+      // 🆕 Cargar nombre del repartidor para mostrar como "Repartidor + NOMBRE"
+      await this.cargarNombreRepartidor(delivery_uid);
+      
       console.log('[ChatComponent] ✅ Sala delivery creada/obtenida. Room ID:', this.roomId);
     } else {
       console.log('[ChatComponent] 🍽️ PEDIDO DE MESA DETECTADO');
@@ -204,6 +215,9 @@ async ngOnInit() {
     });
     
     console.log('[ChatComponent] ✅ Suscripción a mensajes establecida');
+    
+    // 🆕 Configurar listeners del teclado para mantener el último mensaje visible
+    this.configurarTeclado();
   } catch (error: any) {
     console.error('[ChatComponent] ❌ ===== ERROR CRÍTICO =====');
     console.error('[ChatComponent] ❌ Error al crear/obtener sala:', error);
@@ -214,6 +228,34 @@ async ngOnInit() {
     // TODO: Mostrar toast de error al usuario si es necesario
   }
 }
+
+  /** 🆕 Configura los listeners del teclado para mantener el último mensaje visible */
+  private configurarTeclado() {
+    try {
+      // Listener cuando el teclado va a aparecer
+      this.keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (info) => {
+        console.log('[ChatComponent] ⌨️ Teclado apareciendo, altura:', info.keyboardHeight);
+        // Ajustar el scroll para mantener el último mensaje visible
+        // Esperar un poco para que el teclado termine de aparecer
+        setTimeout(() => {
+          this.scrollDownSoon();
+        }, 350);
+      });
+
+      // Listener cuando el teclado va a desaparecer
+      this.keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => {
+        console.log('[ChatComponent] ⌨️ Teclado desapareciendo');
+        // Mantener el scroll en el último mensaje cuando se cierra el teclado
+        setTimeout(() => {
+          this.scrollDownSoon();
+        }, 150);
+      });
+
+      console.log('[ChatComponent] ✅ Listeners del teclado configurados');
+    } catch (error) {
+      console.warn('[ChatComponent] ⚠️ No se pudieron configurar los listeners del teclado (puede ser navegador):', error);
+    }
+  }
 
 async enviar() {
   console.log('[ChatComponent] 📤 Intentando enviar mensaje');
@@ -275,6 +317,51 @@ async enviar() {
       console.error('[ChatComponent] ❌ Error al cargar número de mesa:', e);
     }
   }
+
+  /** 🆕 Carga la dirección del cliente desde el pedido asociado al chat room */
+  async cargarDireccionCliente() {
+    try {
+      // Obtener pedido_id desde chat_rooms
+      const { data: room, error: roomError } = await this.supa.client
+        .from('chat_rooms')
+        .select('pedido_id')
+        .eq('id', this.roomId)
+        .maybeSingle();
+      
+      if (roomError || !room?.pedido_id) {
+        console.error('[ChatComponent] ❌ Error al obtener pedido_id del chat room:', roomError);
+        return;
+      }
+      
+      // Obtener dirección de entrega desde pedidos
+      const { data: pedido, error: pedidoError } = await this.supa.client
+        .from('pedidos')
+        .select('direccion_entrega')
+        .eq('id', room.pedido_id)
+        .maybeSingle();
+      
+      if (!pedidoError && pedido?.direccion_entrega) {
+        this.direccionCliente = pedido.direccion_entrega;
+        console.log('[ChatComponent] 📍 Dirección del cliente cargada:', this.direccionCliente);
+      } else {
+        console.warn('[ChatComponent] ⚠️ No se encontró dirección de entrega para el pedido');
+      }
+    } catch (e) {
+      console.error('[ChatComponent] ❌ Error al cargar dirección del cliente:', e);
+    }
+  }
+
+  /** 🆕 Carga el nombre del repartidor desde la tabla usuarios */
+  async cargarNombreRepartidor(deliveryUid: string) {
+    try {
+      const nombre = await this.obtenerNombreUsuario(deliveryUid);
+      this.nombreRepartidor = nombre;
+      console.log('[ChatComponent] 🚚 Nombre del repartidor cargado:', this.nombreRepartidor);
+    } catch (e) {
+      console.error('[ChatComponent] ❌ Error al cargar nombre del repartidor:', e);
+      this.nombreRepartidor = null;
+    }
+  }
   
   /** Obtiene el nombre del usuario desde la tabla usuarios */
   async obtenerNombreUsuario(uid: string): Promise<string> {
@@ -307,15 +394,48 @@ async enviar() {
     this.metaTextos.clear();
     
     for (const m of this.mensajes) {
-      // Si es mi mensaje, no mostrar meta (excepto en delivery)
+      // 🆕 Si es modo delivery y es mi mensaje (delivery escribiendo), no mostrar nada
+      if (this.esDeliveryChat && this.esModoDelivery && this.soyYo(m)) {
+        this.metaTextos.set(m.id, '');
+        continue;
+      }
+      
+      // 🆕 Si es modo delivery y NO es mi mensaje (cliente escribiendo), mostrar dirección
+      if (this.esDeliveryChat && this.esModoDelivery && !this.soyYo(m)) {
+        if (this.direccionCliente) {
+          this.metaTextos.set(m.id, this.direccionCliente);
+        } else {
+          this.metaTextos.set(m.id, 'Cliente');
+        }
+        continue;
+      }
+      
+      // Si es mi mensaje, no mostrar meta (excepto en delivery que ya se manejó arriba)
       if (this.soyYo(m) && !this.esDeliveryChat) {
         this.metaTextos.set(m.id, '');
         continue;
       }
       
-      // Si es delivery, mostrar email como antes
-      if (this.esDeliveryChat) {
-        this.metaTextos.set(m.id, m.from_email);
+      // 🆕 Si es delivery pero no es modo delivery (cliente viendo chat)
+      if (this.esDeliveryChat && !this.esModoDelivery) {
+        // Si es mi mensaje (cliente escribiendo), no mostrar email
+        if (this.soyYo(m)) {
+          this.metaTextos.set(m.id, '');
+        } else {
+          // Si es mensaje del repartidor, mostrar "Repartidor + NOMBRE"
+          if (this.nombreRepartidor) {
+            this.metaTextos.set(m.id, `Repartidor ${this.nombreRepartidor.toUpperCase()}`);
+          } else {
+            // Si no hay nombre cargado aún, intentar obtenerlo
+            const nombre = await this.obtenerNombreUsuario(m.from_uid);
+            if (nombre && nombre !== 'Usuario') {
+              this.nombreRepartidor = nombre;
+              this.metaTextos.set(m.id, `Repartidor ${nombre.toUpperCase()}`);
+            } else {
+              this.metaTextos.set(m.id, 'Repartidor');
+            }
+          }
+        }
         continue;
       }
       
@@ -337,7 +457,7 @@ async enviar() {
       }
       
       // Fallback
-      this.metaTextos.set(m.id, m.from_email);
+      this.metaTextos.set(m.id, m.from_email || 'Usuario');
     }
     
     this.cdr.detectChanges();
@@ -345,6 +465,11 @@ async enviar() {
   
   /** Obtiene el texto meta para un mensaje (síncrono para usar en template) */
   obtenerMetaTexto(m: ChatMessage): string {
+    // 🆕 Si es modo delivery y es mi mensaje (delivery escribiendo), nunca mostrar meta
+    if (this.esDeliveryChat && this.esModoDelivery && this.soyYo(m)) {
+      return '';
+    }
+    
     // Si es mi mensaje y no es delivery, nunca mostrar meta
     if (this.soyYo(m) && !this.esDeliveryChat) {
       return '';
@@ -356,9 +481,22 @@ async enviar() {
       return cached;
     }
     
-    // Si es delivery, mostrar email
-    if (this.esDeliveryChat) {
-      return m.from_email;
+    // 🆕 Si es modo delivery y NO es mi mensaje (cliente escribiendo), mostrar dirección si está disponible
+    if (this.esDeliveryChat && this.esModoDelivery && !this.soyYo(m)) {
+      return this.direccionCliente || 'Cliente';
+    }
+    
+    // 🆕 Si es delivery pero no es modo delivery (cliente viendo chat)
+    if (this.esDeliveryChat && !this.esModoDelivery) {
+      // Si es mi mensaje (cliente escribiendo), no mostrar email
+      if (this.soyYo(m)) {
+        return '';
+      }
+      // Si es mensaje del repartidor, mostrar "Repartidor + NOMBRE"
+      if (this.nombreRepartidor) {
+        return `Repartidor ${this.nombreRepartidor.toUpperCase()}`;
+      }
+      return 'Repartidor';
     }
     
     // Para otros casos, no mostrar nada hasta que se actualice
@@ -370,14 +508,27 @@ async enviar() {
     setTimeout(() => {
       console.log('[ChatComponent] 📜 Ejecutando scroll...');
       // 1) intenta con anchor
-      this.bottom?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+      this.bottom?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
       // 2) y además usa IonContent por si el anchor no alcanza
       this.ionContent?.scrollToBottom(250);
     }, 50);
   }
 
+  /** 🆕 Maneja el foco en el input para mantener el último mensaje visible */
+  onInputFocus() {
+    console.log('[ChatComponent] ⌨️ Input enfocado');
+    // Hacer scroll al último mensaje cuando se enfoca el input
+    // Esperar un poco para que el teclado empiece a aparecer
+    setTimeout(() => {
+      this.scrollDownSoon();
+    }, 200);
+  }
+
   ngOnDestroy() { 
     console.log('[ChatComponent] 🗑️ ngOnDestroy ejecutado');
-    this.sub?.unsubscribe(); 
+    this.sub?.unsubscribe();
+    // 🆕 Remover listeners del teclado
+    this.keyboardWillShowListener?.remove();
+    this.keyboardWillHideListener?.remove();
   }
 }

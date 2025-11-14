@@ -451,6 +451,34 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
       }
 
       // PRIORIDAD 2: Consultar si el cliente tiene una mesa asignada en lista_espera
+      // 🆕 Primero verificar si tiene una entrada finalizada (pago confirmado)
+      const { data: waitRowFinalizado } = await this.supa.client
+        .from('lista_espera')
+        .select('id, estado, mesa_id')
+        .eq('usuario_id', userId)
+        .eq('estado', 'finalizado')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // Si tiene una entrada finalizada, mostrar mensaje apropiado
+      if (waitRowFinalizado) {
+        const alert = await this.alertCtrl.create({
+          header: 'VISITA FINALIZADA',
+          message: 'YA FINALIZASTE TU VISITA Y EL PAGO FUE CONFIRMADO.\n\nLA MESA HA SIDO LIBERADA.\n\nSI DESEAS REALIZAR UN NUEVO PEDIDO, DEBES INGRESAR NUEVAMENTE A LA LISTA DE ESPERA.',
+          buttons: [
+            {
+              text: '✓',
+              cssClass: 'alert-button-confirm'
+            }
+          ],
+          cssClass: 'custom-alert'
+        });
+        await alert.present();
+        return;
+      }
+
+      // Si no está finalizado, consultar estados activos
       const { data: waitRow, error } = await this.supa.client
         .from('lista_espera')
         .select('id, estado, mesa_id')
