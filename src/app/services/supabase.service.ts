@@ -465,7 +465,17 @@ export class SupabaseService {
     ) {
     const email = form.email.trim().toLowerCase();
 
-    // 1) Crear user + fila usuarios via Edge
+    // 1) Subir foto PRIMERO (si existe) para obtener la URL
+    let foto_url: string | null = null;
+    if (photoFile) {
+      console.log('[registrarAnonimoFlow] Subiendo foto al storage...');
+      const up = await this.uploadAvatar(photoFile, email);
+      foto_url = up.publicUrl;
+      console.log('[registrarAnonimoFlow] ✅ Foto subida, URL:', foto_url);
+    }
+
+    // 2) Crear user + fila usuarios via Edge (pasando foto_url)
+    console.log('[registrarAnonimoFlow] Llamando a register-anon con foto_url:', foto_url);
     const res = await fetch(`${this.edgeBase}/functions/v1/register-anon`, {
       method: 'POST',
       headers: {
@@ -473,9 +483,23 @@ export class SupabaseService {
         'Authorization': `Bearer ${environment.supabaseAnonKey}`,
         ...(environment.appEdgeKey ? { 'x-app-key': environment.appEdgeKey } : {})
       },
-      body: JSON.stringify({ email, password: form.password, nombre: form.nombre }),
+      body: JSON.stringify({ 
+        email, 
+        password: form.password, 
+        nombre: form.nombre,
+        foto_url // ✅ Pasar foto_url a la función edge
+      }),
     });
-    if (!res.ok) throw new Error((await res.json().catch(()=>({})))?.error || `register-anon ${res.status}`);
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      console.error('[registrarAnonimoFlow] Error en register-anon:', errorData);
+      throw new Error(errorData?.error || `register-anon ${res.status}`);
+    }
+    
+    const result = await res.json();
+    console.log('[registrarAnonimoFlow] ✅ Usuario creado, foto_url guardada:', result.foto_url);
+    
     const { error: signInErr } = await this._supabase.auth.signInWithPassword({
       email,
       password: form.password,
@@ -495,12 +519,6 @@ export class SupabaseService {
     };
     await this.saveUserDataToLocal(userData);
     this.idUsuario = session.user.id;
-
-    // 2) (Opcional) subir foto y actualizar su URL
-    if (photoFile) {
-      const up = await this.uploadAvatar(photoFile, email);
-      await this._supabase.from('usuarios').update({ foto_url: up.publicUrl }).eq('email', email);
-    }
 
     return { ok: true };
   }
@@ -1124,45 +1142,66 @@ export class SupabaseService {
    * Verifica si el cliente ya completó una encuesta para su estadía actual
    */
   async yaCompletoEncuesta(): Promise<boolean> {
-    console.log('🚫🚫🚫🚫ENCUESTA🚫🚫🚫🚫');
     console.log('[DEBUG YA COMPLETO ENCUESTA] === VERIFICANDO SI YA COMPLETÓ ===');
     
-    // TEMPORALMENTE: Siempre permitir completar encuesta para debugging
-    console.log('[DEBUG YA COMPLETO ENCUESTA] ⚠️ yaCompletoEncuesta TEMPORALMENTE DESHABILITADO. Retornando FALSE.');
-    console.log('🚫🚫🚫🚫ENCUESTA🚫🚫🚫🚫');
-    return false;
-    
-    /* LÓGICA ORIGINAL (comentada para debug)
-    const waitStatus = await this.getWaitStatusDetail();
-    console.log('[DEBUG YA COMPLETO ENCUESTA] WaitStatus:', waitStatus);
-    
-    if (!waitStatus) {
-      console.log('[DEBUG YA COMPLETO ENCUESTA] ❌ No hay waitStatus');
+    try {
+      // Obtener el usuario actual
+      const { data: userData } = await this._supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
+      if (!userId) {
+        console.log('[DEBUG YA COMPLETO ENCUESTA] ❌ No hay usuario autenticado');
+        return false;
+      }
+      
+      const encuestaMesaId = '00000000-0000-0000-0000-000000000001';
+      
+      // 🆕 Verificar por user_id (para pedidos de mesa que tienen user_id en la encuesta)
+      const { data: dataPorUser, error: errorPorUser } = await this._supabase
+        .from('encuesta_respuesta')
+        .select('id')
+        .eq('encuesta_id', encuestaMesaId)
+        .eq('user_id', userId);
+      
+      if (errorPorUser) {
+        console.error('[DEBUG YA COMPLETO ENCUESTA] Error al verificar por user_id:', errorPorUser);
+      } else if (dataPorUser && dataPorUser.length > 0) {
+        console.log('[DEBUG YA COMPLETO ENCUESTA] ✅ Ya completó encuesta (verificado por user_id)');
+        return true;
+      }
+      
+      // También verificar por lista_espera_id (compatibilidad con versiones anteriores)
+      const waitStatus = await this.getWaitStatusDetail();
+      if (waitStatus) {
+        console.log('[DEBUG YA COMPLETO ENCUESTA] WaitStatus encontrado:', waitStatus);
+        
+        // Convertir lista_espera_id a UUID válido
+        const listaEsperaUuid = `00000000-0000-0000-0000-${String(waitStatus.id).padStart(12, '0')}`;
+        console.log('[DEBUG YA COMPLETO ENCUESTA] Consultando encuesta_respuesta con lista_espera_id (UUID):', listaEsperaUuid);
+        
+        const { data, error } = await this._supabase
+          .from('encuesta_respuesta')
+          .select('id')
+          .eq('encuesta_id', encuestaMesaId)
+          .eq('lista_espera_id', listaEsperaUuid);
+        
+        console.log('[DEBUG YA COMPLETO ENCUESTA] Resultado consulta por lista_espera_id:', { data, error });
+        
+        if (error) {
+          console.error('[DEBUG YA COMPLETO ENCUESTA] ❌ Error al verificar encuesta por lista_espera_id:', error);
+        } else if (data && data.length > 0) {
+          console.log('[DEBUG YA COMPLETO ENCUESTA] ✅ Ya completó encuesta (verificado por lista_espera_id)');
+          return true;
+        }
+      }
+      
+      console.log('[DEBUG YA COMPLETO ENCUESTA] No se encontró encuesta completada');
+      return false;
+      
+    } catch (error) {
+      console.error('[DEBUG YA COMPLETO ENCUESTA] ❌ Error en verificación:', error);
       return false;
     }
-    
-    // CORRECCIÓN: Convertir lista_espera_id a UUID válido
-    const listaEsperaUuid = `00000000-0000-0000-0000-${String(waitStatus.id).padStart(12, '0')}`;
-    console.log('[DEBUG YA COMPLETO ENCUESTA] Consultando encuesta_respuesta con lista_espera_id (UUID):', listaEsperaUuid);
-    // MODIFICACIÓN: Quitar .single() para evitar 406 Not Acceptable
-    const { data, error } = await this._supabase
-      .from('encuesta_respuesta')
-      .select('id')
-      .eq('lista_espera_id', listaEsperaUuid);
-    
-    console.log('[DEBUG YA COMPLETO ENCUESTA] Resultado consulta:', { data, error });
-    
-    if (error) {
-      console.error('[DEBUG YA COMPLETO ENCUESTA] ❌ Error al verificar encuesta:', error);
-      return false;
-    }
-    
-    // Si data es un array vacío, significa que no hay encuestas completadas
-    const yaCompleto = data && data.length > 0;
-    console.log('[DEBUG YA COMPLETO ENCUESTA] Ya completó:', yaCompleto);
-    console.log('🚫🚫🚫🚫ENCUESTA🚫🚫🚫🚫');
-    return yaCompleto;
-    */
   }
 
   /**

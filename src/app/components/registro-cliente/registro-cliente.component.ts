@@ -170,11 +170,16 @@ private async ensureCameraPermission(): Promise<boolean> {
       this.toastError('INGRESÁ UN DNI VÁLIDO (7-8 DÍGITOS)');
       return;
     }
+    // Validar que la foto esté lista
     if (!this.photoFile) {
-  // si querés que sea obligatorio
-  this.toastError('SUBÍ UNA FOTO DE PERFIL PARA CONTINUAR');
-  return;
-}
+      console.warn('[registro-cliente] onSubmit - No hay photoFile disponible');
+      console.log('[registro-cliente] onSubmit - photoPreview:', this.photoPreview);
+      console.log('[registro-cliente] onSubmit - tempPhotoPreview:', this.tempPhotoPreview);
+      this.toastError('SUBÍ UNA FOTO DE PERFIL PARA CONTINUAR');
+      return;
+    }
+    
+    console.log('[registro-cliente] onSubmit - Foto lista:', this.photoFile.name, this.photoFile.size, 'bytes');
 
 // evitar doble envío
 if (this.loading) return;
@@ -303,10 +308,34 @@ this.auth.registrarClienteFlow(
   
 // Convierte un webPath/base64 a File para subirlo (Storage/backend)
 private async uriToFile(uri: string, fileName: string): Promise<File> {
-  const res = await fetch(uri);
-  const blob = await res.blob();
-  const ext = (blob.type?.split('/')?.[1]) || 'jpg';
-  return new File([blob], `${fileName}.${ext}`, { type: blob.type || 'image/jpeg' });
+  console.log('[registro-cliente] uriToFile - URI recibida:', uri);
+  
+  try {
+    // En Capacitor, el webPath debería ser accesible con fetch
+    const res = await fetch(uri);
+    
+    if (!res.ok) {
+      throw new Error(`Error al obtener la imagen: ${res.status} ${res.statusText}`);
+    }
+    
+    const blob = await res.blob();
+    
+    if (!blob || blob.size === 0) {
+      throw new Error('El archivo de imagen está vacío');
+    }
+    
+    console.log('[registro-cliente] uriToFile - Blob obtenido:', blob.size, 'bytes, tipo:', blob.type);
+    
+    const ext = (blob.type?.split('/')?.[1]) || 'jpg';
+    const file = new File([blob], `${fileName}.${ext}`, { type: blob.type || 'image/jpeg' });
+    
+    console.log('[registro-cliente] uriToFile - File creado:', file.name, file.size, 'bytes');
+    
+    return file;
+  } catch (error: any) {
+    console.error('[registro-cliente] uriToFile - Error:', error);
+    throw new Error(`No se pudo convertir la imagen a archivo: ${error?.message || error}`);
+  }
 }
 
 async subirFotoClick() {
@@ -349,20 +378,43 @@ onFileSelected(ev: Event) {
   this.showPhotoModal = true;
 }
 
-confirmPhoto() {
+async confirmPhoto() {
   if (this.tempPhotoPreview) {
     this.photoPreview = this.tempPhotoPreview;
-    // Convertir la URI temporal a File si es necesario
-    if (this.isNative() && this.tempPhotoPreview.startsWith('file://')) {
-      this.uriToFile(this.tempPhotoPreview, `perfil-${Date.now()}`).then(file => {
+    
+    try {
+      // Convertir la URI temporal a File si es necesario
+      if (this.isNative() && this.tempPhotoPreview.startsWith('file://')) {
+        console.log('[registro-cliente] Convirtiendo URI a File...', this.tempPhotoPreview);
+        const file = await this.uriToFile(this.tempPhotoPreview, `perfil-${Date.now()}`);
         this.photoFile = file;
-      });
-    } else if (this.tempPhotoPreview.startsWith('blob:')) {
-      // Ya es un blob URL, el fileInput ya tiene el archivo
-      // pero necesitamos asegurarnos de que photoFile esté asignado
-      if (!this.photoFile && this.fileInput?.nativeElement.files?.[0]) {
-        this.photoFile = this.fileInput.nativeElement.files[0];
+        console.log('[registro-cliente] ✅ Foto convertida a File:', file.name, file.size, 'bytes');
+      } else if (this.tempPhotoPreview.startsWith('blob:')) {
+        // Ya es un blob URL, el fileInput ya tiene el archivo
+        if (!this.photoFile && this.fileInput?.nativeElement.files?.[0]) {
+          this.photoFile = this.fileInput.nativeElement.files[0];
+          console.log('[registro-cliente] ✅ Foto obtenida del input:', this.photoFile.name, this.photoFile.size, 'bytes');
+        } else if (!this.photoFile) {
+          // Si no hay archivo en el input, convertir el blob URL
+          console.log('[registro-cliente] Convirtiendo blob URL a File...');
+          const file = await this.uriToFile(this.tempPhotoPreview, `perfil-${Date.now()}`);
+          this.photoFile = file;
+          console.log('[registro-cliente] ✅ Foto convertida desde blob:', file.name, file.size, 'bytes');
+        }
+      } else if (this.tempPhotoPreview.startsWith('http://') || this.tempPhotoPreview.startsWith('https://')) {
+        // URL remota (poco común pero posible)
+        console.log('[registro-cliente] Convirtiendo URL remota a File...');
+        const file = await this.uriToFile(this.tempPhotoPreview, `perfil-${Date.now()}`);
+        this.photoFile = file;
+        console.log('[registro-cliente] ✅ Foto convertida desde URL:', file.name, file.size, 'bytes');
       }
+    } catch (error) {
+      console.error('[registro-cliente] ❌ Error al convertir foto a File:', error);
+      this.toastError('NO SE PUDO PROCESAR LA FOTO. INTENTÁ NUEVAMENTE');
+      this.tempPhotoPreview = null;
+      this.photoPreview = null;
+      this.closePhotoModal();
+      return;
     }
   }
   this.closePhotoModal();

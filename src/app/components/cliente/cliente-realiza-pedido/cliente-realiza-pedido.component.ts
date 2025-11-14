@@ -147,13 +147,7 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
         this.tipoPedido = 'mesa';
       }
       
-      // Verificar si está en modo edición
-      if (params['editar'] === 'true' && params['pedidoId']) {
-        this.modoEdicion = true;
-        this.pedidoAEditar = +params['pedidoId'];
-        this.cargarPedidoParaEditar(this.pedidoAEditar);
-      }
-      
+      // Obtener ID del cliente y cargar menú PRIMERO
       this.idCliente = await this.menuService.getClienteIdActual(); // uuid string
       this.menu = await this.menuService.obtenerMenu();
       this.filtrarMenuPorCategoria();
@@ -165,6 +159,14 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
       this.menuFiltrado = this.menu.filter(producto => 
         producto.categoria_menu === this.filtroActual
       );
+      
+      // Verificar si está en modo edición DESPUÉS de cargar el menú
+      if (params['editar'] === 'true' && params['pedidoId']) {
+        this.modoEdicion = true;
+        this.pedidoAEditar = +params['pedidoId'];
+        // Cargar el pedido para editar después de que el menú esté listo
+        await this.cargarPedidoParaEditar(this.pedidoAEditar);
+      }
       
     } catch (err) {
       console.error(err);
@@ -671,7 +673,21 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
         .single();
 
       if (pedidoError || !pedido) {
+        console.error('[ClienteRealizaPedidoComponent] Error al obtener pedido:', pedidoError);
         throw new Error('No se pudo cargar el pedido para editar');
+      }
+
+      // Verificar que el pedido esté en un estado que permita edición
+      const estadosEditables = ['rechazado por mozo', 'rechazado'];
+      if (!estadosEditables.includes(pedido.estado?.toLowerCase())) {
+        console.warn(`[ClienteRealizaPedidoComponent] Pedido ${pedidoId} no está en estado editable. Estado actual: ${pedido.estado}`);
+        this.toastr.warning(`EL PEDIDO NO ESTÁ EN ESTADO EDITABLE. ESTADO ACTUAL: ${pedido.estado?.toUpperCase()}`, '', {
+          positionClass: 'toast-center',
+          timeOut: 4000
+        });
+        // Redirigir de vuelta
+        this.router.navigate(['/cliente-pedido-en-curso']);
+        return;
       }
 
       const { data: detalles, error: detallesError } = await this.supa.client
@@ -679,27 +695,61 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
         .select('*')
         .eq('idPedido', pedidoId);
 
-      if (detallesError || !detalles) {
+      if (detallesError) {
+        console.error('[ClienteRealizaPedidoComponent] Error al obtener detalles:', detallesError);
         throw new Error('No se pudieron cargar los detalles del pedido');
       }
 
+      if (!detalles || detalles.length === 0) {
+        console.warn(`[ClienteRealizaPedidoComponent] Pedido ${pedidoId} no tiene detalles`);
+        this.toastr.warning('EL PEDIDO NO TIENE PRODUCTOS PARA EDITAR', '', {
+          positionClass: 'toast-center',
+          timeOut: 3000
+        });
+        return;
+      }
+
+      // Mapear los detalles del pedido
       this.cantidadesProductosEnCarrito = detalles.map((detalle: any) => ({
         id: detalle.idProducto,
         cantidad: detalle.cantidad,
-        precio_unitario: detalle.precioUnitario,
+        precio_unitario: detalle.precioUnitario || detalle.precio_unitario || 0,
         tiempo_preparacion: detalle.tiempo_preparacion || detalle.tiempoPreparacion || 0
       }));
 
+      console.log(`[ClienteRealizaPedidoComponent] Detalles cargados:`, this.cantidadesProductosEnCarrito);
+
+      // Cargar tiempos de preparación desde el menú
       await this.cargarTiemposPreparacion();
 
-      this.precioAcumulado = pedido.total || 0;
-      this.tiempoDeEspera = pedido.tiempo_estimado || 0;
+      // Calcular precio y tiempo totales
+      this.precioAcumulado = this.cantidadesProductosEnCarrito.reduce((sum, item) => 
+        sum + (item.precio_unitario * item.cantidad), 0
+      );
+      
+      // Si el pedido tenía un total, usarlo; sino calcular desde los detalles
+      if (pedido.total && pedido.total > 0) {
+        this.precioAcumulado = pedido.total;
+      }
 
+      // Calcular tiempo de espera (máximo tiempo de preparación)
+      if (this.cantidadesProductosEnCarrito.length > 0) {
+        this.tiempoDeEspera = Math.max(...this.cantidadesProductosEnCarrito.map(item => item.tiempo_preparacion), 0);
+      } else {
+        this.tiempoDeEspera = pedido.tiempo_estimado || pedido.tiempoEstimado || 0;
+      }
+
+      // Sincronizar cantidades con la UI (esto actualiza los contadores en el menú)
       this.sincronizarCantidadesConUI();
 
-      console.log(`[ClienteRealizaPedidoComponent] ✅ Pedido ${pedidoId} cargado para editar:`, this.cantidadesProductosEnCarrito);
+      console.log(`[ClienteRealizaPedidoComponent] ✅ Pedido ${pedidoId} cargado para editar:`, {
+        productos: this.cantidadesProductosEnCarrito,
+        precioTotal: this.precioAcumulado,
+        tiempoEspera: this.tiempoDeEspera,
+        cantidadesUI: this.cantidadesProductos
+      });
       
-      this.toastr.info('PEDIDO CARGADO PARA EDITAR. PUEDES MODIFICAR PRODUCTOS Y CANTIDADES', '', {
+      this.toastr.success('PEDIDO CARGADO PARA EDITAR. PUEDES MODIFICAR PRODUCTOS Y CANTIDADES', '', {
         positionClass: 'toast-center',
         timeOut: 3000
       });
@@ -710,6 +760,8 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
         positionClass: 'toast-center',
         timeOut: 4000
       });
+      // Redirigir de vuelta en caso de error
+      this.router.navigate(['/cliente-pedido-en-curso']);
     }
   }
 

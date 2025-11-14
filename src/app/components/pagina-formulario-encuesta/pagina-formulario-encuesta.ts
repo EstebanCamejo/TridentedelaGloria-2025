@@ -166,9 +166,11 @@ export class PaginaFormularioEncuestaPage implements OnInit {
       console.log('[DEBUG ENCUESTA COMPONENTE] Es delivery:', this.esDelivery);
       console.log('[DEBUG ENCUESTA COMPONENTE] Pedido delivery ID:', this.pedidoDeliveryId);
       
-      // 🆕 Obtener user_id si es delivery
+      // 🆕 Obtener user_id (tanto para delivery como para mesa)
       let user_id: string | null = null;
+      
       if (this.esDelivery && this.pedidoDeliveryId) {
+        // Para delivery, obtener user_id desde el pedido
         const { data: pedido } = await this.supa.client
           .from('pedidos')
           .select('idCliente')
@@ -177,6 +179,12 @@ export class PaginaFormularioEncuestaPage implements OnInit {
         
         if (pedido?.idCliente) {
           user_id = String(pedido.idCliente);
+        }
+      } else {
+        // Para mesa, obtener user_id del usuario autenticado
+        const { data: userData } = await this.supa.client.auth.getUser();
+        if (userData?.user?.id) {
+          user_id = userData.user.id;
         }
       }
       

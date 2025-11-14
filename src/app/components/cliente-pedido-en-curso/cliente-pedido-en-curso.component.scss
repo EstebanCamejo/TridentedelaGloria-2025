@@ -1,21 +1,28 @@
-/* ===== Tokens compartidos (copiados del home admin y adaptados) ===== */
-:root{
+/* ===== Tokens compartidos ===== */
+:root {
   --wrap-x: clamp(10px, 4vw, 16px);
-  --stack-gap: clamp(12px, 2.4svh, 18px);
-  --header-clearance: clamp(12px, 2.6svh, 18px);
+  --stack-gap: clamp(18px, 3.8svh, 28px);
+  --header-clearance: clamp(18px, 3.2svh, 28px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
   --brand-bg: var(--cream-50, #fbf3e4);
   --brand-primary: var(--maroon-700, #5d2222);
   --brand-primary-ink: var(--cream-25, #fff7ea);
-    --stack-gap: clamp(18px, 3.8svh, 28px);     /* ↑ separación base */
-  --actions-gap: clamp(240px, 58svh, 400px);
-  /* ↑ separación entre botones */
-  --header-clearance: clamp(18px, 3.2svh, 28px);
-  --safe-top: env(safe-area-inset-top, 0px);
+  --bordo: #6e2e2e;
+  --bordo-ink: #fff7ea;
+  --bordo-borde: #4a1e1e;
 }
 
-/* ===== Header igual que home-mozo ===== */
+/* ===== Header ===== */
 .client-header { 
-  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
+  padding-top: max(var(--ion-safe-area-top, 0px), var(--safe-top));
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #5d2222;
+  color: #ffffff;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
 }
 
 .client-header ion-toolbar {
@@ -24,18 +31,7 @@
   box-shadow: 0 4px 8px rgba(61,43,43,.28);
 }
 
-.client-header{
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  padding: calc(var(--safe-top) + 10px) 0 10px;
-  background: #5d2222;
-  color: #ffffff;
-  backdrop-filter: blur(2px);
-  box-shadow: 0 4px 8px rgba(61,43,43,.28);
-}
-
-.client-header .nav-pill{
+.client-header .nav-pill {
   width: min(520px, 92vw);
   margin: 0 auto;
   padding: 12px 16px;
@@ -44,33 +40,32 @@
   text-align: center;
   font-family: "Inter", sans-serif;
   letter-spacing: .2px;
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 4vw, 1.25rem);
 }
 
 /* ===== Fondo y layout ===== */
-.client-content{
-  --background: #fbf3e4; /* Fondo crema igual que otros componentes */
+.client-content {
+  --background: #fbf3e4;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
   height: 100%;
 }
-.client-wrap{
+
+.client-wrap {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centrar horizontalmente */
-  padding: var(--header-clearance) var(--wrap-x) calc(var(--safe-bottom) + clamp(80px, 10svh, 120px));
+  align-items: center;
+  padding: var(--header-clearance) var(--wrap-x) calc(var(--safe-bottom) + clamp(40px, 5svh, 60px));
   gap: var(--stack-gap);
   overflow-y: visible;
-}
-
-/* 🆕 Cuando hay 3 botones (incluyendo encuesta), reducir aún más el padding-bottom */
-.client-wrap:has(.action-stack:has(ion-button.option-card.var4)) {
-  padding-bottom: calc(var(--safe-bottom) + clamp(40px, 5svh, 60px)) !important; /* 🆕 Mínimo espacio cuando hay 3 botones */
+  width: 100%;
+  max-width: min(600px, 100%);
+  margin: 0 auto;
 }
 
 /* ===== Card de pedido (estado/total/demora) ===== */
-.pedido-card{
+.pedido-card {
   margin: 0;
   background: rgba(0,0,0,.85);
   border: 2px solid rgba(255,255,255,.1);
@@ -79,400 +74,285 @@
   color: #fff;
   width: 100%;
   max-width: min(600px, calc(100% - 2 * var(--wrap-x)));
-  margin-bottom: clamp(16px, 3svh, 24px); /* Espaciado más razonable */
-  align-self: center; /* Asegurar centrado dentro del flex */
-}
-.pedido-card ion-card-content{ 
-  padding: 24px 20px; 
+  align-self: center;
 }
 
-.estado-pill{
+.pedido-card ion-card-content { 
+  padding: clamp(20px, 4vw, 24px) clamp(16px, 3vw, 20px); 
+}
+
+.estado-pill {
   display: block;
   width: 100%;
   background: linear-gradient(135deg, #7b2f2f 0%, #6b2727 100%);
   color: #fff;
   border-radius: 16px;
-  padding: 20px 16px;
+  padding: clamp(16px, 3vw, 20px) clamp(12px, 2.5vw, 16px);
   text-align: center;
   font-weight: 700;
   box-shadow: 0 8px 20px rgba(0,0,0,.3);
   border: 1px solid rgba(255,255,255,.1);
 }
 
-.estado-label{
+.estado-label {
   display: block;
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
   font-weight: 600;
   opacity: 0.9;
   margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
 
-.estado-value{
+.estado-value {
   display: block;
-  font-size: 1.4rem;
+  font-size: clamp(1.2rem, 3.5vw, 1.4rem);
   font-weight: 800;
   text-shadow: 1px 1px 2px rgba(0,0,0,.5);
   letter-spacing: 0.5px;
 }
 
-.totales{
+.totales {
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
-  gap: 20px;
-  margin-top: 20px;
+  gap: clamp(12px, 3vw, 20px);
+  margin-top: clamp(16px, 3vw, 20px);
 }
 
-.total, .demora{
+.total, .demora {
   background: rgba(255,255,255,.05);
   border-radius: 12px;
-  padding: 16px 12px;
+  padding: clamp(12px, 2.5vw, 16px) clamp(10px, 2vw, 12px);
   text-align: center;
   border: 1px solid rgba(255,255,255,.1);
 }
 
-.total-label, .demora-label{
+.total-label, .demora-label {
   display: block;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2.2vw, 1rem);
   font-weight: 600;
   opacity: 0.8;
   margin-bottom: 6px;
   letter-spacing: 0.3px;
 }
 
-.total-value, .demora-value{
+.total-value, .demora-value {
   display: block;
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 3vw, 1.3rem);
   font-weight: 800;
   text-shadow: 1px 1px 2px rgba(0,0,0,.5);
   letter-spacing: 0.5px;
 }
 
-.total-value{
+.total-value {
   color: #4caf50;
 }
 
-.demora-value{
+.demora-value {
   color: #ff9800;
 }
 
 /* CTA dentro de la card */
-.pedido-card .cta{
+.pedido-card .cta {
   margin-top: 12px;
   --background: #445c2e;
   --color: #fff7ea;
   --border-radius: 12px;
   font-weight: 700;
-}
-
-/* ===== Botones tipo “tarjeta” (mismo estilo que admin) ===== */
-ion-grid{ margin-top: 0; }
-ion-row{
-  display: grid;
-  grid-auto-rows: auto;
-  row-gap: var(--actions-gap);
-}
-ion-col{ padding-top: 0; padding-bottom: 0; }
-
-.option-card{
   width: 100%;
-  margin: 0;
-  --padding-top: clamp(16px, 2.6svh, 22px);   /* ↑ */
-  --padding-bottom: clamp(16px, 2.6svh, 22px);/* ↑ */
-  --border-radius: 16px;
-  --background: #e6d7c5;     /* crema */
-  --color: #2b2323;
+}
+
+/* Botones de aceptación */
+.aceptacion-buttons {
+  margin-top: clamp(16px, 3vw, 20px);
+}
+
+.aceptacion-buttons h3 {
+  text-align: center;
+  color: #fff;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-aceptar {
+  --background: #4caf50;
+  --color: #fff;
+  --border-radius: 12px;
+  font-weight: 700;
+}
+
+.btn-rechazar {
+  --background: #f44336;
+  --color: #fff;
+  --border-radius: 12px;
+  font-weight: 700;
+}
+
+/* ===== Botones tipo "tarjeta" ===== */
+.action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 3svh, 24px); /* Espaciado reducido entre botones */
+  width: 100%;
+  max-width: min(600px, calc(100% - 2 * var(--wrap-x)));
+  align-self: center;
+  margin-top: 0;
+}
+
+.option-card {
+  width: 100%;
+  margin: 0 !important;
+  /* margin-bottom removido - usamos gap del contenedor */
+  --background: #7b2f2f !important; /* Color bordo del tema */
+  --color: #fff7ea !important; /* Color de texto crema */
+  --border-radius: 18px;
   font-family: "Inter", sans-serif;
   font-weight: 700;
   letter-spacing: .2px;
   text-transform: none;
-}
-.option-card::part(native){
-  min-height: 128px;
-  padding: 0 clamp(18px, 4.8vw, 26px);
-  border: 2px solid #000;
-  border-radius: 14px;
-  justify-content: flex-start;
-  gap: 14px;
-}
-
-/* Icono de tus assets */
-.option-card .icono{
-   width: 40px; height: 40px;
-  filter: drop-shadow(0 1px 0 rgba(0,0,0,.15));
-}
-.option-card .btn-text{ font-size: 1.06rem; }
-
-/* 🆕 Reducir tamaño de botones cuando hay 3 botones visibles (incluyendo encuesta) - AGRESIVO */
-.action-stack:has(ion-button.option-card.var4) {
-  gap: clamp(8px, 1.5svh, 12px) !important; /* Reducir espacio entre botones al mínimo */
-  margin-top: clamp(8px, 1.5svh, 12px) !important; /* Reducir margen superior */
-  
-  .option-card::part(native) {
-    min-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Altura MUCHO más reducida */
-    max-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Limitar altura máxima */
-    padding: clamp(8px, 1.5svh, 12px) clamp(12px, 3vw, 18px) !important; /* 🆕 Padding vertical reducido */
-    gap: clamp(8px, 2vw, 12px) !important; /* Reducir gap interno */
-  }
-  
-  .option-card .icono {
-    width: clamp(28px, 5vw, 36px) !important; /* 🆕 Iconos más pequeños */
-    height: clamp(28px, 5vw, 36px) !important;
-  }
-  
-  .option-card .btn-text {
-    font-size: clamp(0.8rem, 1.8vw, 0.95rem) !important; /* 🆕 Texto más pequeño */
-    line-height: 1.15 !important; /* 🆕 Line-height más compacto */
-    font-weight: 700 !important; /* Mantener negrita pero más compacto */
-  }
-}
-
-/* Variante “primaria” si querés resaltar alguna */
-.option-card.primary{
-  --background: var(--brand-primary);
-  --color: var(--brand-primary-ink);
-}
-
-/* XS/alturas bajas */
-@media (max-height: 700px){
-  :root{ --stack-gap: 10px; --header-clearance: 12px; }
-  .option-card{ font-size: .98rem; }
-}
-@media (max-height: 560px){
-  :root{ --stack-gap: 8px; --header-clearance: 10px; }
-  .client-wrap{ padding-bottom: calc(var(--safe-bottom) + 72px); }
-}
-/* === ESPACIO ENTRE BOTONES === */
-
-/* Usamos flex en columna + gap */
-ion-row{
-  display: flex;
-  flex-direction: column;
-  gap: var(--actions-gap); /* p.ej. 20–34px */
-}
-
-/* Fallback para motores sin soporte de flex-gap (no duplica gracias a @supports) */
-@supports not (gap: 1rem) {
-  ion-col + ion-col { margin-top: var(--actions-gap); }
-}
-/* === ESPACIO ENTRE BOTONES (robusto) === */
-/* === Espaciado confiable entre botones === */
-:root{
-  --actions-gap: clamp(16px, 3svh, 24px); /* Espaciado más compacto pero separado */
-}
-
-.action-stack{
-  display: grid;
-  gap: var(--actions-gap);
-  margin-top: 0; /* Ya está controlado por el gap del flex container */
-  width: 100%;
-  max-width: min(600px, calc(100% - 2 * var(--wrap-x)));
-  align-self: center; /* Centrar horizontalmente */
-}
-
-/* mantené tu estilo de botón-tarjeta */
-.action-stack ion-button.option-card::part(native){
-  min-height: 128px;
-  padding: 0 clamp(18px, 4.8vw, 26px);
-  border-radius: 16px;
-  justify-content: flex-start;
-  gap: 16px;
-  box-shadow: 0 10px 26px rgba(0,0,0,.18);
-  border: 1px solid rgba(0,0,0,.22);
-}
-/* === BORDE NEGRO + MÁS ESPACIO ENTRE BOTONES === */
-/* override de separación (ajustá si querés) */
-
-
-/* borde negro más marcado y look consistente */
-.option-card::part(native){
-  border: 2px solid #000 !important;  /* BORDE NEGRO */
-  border-radius: 16px;
-  padding: 0 clamp(18px, 4.8vw, 26px);
-  min-height: 128px;
-  justify-content: flex-start;
-  gap: 16px;
-  box-shadow: 0 10px 22px rgba(0,0,0,.16);
-}
-/* --- Reset para que los márgenes se noten --- */
-.client-wrap ion-grid{ 
-  --ion-grid-column-padding: 0 !important;
-  width: 100%;
-  max-width: min(600px, calc(100% - 2 * var(--wrap-x)));
-  align-self: center; /* Centrar horizontalmente */
-}
-.client-wrap ion-row{ display: block !important; }
-.client-wrap ion-col{ display: block !important; }
-
-/* --- Botón base --- */
-ion-button.option-card{
   display: block;
-  width: 100%;
-  margin: 0 !important;            /* sin margen por defecto */
-}
-ion-button.option-card::part(native){
-  min-height: 128px;
-  padding: 0 22px;
-  border-radius: 16px;
-  justify-content: flex-start;
-  gap: 16px;
-  border: 2px solid #000;          /* borde negro */
-  box-shadow: 0 10px 22px rgba(0,0,0,.16);
 }
 
-/* --- Eliminamos márgenes individuales, usamos gap del contenedor --- */
-ion-button.option-card.var1,
-ion-button.option-card.var2,
-ion-button.option-card.var3,
-ion-button.option-card.var4 { 
-  margin-bottom: 0 !important; 
-}
-/* ===== Colores de marca ===== */
-:root{
-  --bordo: #6e2e2e;            /* rojo/bordo de las cards */
-  --bordo-ink: #fff7ea;        /* texto crema */
-  --bordo-borde: #4a1e1e;      /* borde/hover */
+/* Gap del contenedor maneja el espaciado automáticamente */
+
+/* Forzar color bordo en móviles con ::ng-deep */
+::ng-deep .option-card {
+  --background: #7b2f2f !important;
+  --color: #fff7ea !important;
 }
 
-/* 1) Botones rojos tipo tarjeta */
-ion-button.option-card{
-  --background: #6e2e2e;
-  --color:  #fff7ea;
+::ng-deep .option-card::part(native) {
+  background-color: #7b2f2f !important;
+  color: #fff7ea !important;
 }
 
-ion-button.option-card::part(native){
-  min-height: clamp(140px, 22svh, 170px);
-  padding: 0 clamp(20px, 5vw, 28px);
+/* Texto gris oscuro para botones deshabilitados en ::part(native) */
+::ng-deep .option-card[disabled]::part(native) {
+  color: #333333 !important; /* Gris oscuro para mejor legibilidad */
+}
+
+.option-card::part(native) {
+  min-height: clamp(100px, 18svh, 140px);
+  max-height: clamp(100px, 18svh, 140px);
+  padding: 0 clamp(18px, 4.8vw, 26px);
   border-radius: 18px;
-  border: 2px solid var(--bordo-borde);
+  background-color: #7b2f2f !important; /* Color bordo explícito */
+  border: 2px solid #5d2222 !important; /* Borde más oscuro */
   box-shadow: 0 12px 26px rgba(0,0,0,.20);
-  justify-content: flex-start;
-  gap: clamp(14px, 3vw, 20px);
+  justify-content: center; /* Centrado horizontal */
+  align-items: center;
+  gap: clamp(12px, 3vw, 18px);
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  color: #fff7ea !important; /* Color de texto crema */
+  /* margin-bottom removido - el gap del contenedor maneja el espaciado */
 }
 
-/* 🆕 Override cuando hay 3 botones (incluyendo encuesta) - AGRESIVO */
-.action-stack:has(ion-button.option-card.var4) ion-button.option-card::part(native) {
-  min-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Altura mucho más reducida */
-  max-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Limitar altura máxima */
-  padding: clamp(8px, 1.5svh, 12px) clamp(12px, 3vw, 18px) !important; /* 🆕 Padding vertical reducido */
-  gap: clamp(8px, 2vw, 12px) !important; /* Gap interno reducido */
-}
-
-.option-card .btn-text{
-  font-weight: 800;
-  font-size: clamp(1.05rem, 2.4vw, 1.22rem);
-}
-
-/* 🆕 Override cuando hay 3 botones - Texto más compacto */
-.action-stack:has(ion-button.option-card.var4) .option-card .btn-text {
-  font-size: clamp(0.8rem, 1.8vw, 0.95rem) !important; /* 🆕 Texto más pequeño */
-  line-height: 1.15 !important; /* 🆕 Line-height más compacto */
-  font-weight: 700 !important; /* Mantener negrita */
-}
-
-.option-card .icono{
-  width: clamp(42px, 8vw, 54px);
-  height: clamp(42px, 8vw, 54px);
+.option-card .icono {
+  width: clamp(36px, 7vw, 48px);
+  height: clamp(36px, 7vw, 48px);
+  flex-shrink: 0;
   filter: drop-shadow(0 2px 0 rgba(0,0,0,.18));
+  object-fit: contain;
 }
 
-/* 🆕 Override cuando hay 3 botones - Iconos más pequeños */
-.action-stack:has(ion-button.option-card.var4) .option-card .icono {
-  width: clamp(28px, 5vw, 36px) !important; /* 🆕 Iconos más pequeños */
-  height: clamp(28px, 5vw, 36px) !important;
+.option-card .btn-text {
+  font-weight: 800;
+  font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+  line-height: 1.2;
+  flex: 1;
+  text-align: center; /* Texto centrado */
+  white-space: normal;
+  word-wrap: break-word;
+  color: #fff7ea !important; /* Color de texto crema */
 }
 
-ion-button.option-card:hover::part(native){ filter: brightness(1.03); }
-ion-button.option-card[disabled]::part(native){ 
-  opacity: 0.5;
-  filter: grayscale(0.6);
+/* Asegurar color del texto en móviles */
+::ng-deep .option-card .btn-text {
+  color: #fff7ea !important;
+}
+
+::ng-deep .option-card span {
+  color: #fff7ea !important;
+}
+
+/* Texto gris oscuro para botones deshabilitados */
+::ng-deep .option-card[disabled] .btn-text {
+  color: #333333 !important; /* Gris oscuro para mejor legibilidad */
+}
+
+::ng-deep .option-card[disabled] span {
+  color: #333333 !important; /* Gris oscuro para mejor legibilidad */
+}
+
+.option-card:hover:not([disabled])::part(native) {
+  filter: brightness(1.03);
+}
+
+/* Estilo mejorado para botón deshabilitado - Gris y legible */
+.option-card[disabled]::part(native) {
+  background-color: rgba(200, 200, 200, 0.9) !important; /* Fondo gris claro para contraste con texto oscuro */
+  border-color: rgba(150, 150, 150, 0.8) !important; /* Borde gris medio */
+  opacity: 1 !important; /* Sin opacidad para mejor legibilidad */
+  filter: grayscale(1) brightness(1.1) !important; /* Gris claro */
   cursor: not-allowed;
+  pointer-events: none;
 }
 
-/* Estilo mejorado para botón de encuesta deshabilitado */
-ion-button.option-card.var4[disabled]::part(native) {
-  background-color: rgba(110, 46, 46, 0.4) !important;
-  border-color: rgba(74, 30, 30, 0.4) !important;
-  opacity: 0.6;
+/* Iconos del botón deshabilitado - grises */
+.option-card[disabled] .icono {
+  filter: grayscale(1) opacity(0.7) !important;
 }
 
-/* 2) Ajustar el card de estado del pedido */
-.pedido-card{
-  margin-top: 0; /* Ya está controlado por el gap del flex container */
-  margin-bottom: clamp(16px, 3svh, 24px);
+/* Texto del botón deshabilitado - gris oscuro para mejor legibilidad */
+.option-card[disabled] .btn-text {
+  color: #333333 !important; /* Gris oscuro para mejor legibilidad */
+  opacity: 1 !important; /* Sin opacidad adicional en el texto */
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3); /* Sombra clara sutil para contraste */
+  font-weight: 700 !important; /* Mantener peso de fuente para legibilidad */
 }
-
-/* 🆕 Reducir margen del card cuando hay 3 botones */
-.client-wrap:has(.action-stack:has(ion-button.option-card.var4)) .pedido-card {
-  margin-bottom: clamp(12px, 2svh, 18px) !important;
-}
-
-/* (opcional) un poquito más de aire entre botones */
-.action-stack{ 
-  gap: clamp(16px, 3svh, 24px); 
-}
-
-/* 🆕 Ajuste adicional: cuando hay 3 botones, reducir al máximo el gap y altura */
-.action-stack:has(ion-button.option-card.var4) {
-  gap: clamp(8px, 1.5svh, 12px) !important; /* 🆕 Gap mínimo */
-  margin-top: clamp(8px, 1.5svh, 12px) !important; /* 🆕 Margen superior reducido */
-  
-  ion-button.option-card::part(native) {
-    min-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Altura mucho más reducida */
-    max-height: clamp(70px, 12svh, 95px) !important; /* 🆕 Limitar altura máxima */
-    padding: clamp(8px, 1.5svh, 12px) clamp(12px, 3vw, 18px) !important; /* 🆕 Padding vertical reducido */
-    gap: clamp(8px, 2vw, 12px) !important; /* Gap interno reducido */
-  }
-  
-  .option-card .icono {
-    width: clamp(28px, 5vw, 36px) !important; /* 🆕 Iconos más pequeños */
-    height: clamp(28px, 5vw, 36px) !important;
-  }
-  
-  .option-card .btn-text {
-    font-size: clamp(0.8rem, 1.8vw, 0.95rem) !important; /* 🆕 Texto más pequeño */
-    line-height: 1.15 !important; /* 🆕 Line-height más compacto */
-    font-weight: 700 !important; /* Mantener negrita */
-  }
-}
-
-/* Eliminamos estilos de post-entrega-options ya que el botón está dentro de action-stack */
 
 /* ===== Mensajes para clientes anónimos ===== */
 .anonimo-message {
-  margin: calc(var(--actions-gap) * 0.5) 0;
-  padding: 8px 12px;
+  margin: clamp(12px, 2svh, 16px) 0; /* Espaciado directo proporcional */
+  padding: clamp(8px, 1.5vw, 12px);
   background: rgba(var(--ion-color-medium-rgb), 0.1);
   border-radius: 8px;
   border-left: 3px solid var(--ion-color-medium);
-  
-  ion-note {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.9rem;
-    
-    ion-icon {
-      font-size: 1.1rem;
-    }
-  }
 }
 
-/* Mensaje cuando la encuesta está completada */
+.anonimo-message ion-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: clamp(0.85rem, 2vw, 0.9rem);
+}
+
+.anonimo-message ion-icon {
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
+}
+
 .encuesta-completada {
   background: rgba(var(--ion-color-success-rgb), 0.1);
   border-left-color: var(--ion-color-success);
-  
-  ion-note {
-    color: var(--ion-color-success-shade);
-  }
 }
 
-/* 🆕 Estilos para información de delivery */
+.encuesta-completada ion-note {
+  color: var(--ion-color-success-shade);
+}
+
+/* ===== Estilos para información de delivery ===== */
 .delivery-info {
-  margin-top: 16px;
-  padding: 12px;
+  margin-top: clamp(12px, 2.5vw, 16px);
+  padding: clamp(10px, 2vw, 12px);
   background: rgba(123, 47, 47, 0.1);
   border-radius: 8px;
   border-left: 3px solid var(--ion-color-primary);
@@ -484,18 +364,99 @@ ion-button.option-card.var4[disabled]::part(native) {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  font-size: 0.95rem;
-  
-  ion-icon {
-    color: var(--ion-color-primary);
-    font-size: 18px;
-  }
-  
-  strong {
-    color: var(--ion-color-dark);
-  }
+  font-size: clamp(0.9rem, 2vw, 0.95rem);
+}
+
+.delivery-direccion ion-icon,
+.delivery-repartidor ion-icon {
+  color: var(--ion-color-primary);
+  font-size: clamp(16px, 3vw, 18px);
+  flex-shrink: 0;
+}
+
+.delivery-direccion strong,
+.delivery-repartidor strong {
+  color: var(--ion-color-dark);
 }
 
 .delivery-repartidor {
   margin-bottom: 0;
+}
+
+/* ===== Media queries para pantallas pequeñas ===== */
+@media (max-height: 700px) {
+  :root {
+    --stack-gap: clamp(12px, 2svh, 18px);
+    --header-clearance: clamp(12px, 2svh, 18px);
+  }
+  
+  .action-stack {
+    gap: clamp(14px, 2.5svh, 20px); /* Espaciado reducido para pantallas pequeñas */
+  }
+  
+  .anonimo-message {
+    margin: clamp(10px, 1.5svh, 14px) 0; /* Espaciado proporcional */
+  }
+  
+  .option-card::part(native) {
+    min-height: clamp(80px, 15svh, 110px);
+    max-height: clamp(80px, 15svh, 110px);
+  }
+  
+  .option-card .icono {
+    width: clamp(28px, 5vw, 36px);
+    height: clamp(28px, 5vw, 36px);
+  }
+  
+  .option-card .btn-text {
+    font-size: clamp(0.85rem, 2vw, 1rem);
+  }
+}
+
+@media (max-height: 560px) {
+  :root {
+    --stack-gap: clamp(8px, 1.5svh, 12px);
+    --header-clearance: clamp(10px, 1.8svh, 14px);
+  }
+  
+  .action-stack {
+    gap: clamp(12px, 2svh, 18px); /* Espaciado reducido para pantallas muy pequeñas */
+  }
+  
+  .anonimo-message {
+    margin: clamp(8px, 1.2svh, 12px) 0; /* Espaciado proporcional */
+  }
+  
+  .client-wrap {
+    padding-bottom: calc(var(--safe-bottom) + clamp(30px, 4svh, 50px));
+  }
+  
+  .option-card::part(native) {
+    min-height: clamp(70px, 12svh, 95px);
+    max-height: clamp(70px, 12svh, 95px);
+    padding: 0 clamp(14px, 3.5vw, 20px);
+    gap: clamp(10px, 2.5vw, 14px);
+  }
+  
+  .option-card .icono {
+    width: clamp(24px, 4.5vw, 32px);
+    height: clamp(24px, 4.5vw, 32px);
+  }
+  
+  .option-card .btn-text {
+    font-size: clamp(0.8rem, 1.8vw, 0.95rem);
+    line-height: 1.15;
+  }
+}
+
+/* ===== Ajustes para pantallas muy pequeñas (ancho) ===== */
+@media (max-width: 360px) {
+  .option-card .btn-text {
+    font-size: clamp(0.75rem, 1.6vw, 0.9rem);
+  }
+  
+  .option-card .icono {
+    width: clamp(28px, 6vw, 36px);
+    height: clamp(28px, 6vw, 36px);
+  }
 }

@@ -289,6 +289,41 @@ export class ReservasService {
       console.error('Error al cambiar estado de reserva:', error);
       throw error;
     }
+
+    // Si se confirmó una reserva con mesa asignada, actualizar el estado de la mesa
+    if (nuevoEstado === 'confirmada' && mesaId) {
+      try {
+        // Obtener datos de la reserva para verificar fecha
+        const reserva = await this.obtenerReservaPorId(parseInt(reservaId));
+        if (reserva) {
+          const ahora = new Date();
+          const fechaHoy = ahora.toISOString().split('T')[0]; // YYYY-MM-DD
+          
+          // Si la reserva es para hoy, actualizar la mesa a 'reservaActiva' inmediatamente
+          // Si la reserva es para el futuro, la mesa puede quedarse en 'libre' 
+          // hasta que llegue el día (la función gestionar-mesas-reservas se encargará)
+          if (reserva.fecha === fechaHoy) {
+            // La reserva es para hoy, actualizar mesa a 'reservaActiva'
+            const { error: mesaError } = await this.supa.client
+              .from('mesas')
+              .update({ estado: 'reservaActiva' })
+              .eq('id', mesaId);
+            
+            if (mesaError) {
+              console.error('Error al actualizar estado de la mesa:', mesaError);
+              // No lanzar error, solo loguear, para no interrumpir el flujo de confirmación
+            } else {
+              console.log(`✅ Mesa ${mesaId} actualizada a estado 'reservaActiva' para reserva ${reservaId} (hoy)`);
+            }
+          } else {
+            console.log(`ℹ️ Reserva ${reservaId} confirmada para fecha futura (${reserva.fecha}). La mesa se actualizará automáticamente cuando llegue el día.`);
+          }
+        }
+      } catch (error) {
+        console.error('Error al actualizar estado de la mesa después de confirmar reserva:', error);
+        // No lanzar error, solo loguear, para no interrumpir el flujo de confirmación
+      }
+    }
   }
 
   /**

@@ -70,89 +70,58 @@
     </ion-card>
 
     <!-- Acciones (solo visual) -->
-    <ion-grid fixed>
-      <ion-row>
-      <div class="action-stack">
-<!-- Botón "Ver Menú y Pedir" solo si NO ha realizado un pedido -->
-<ion-button 
-  *ngIf="!yaRealizoPedido"
-  class="option-card var1"
-  expand="block"
-  (click)="irARealizarPedido()">
-  <img src="../../../assets/plato.png" class="icono" alt="">
-  <span class="btn-text">VER MENÚ Y PEDIR</span>
-</ion-button>
+    <div class="action-stack">
+      <!-- Botón "Ver Menú y Pedir" solo si NO ha realizado un pedido -->
+      <ion-button 
+        *ngIf="!yaRealizoPedido"
+        class="option-card"
+        expand="block"
+        (click)="irARealizarPedido()">
+        <img src="../../../assets/plato.png" class="icono" alt="">
+        <span class="btn-text">VER MENÚ Y PEDIR</span>
+      </ion-button>
 
-<!-- Botón para editar pedido rechazado por mozo -->
-<ion-button 
-  *ngIf="estado === 'rechazado por mozo'"
-  class="option-card var-edit"
-  expand="block"
-  (click)="editarPedidoRechazado()">
-  <img src="../../../assets/plato.png" class="icono" alt="">
-  <span class="btn-text">EDITAR PEDIDO</span>
-</ion-button>
+      <!-- Botón para editar pedido rechazado por mozo -->
+      <ion-button 
+        *ngIf="estado === 'rechazado por mozo'"
+        class="option-card"
+        expand="block"
+        (click)="editarPedidoRechazado()">
+        <img src="../../../assets/plato.png" class="icono" alt="">
+        <span class="btn-text">EDITAR PEDIDO</span>
+      </ion-button>
 
       <ion-button 
-      class="option-card var2" 
-      expand="block"
-      (click)="irAChat()"
-      [disabled]="esDelivery && !repartidorInfo">
-    <img src="../../../assets/chat.png" class="icono" alt="">
-    <span class="btn-text">{{ esDelivery ? 'CONSULTAS AL REPARTIDOR' : 'CONSULTAS A LOS MOZOS' }}</span>
-  </ion-button>
+        class="option-card" 
+        expand="block"
+        (click)="irAChat()"
+        [disabled]="esDelivery && !repartidorInfo">
+        <img src="../../../assets/chat.png" class="icono" alt="">
+        <span class="btn-text">{{ esDelivery ? 'CONSULTAS AL REPARTIDOR' : 'CONSULTAS A LOS MOZOS' }}</span>
+      </ion-button>
 
-<ion-button 
-  class="option-card var3" 
-  expand="block" 
-  routerLink="/cliente/cliente-juegos"
-  [disabled]="esClienteAnonimo || estado === 'pendiente' || estado === 'rechazado por admin'">
-  <img src="../../../assets/dado.png" class="icono" alt="">
-  <span class="btn-text">JUEGOS</span>
-</ion-button>
+      <ion-button 
+        class="option-card" 
+        expand="block" 
+        routerLink="/cliente/cliente-juegos"
+        [disabled]="esClienteAnonimo">
+        <img src="../../../assets/dado.png" class="icono" alt="">
+        <span class="btn-text">JUEGOS</span>
+      </ion-button>
 
-<!-- Botón de encuesta: siempre visible cuando está entregado, deshabilitado si ya completó, es anónimo, o repartidor no confirmó recepción -->
-<ion-button 
-  *ngIf="estado === 'entregado'"
-  #botonEncuesta
-  class="option-card var4" 
-  expand="block" 
-  (click)="irAEncuestas()"
-  [disabled]="yaCompletoEncuesta || esClienteAnonimo">
-  <img src="../../../assets/encuesta.png" class="icono" alt="">
-  <span class="btn-text">COMPLETAR ENCUESTA</span>
-</ion-button>
+      <!-- Botón de encuesta: siempre visible cuando está entregado, deshabilitado si ya completó, es anónimo, o repartidor no confirmó recepción -->
+      <ion-button 
+        *ngIf="estado === 'entregado'"
+        #botonEncuesta
+        class="option-card" 
+        expand="block" 
+        (click)="irAEncuestas()"
+        [disabled]="yaCompletoEncuesta || esClienteAnonimo">
+        <img src="../../../assets/encuesta.png" class="icono" alt="">
+        <span class="btn-text">COMPLETAR ENCUESTA</span>
+      </ion-button>
 
-
-<!-- Mensajes para encuesta -->
-<div *ngIf="estado === 'entregado'">
-  <!-- Mensaje cuando ya completó la encuesta -->
-  <div *ngIf="yaCompletoEncuesta" class="anonimo-message encuesta-completada">
-    <ion-note color="medium">
-      <ion-icon name="checkmark-circle-outline"></ion-icon>
-      YA COMPLETASTE LA ENCUESTA PARA ESTA ESTADÍA
-    </ion-note>
-  </div>
-</div>
-</div>
-
-
-        <!-- Extras opcionales (visuales)
-        <ion-col size="12">
-          <ion-button class="option-card" expand="block">
-            <img src="../../../assets/iconos/encuesta.png" class="icono" alt="">
-            <span class="btn-text">Completar Encuesta</span>
-          </ion-button>
-        </ion-col>
-
-        <ion-col size="12">
-          <ion-button class="option-card" expand="block">
-            <img src="../../../assets/iconos/pedir-cuenta.png" class="icono" alt="">
-            <span class="btn-text">Ver detalle de cuenta</span>
-          </ion-button>
-        </ion-col> -->
-      </ion-row>
-    </ion-grid>
+    </div>
 
   </div>
 </ion-content>
