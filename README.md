@@ -352,7 +352,7 @@ Punto 14, 16, 17, 18 y 19:
 |<img width="196" height="438" alt="image" src="https://github.com/user-attachments/assets/739d2083-7dcc-4352-9e95-a5ca6d05cf6e" />|Cliente Anonimo escanea QR Mesa: Ver Menu y chat ,no puede acceder a los juegos|
 |<img width="379" height="821" alt="image" src="https://github.com/user-attachments/assets/abb7afb0-26ad-4059-b13f-e408e451f5fe" />| Panel Repartidor|
 |<img width="381" height="827" alt="image" src="https://github.com/user-attachments/assets/a54caee0-4cf6-49df-8b97-f6bf7ef9e913" />| Panel Mozo: Pedidos en curso|
-|<img width="203" height="445" alt="image" src="https://github.com/user-attachments/assets/c85c669d-bd6d-4bf3-a018-3e400144756b" />|Chat Mozo/Cliente|
+|<img width="276" height="591" alt="image" src="https://github.com/user-attachments/assets/73e7155f-14c1-4b28-b618-a233a8996955" />|Chat Mozo/Cliente|
 
 
 | Imagen             | Valor                                   
