@@ -232,8 +232,8 @@ export class loginComponent {
   // Accesos directos para CLIENTES (FAB izquierdo)
   private CLIENT_LOGINS: Record<string, { email: string; password: string }> = {
     // Clientes registrados
-    clienteReg1:     { email: 'cliente1@test.com',       password: '12345678' },
-    clienteReg2:     { email: 'cliente2@test.com',       password: '12345678' },
+    clienteReg1:     { email: 'sofiadortridente@hotmail.com', password: '12345678' },
+    clienteReg2:     { email: 'estebancamejo@abc.gob.ar', password: '12345678' },
     clienteReg3:     { email: 'cliente3@test.com',       password: '12345678' },
     // Clientes anónimos
     clienteAnon1:    { email: 'anonimo1@test.com',       password: '12345678' },

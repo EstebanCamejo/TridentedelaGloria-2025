@@ -7,7 +7,7 @@
   </ion-toolbar>
 </ion-header>
   
-  <ion-content class="encuesta-content">
+  <ion-content class="encuesta-content" [scrollY]="true">
     <div class="encuesta-container">
       <!-- PASO 3.3 — Bandeja de errores -->
       <div *ngIf="errores.length" class="error-box">
