@@ -478,9 +478,11 @@ Deno.serve(async (req: Request) => {
 
     // 7. Enviar notificación según tipo de cliente
     console.log('[generar-factura] Cliente anónimo:', facturaData.cliente_anonimo)
+    console.log('[generar-factura] Pedido idCliente (auth_id):', pedido.idCliente)
     if (facturaData.cliente_anonimo) {
       try {
-        await enviarNotificacionPush(facturaData, pdfUrl, supabase)
+        // Pasar el auth_id del pedido para que la función pueda crear el canal correcto
+        await enviarNotificacionPush(facturaData, pdfUrl, supabase, pedido.idCliente)
         console.log('[generar-factura] ✅ Notificación push enviada')
       } catch (pushError: unknown) {
         const pushMsg = pushError instanceof Error ? pushError.message : String(pushError)
@@ -856,13 +858,23 @@ async function generarPDF(facturaData: FacturaData, supabase: any): Promise<stri
   }
 }
 
-async function enviarNotificacionPush(facturaData: FacturaData, pdfUrl: string, supabase: any) {
+async function enviarNotificacionPush(facturaData: FacturaData, pdfUrl: string, supabase: any, pedidoIdCliente?: string) {
   console.log('[enviarNotificacionPush] Iniciando notificación push para cliente anónimo...')
+  console.log('[enviarNotificacionPush] Pedido ID Cliente (auth_id):', pedidoIdCliente)
+  console.log('[enviarNotificacionPush] Factura Data cliente_id (usuarios.id):', facturaData.cliente_id)
+  
   try {
     // Obtener el auth_id del cliente para el canal específico
-    // Necesitamos obtenerlo desde la tabla usuarios usando el cliente_id
+    // PRIORIDAD 1: Usar pedidoIdCliente si está disponible (es el auth_id directo del pedido)
+    // PRIORIDAD 2: Si no, intentar obtenerlo desde la tabla usuarios usando el cliente_id
     let clienteAuthId: string | null = null
-    if (facturaData.cliente_id) {
+    
+    if (pedidoIdCliente) {
+      // Usar el auth_id directamente del pedido (más confiable)
+      clienteAuthId = pedidoIdCliente
+      console.log('[enviarNotificacionPush] ✅ Auth ID obtenido desde pedido:', clienteAuthId)
+    } else if (facturaData.cliente_id) {
+      // Fallback: obtener desde usuarios usando cliente_id
       const { data: usuario, error: usuarioError } = await supabase
         .from('usuarios')
         .select('auth_id')
@@ -870,17 +882,20 @@ async function enviarNotificacionPush(facturaData: FacturaData, pdfUrl: string, 
         .single()
       
       if (usuarioError) {
-        console.error('[enviarNotificacionPush] ❌ Error al obtener auth_id:', usuarioError)
+        console.error('[enviarNotificacionPush] ❌ Error al obtener auth_id desde usuarios:', usuarioError)
       } else {
         clienteAuthId = usuario?.auth_id || null
-        console.log('[enviarNotificacionPush] Auth ID del cliente:', clienteAuthId)
+        console.log('[enviarNotificacionPush] ✅ Auth ID obtenido desde usuarios:', clienteAuthId)
       }
     }
     
-    // Usar canal específico por usuario si tenemos auth_id
-    const channelName = clienteAuthId 
-      ? `notificacion_cliente_factura_${clienteAuthId}` 
-      : 'notificacion_cliente_factura'
+    if (!clienteAuthId) {
+      console.error('[enviarNotificacionPush] ❌ No se pudo obtener auth_id del cliente. No se puede enviar notificación push.')
+      throw new Error('No se pudo obtener auth_id del cliente para enviar notificación push')
+    }
+    
+    // Usar canal específico por usuario con el auth_id
+    const channelName = `notificacion_cliente_factura_${clienteAuthId}`
     
     console.log('[enviarNotificacionPush] Usando canal:', channelName)
     const channel = supabase.channel(channelName)
@@ -1156,3 +1171,4 @@ Descargá tu factura desde: ${pdfUrl}
     return false
   }
 }
+

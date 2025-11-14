@@ -173,9 +173,26 @@ async ngOnInit() {
     await this.ensureResumenAndSubscribe();
   }
 
-  // ✅ Se llama cada vez que la pantalla vuelve a foco (navegación “para atrás”, tabs, etc.)
+  // ✅ Se llama cada vez que la pantalla vuelve a foco (navegación "para atrás", tabs, etc.)
   async ionViewWillEnter() {
     await this.ensureResumenAndSubscribe(true); // true = forzar refresco del server
+    
+    // 🆕 Verificar estado de encuesta múltiples veces con delays para dar tiempo a que la BD se actualice
+    // Esto es importante cuando se viene de completar la encuesta
+    setTimeout(async () => {
+      await this.verificarEstadoEncuesta();
+      this.cdr.detectChanges();
+    }, 500);
+    
+    setTimeout(async () => {
+      await this.verificarEstadoEncuesta();
+      this.cdr.detectChanges();
+    }, 1500);
+    
+    setTimeout(async () => {
+      await this.verificarEstadoEncuesta();
+      this.cdr.detectChanges();
+    }, 3000);
   }
 
   ngOnDestroy() {
@@ -376,7 +393,13 @@ async ngOnInit() {
         this.yaCompletoEncuesta = await this.supa.yaCompletoEncuesta();
       }
       
-      console.log('[ClientePedidoEnCurso] yaCompletoEncuesta:', this.yaCompletoEncuesta);
+      console.log('[ClientePedidoEnCurso] yaCompletoEncuesta:', this.yaCompletoEncuesta, 'estadoAnterior:', estadoAnterior);
+      
+      // Forzar detección de cambios para actualizar el botón
+      if (estadoAnterior !== this.yaCompletoEncuesta) {
+        this.cdr.detectChanges();
+        console.log('[ClientePedidoEnCurso] Estado de encuesta cambió, detección de cambios forzada');
+      }
       
       // 🆕 Si el botón se acaba de habilitar (estado cambió de true a false o de undefined a false)
       // y el pedido está entregado, hacer scroll al botón
@@ -388,6 +411,7 @@ async ngOnInit() {
     } catch (error) {
       console.error('Error al verificar estado de encuesta:', error);
       this.yaCompletoEncuesta = false;
+      this.cdr.detectChanges(); // Forzar detección de cambios incluso en caso de error
     }
   }
 
@@ -561,8 +585,13 @@ async ngOnInit() {
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList' || mutation.type === 'attributes') {
           // Verificar si el botón de encuesta está presente y visible
-          const botonEncuesta = actionStack.querySelector('ion-button.option-card.var4');
-          if (botonEncuesta && !botonEncuesta.hasAttribute('disabled')) {
+          const botonEncuesta = actionStack.querySelector('ion-button.option-card');
+          // Verificar que sea el botón de encuesta buscando el texto
+          const esBotonEncuesta = botonEncuesta && (
+            botonEncuesta.textContent?.includes('ENCUESTA') || 
+            botonEncuesta.textContent?.includes('encuesta')
+          );
+          if (esBotonEncuesta && !botonEncuesta.hasAttribute('disabled')) {
             console.log('[ClientePedidoEnCurso] 🎯 Botón de encuesta detectado por observer, haciendo scroll...');
             setTimeout(() => this.scrollToEncuestaButton(), 100);
             // Desconectar después de detectar
@@ -678,6 +707,9 @@ async ngOnInit() {
       
       // Actualizar el estado local
       this.estado = 'entregado';
+      
+      // Verificar estado de la encuesta después de aceptar el pedido
+      await this.verificarEstadoEncuesta();
       
       this.toast.success('PEDIDO ACEPTADO CORRECTAMENTE', '', {
         positionClass: 'toast-center',
@@ -835,6 +867,28 @@ async ngOnInit() {
   }
 
   irAEncuestas() {
+    // Validar que no haya completado la encuesta previamente
+    if (this.yaCompletoEncuesta) {
+      console.log('[ClientePedidoEnCurso] La encuesta ya fue completada, bloqueando acceso');
+      this.toast.warning('YA COMPLETASTE LA ENCUESTA PARA ESTA ESTADÍA', '', {
+        positionClass: 'toast-center',
+        timeOut: 3000
+      });
+      return;
+    }
+
+    // Validar que no sea cliente anónimo
+    if (this.esClienteAnonimo) {
+      console.log('[ClientePedidoEnCurso] Cliente anónimo no puede completar encuesta');
+      return;
+    }
+
+    // Validar que el pedido esté entregado
+    if (this.estado !== 'entregado') {
+      console.log('[ClientePedidoEnCurso] El pedido debe estar entregado para completar la encuesta');
+      return;
+    }
+
     this.router.navigate(['/form-encuesta']);
   }
 
