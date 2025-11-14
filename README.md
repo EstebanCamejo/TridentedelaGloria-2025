@@ -349,8 +349,7 @@ Punto 14, 16, 17, 18 y 19:
 |<img width="382" height="830" alt="image" src="https://github.com/user-attachments/assets/e813bceb-a951-4e7b-895f-f1948cf9d854" />|Vista Cliente: Menú|
 |<img width="376" height="821" alt="image" src="https://github.com/user-attachments/assets/3672a57d-33db-45af-b6ae-c85ebc3a2415" />|Vista Cliente: Mapa para realizar Delivery|
 |<img width="382" height="832" alt="image" src="https://github.com/user-attachments/assets/1eb05093-fd4c-495a-be63-f748b455847e" />|Vista Cliente: Reservas|
-|<img width="381" height="827" alt="image" src="https://github.com/user-attachments/assets/73078708-0588-4dd4-8ed3-29e43b46fb55" />
-|Vista Cliente: Encuestas anteriores|
+|<img width="381" height="827" alt="image" src="https://github.com/user-attachments/assets/73078708-0588-4dd4-8ed3-29e43b46fb55" />|Vista Cliente: Encuestas anteriores|
 |<img width="349" height="702" alt="image" src="https://github.com/user-attachments/assets/22a0f236-b5b0-4afa-ac15-4a80a2f40b8c" />|QR Mesa: Ver Menu , pedir, Juegos y chat|
 |<img width="379" height="821" alt="image" src="https://github.com/user-attachments/assets/abb7afb0-26ad-4059-b13f-e408e451f5fe" />| Panel Repartidor|
 |<img width="381" height="827" alt="image" src="https://github.com/user-attachments/assets/a54caee0-4cf6-49df-8b97-f6bf7ef9e913" />| Panel Mozo: Pedidos en curso|
