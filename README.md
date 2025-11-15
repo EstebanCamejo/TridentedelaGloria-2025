@@ -323,9 +323,21 @@ Punto 14, 16, 17, 18 y 19:
   ✅ *Entrega:*
 - Puntos funcionando del 1 al 22 bis + puntos 24 al 31 + Requerimientos excluyentes.
 
-  ## 📆 Semana 8: Sábado 01/11 al 14/11
+
+## 📆 Semana 8: Sábado 01/11 al 08/11
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 31 + Punto 22 bis + Requerimientos excluyentes.
+
+  //correccion:
+  Punto 20 al 31: Corregidos por Alejandro Constanzo. Nos dijo que la funcionalidad estaba ok , pero que no iban a evaluar visual en esa entrega. 
+
+## 📆 Semana 9: Sábado 08/11 al 15/11
 
 *Diseño*
+//Sofia Dorbessan y Esteban Camejo arreglaron el diseño de toda la palicacion. Ampliaron el tamaño de la tipografía para mejorar la visualización 
+y asegurar que cada vista muestre únicamente la información necesaria, sin sobrecargar al usuario. 
+
 - Arreglo flujo vista admin  → Esteban Camejo
 - Arreglo flujo vista delivery  → Esteban Camejo
 - Arrgelo flujo vista cliente -> Sofia Dorbessan
@@ -335,6 +347,7 @@ Punto 14, 16, 17, 18 y 19:
 
   ✅ *Entrega:*
 - Puntos funcionando del 1 al 31 + Punto 22 bis + Requerimientos excluyentes.
+- LINK DRIVE CON IMÁGENES DE LA APP: https://drive.google.com/drive/u/0/folders/1I1E83pDBK4WMcVXDPcPinr95g_gDC9ra
 
   ## 📲 Imagenes de la aplicacion 📲
 
@@ -344,7 +357,8 @@ Punto 14, 16, 17, 18 y 19:
 |<img width="379" height="828" alt="image" src="https://github.com/user-attachments/assets/0b71089e-19ef-4776-9ced-5a12368bbb03" />| Inicio de sesion con accesos rapidos desplegados |
 | <img width="380" height="825" alt="image" src="https://github.com/user-attachments/assets/e5b90f61-48f1-4dce-8648-1856393eecf4" /> | Pantalla registro nuevo cliente |
 | <img width="389" height="825" alt="image" src="https://github.com/user-attachments/assets/c2931b24-3625-44de-9676-64ba67d8d839" />| Panel dueño/supervisor |
-| <img width="381" height="828" alt="image" src="https://github.com/user-attachments/assets/d79399d3-8396-4899-a12f-afc665eb4ac1" /> | Panel Cliente |
+| <img width="381" height="828" alt="image" src="https://github.com/user-attachments/assets/d79399d3-8396-4899-a12f-afc665eb4ac1" /> |Panel Cliente Registrado |
+|<img width="272" height="589" alt="image" src="https://github.com/user-attachments/assets/657e9367-8e2f-42ad-9e3d-9ec88b7c1750" />|Panel Cliente Anonimo|
 |<img width="382" height="830" alt="image" src="https://github.com/user-attachments/assets/e813bceb-a951-4e7b-895f-f1948cf9d854" />|Vista Cliente: Menú|
 |<img width="376" height="821" alt="image" src="https://github.com/user-attachments/assets/3672a57d-33db-45af-b6ae-c85ebc3a2415" />|Vista Cliente: Mapa para realizar Delivery|
 |<img width="382" height="832" alt="image" src="https://github.com/user-attachments/assets/1eb05093-fd4c-495a-be63-f748b455847e" />|Vista Cliente: Reservas|
