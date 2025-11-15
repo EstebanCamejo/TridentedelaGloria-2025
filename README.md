@@ -317,7 +317,7 @@ Punto 14, 16, 17, 18 y 19:
 - Delivery/ Cliente Chat → Esteban Camejo
 - Flujo pedido Delivery → Esteban Camejo
 - Flujo Reservas -> Sofia Dorbessan
-- Menú con acelerómetro y giroscopio  -> Ivan Laurito
+- Menú con acelerómetro y giroscopio  -> Esteban Camejo
 - Ingreso con Facebook  -> Ivan Laurito
 
   ✅ *Entrega:*
@@ -353,6 +353,7 @@ Punto 14, 16, 17, 18 y 19:
 |<img width="379" height="821" alt="image" src="https://github.com/user-attachments/assets/abb7afb0-26ad-4059-b13f-e408e451f5fe" />| Panel Repartidor|
 |<img width="381" height="827" alt="image" src="https://github.com/user-attachments/assets/a54caee0-4cf6-49df-8b97-f6bf7ef9e913" />| Panel Mozo: Pedidos en curso|
 |<img width="276" height="591" alt="image" src="https://github.com/user-attachments/assets/73e7155f-14c1-4b28-b618-a233a8996955" />|Chat Mozo/Cliente|
+|<img width="347" height="776" alt="image" src="https://github.com/user-attachments/assets/7780efd3-a4a6-4408-a8b4-b6e9bfda5a92" />|Vista Delivery: Ruta de entrega|
 
 
 | Imagen             | Valor                                   
