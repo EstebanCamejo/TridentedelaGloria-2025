@@ -332,7 +332,7 @@ Punto 14, 16, 17, 18 y 19:
   //correccion:
   Punto 20 al 31: Corregidos por Alejandro Constanzo. Nos dijo que la funcionalidad estaba ok , pero que no iban a evaluar visual en esa entrega. 
 
-## 📆 Semana 9: Sábado 08/11 al 15/11
+## 📆 Semana 9: Sábado 08/11 al 15/11 ENTREGA SEGUNDO PARCIAL
 
 *Diseño*
 //Sofia Dorbessan y Esteban Camejo arreglaron el diseño de toda la palicacion. Ampliaron el tamaño de la tipografía para mejorar la visualización 
@@ -346,8 +346,29 @@ y asegurar que cada vista muestre únicamente la información necesaria, sin sob
 - Arreglo vista Menu  -> Sofia Dorbessan/Esteban Camejo  
 
   ✅ *Entrega:*
-- Puntos funcionando del 1 al 31 + Punto 22 bis + Requerimientos excluyentes.
+- Puntos funcionando del 23 al 31 + Requerimientos excluyentes.
 - LINK DRIVE CON IMÁGENES DE LA APP: https://drive.google.com/drive/u/0/folders/1I1E83pDBK4WMcVXDPcPinr95g_gDC9ra
+
+## 📆 Semana 10: Sábado 15/11 al 22/11 ENTREGA RECU PRIMER PARCIAL
+//Correccion diseño de la App realizada por Nicolas Ferrero
+
+Vista_mozo_detalle_pago_cliente Traten de que entre sin tener scroll
+- A los mails traten de darles una vuelta de tuerca a todos porque se los ve demasiado iguales salvo por algún icono (X y tilde que quedaron medio feos ahi donde estan), usen otros colores, fuentes diferentes o elementos que se les ocurran para variarlos más.
+- Detalle_de_cuenta_cliente_propina_aplicada Traten de que no tenga scroll o que tenga poco porque es excesivo. 
+- Vista_admin_listado_mesas Quedan cards cortadas y mostrar de a 4 es mucho, muestra o de a una como venían haciendo en casi todas la pantallas que hay listados o maximo 2 y que no se corten cuando se va pasando de “pagina en pagina” al scrollear
+
+Todas las imágenes que no se mencionan está OK
+
+*Diseño*
+//Sofia Dorbessan y Esteban Camejo hiceron los arreglos visuales de la aplicacion realizados por el profesor. 
+
+- Arreglo visa correos  → Esteban Camejo
+- Arrgelo de la cuenta cliente y mozo -> Sofia Dorbessan
+- Arreglo vista mesas por parte del admin -> Sofia Dorbessan
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 22 bis + Requerimientos excluyentes.
+
 
   ## 📲 Imagenes de la aplicacion 📲
 
