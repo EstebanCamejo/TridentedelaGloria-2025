@@ -14,7 +14,7 @@
   <div *ngIf="!loading" class="pagos-container">
     
     <!-- Lista de pagos pendientes -->
-    <div *ngIf="pagosPendientes.length > 0; else noPagos">
+    <div *ngIf="pagosPendientes.length > 0">
       <ion-card *ngFor="let pago of pagosPendientes" class="pago-card">
         <ion-card-header>
           <ion-card-title class="mesa-title">

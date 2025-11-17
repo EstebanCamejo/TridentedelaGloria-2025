@@ -342,7 +342,6 @@ export class MesasService {
     
     // Esto no debería ejecutarse, pero por si acaso
     throw new Error('No se pudo cargar las mesas después de múltiples intentos.');
->>>>>>> origin/main
   }
   
 

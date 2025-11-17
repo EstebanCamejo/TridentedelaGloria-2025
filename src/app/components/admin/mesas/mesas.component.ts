@@ -215,7 +215,7 @@ export class MesasComponent implements OnInit, OnDestroy, ViewWillEnter, ViewDid
     await modal.present();
   
     // 👇 Esperar a que el modal se cierre
-    const { role } = await modal.onWillDismiss();
+    const { role, data } = await modal.onWillDismiss();
     console.log('[mesas] modal role =', role);
   
     if (role === 'saved') {
