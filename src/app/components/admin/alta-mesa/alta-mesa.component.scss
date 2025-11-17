@@ -385,8 +385,9 @@ ion-popover ion-item::part(native) {
   font-size: 1.05rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 2px solid rgba(255,221,190,.75);
+  border: none;
   margin: 0;
+  --box-shadow: none;
 }
 
 .btn-guardar.button-disabled {

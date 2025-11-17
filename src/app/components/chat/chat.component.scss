@@ -121,7 +121,7 @@
 /* burbujas */
 .bubble {
   max-width: 78%;
-  padding: 10px 12px;
+  padding: 10px 12px 6px 12px; /* Reducido padding inferior de 10px a 6px */
   border-radius: 14px;
   background: #513131d3;
   color: #fff7ea;
@@ -145,11 +145,12 @@
   word-wrap: break-word;
   font-size: clamp(1.1rem, 2.5vw, 1.35rem);
   line-height: 1.5;
+  margin-bottom: 2px; /* Agregado pequeño margen inferior al texto */
 }
 .time {
   font-size: clamp(0.9rem, 2vw, 1.1rem);
   opacity: 0.7;
-  margin-top: 6px;
+  margin-top: 2px; /* Reducido de 6px a 2px para menos espacio */
   text-align: right;
   font-weight: 500;
 }

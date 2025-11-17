@@ -906,10 +906,10 @@ async ngOnInit() {
 async irAChat() {
   console.log('[irAChat] 🚀 Método iniciado');
   
-  // Validar que el pedido esté confirmado
-  if (this.estado === 'pendiente' || this.estado === 'rechazado por admin') {
-    console.log('[irAChat] ⚠️ Pedido aún no confirmado o rechazado');
-    this.toast.warning('EL PEDIDO DEBE ESTAR CONFIRMADO PARA PODER CHATEAR', '', {
+  // Validar que el pedido no esté rechazado (permitir chat cuando está pendiente)
+  if (this.estado === 'rechazado por admin') {
+    console.log('[irAChat] ⚠️ Pedido rechazado');
+    this.toast.warning('EL PEDIDO FUE RECHAZADO', '', {
       positionClass: 'toast-center',
       timeOut: 3000
     });

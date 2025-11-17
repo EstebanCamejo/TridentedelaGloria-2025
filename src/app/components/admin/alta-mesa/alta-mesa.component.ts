@@ -340,25 +340,15 @@ export class AltaMesaComponent implements OnInit {
 
   // ====== CRUD ======
 
-  /** CREACIÓN (usa tu función actual) */
-  private async crearMesa() {
-    const res = await this.mesas.crearMesaViaFunction({
-      numero: this.numero!, capacidad: this.capacidad!, tipo: this.tipo!,
-      fotoBlob: this.fotoBlob!
-    });
-    this.ok(`MESA #${res.numero} CREADA`);
-  }
-
   /** EDICIÓN (ajustá a los métodos reales de tu service si corresponde) */
   private async actualizarMesa(id: string) {
-    await (this.mesas as any).actualizarMesa?.({
+    await (this.mesas as any).actualizarMesaCampos?.({
       id,
-      numero: this.numero!,
       capacidad: this.capacidad!,
       tipo: this.tipo!,
-      fotoBlob: this.fotoBlob || undefined
+      // fotoBlob se maneja por separado si es necesario
     });
-    this.ok(`MESA #${this.numero} ACTUALIZADA`);
+    // NO mostrar mensaje aquí, se muestra en guardar()
   }
 
   /** CARGA para modo edición */
@@ -423,62 +413,58 @@ export class AltaMesaComponent implements OnInit {
       this.err('COMPLETÁ NÚMERO, CAPACIDAD, TIPO Y FOTO');
       return;
     }
+    
+    // Evitar múltiples ejecuciones
+    if (this.guardando) {
+      return;
+    }
+    
     this.guardando = true;
     this.updateBtnDisabled();
-    this.spinner.show({ immediate: true, minMs: 1000 });
+    this.spinner.show({ immediate: true, minMs: 300 });
   
     try {
-      let mesaCreada: any = null;
-  
+      let res: any = null;
+      
       if (this.mesaId) {
-        // MODO EDICIÓN → actualizás y listo
+        // MODO EDICIÓN
         await this.actualizarMesa(this.mesaId);
+        this.ok(`MESA #${this.numero} ACTUALIZADA`);
       } else {
-        // MODO CREACIÓN → creamos y armamos el payload para el merge optimista
-        const res = await this.mesas.crearMesaViaFunction({
-          numero: this.numero!, capacidad: this.capacidad!, tipo: this.tipo!, fotoBlob: this.fotoBlob!
+        // MODO CREACIÓN
+        res = await this.mesas.crearMesaViaFunction({
+          numero: this.numero!, 
+          capacidad: this.capacidad!, 
+          tipo: this.tipo!, 
+          fotoBlob: this.fotoBlob!
         });
-        this.ok(`MESA #${res.numero} CREADA`);   // ← toast visible inmediato
-
-        // cerrar modal con role 'saved' + payload optimista
-        const top = await this.modalCtrl.getTop();
-        if (top) {
-          await top.dismiss({ mesa: {
-            id: res.id,
-            numero: res.numero,
-            capacidad: this.capacidad!,
-            tipo: this.tipo!,
-            estado: 'libre',
-            foto_url: this.fotoPreview ?? null,
-            qr_text: res.qr_text ?? null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }}, 'saved');
-        } else {
-          this.router.navigateByUrl('/admin/mesas', { replaceUrl: true });
-        }
+        this.ok(`MESA #${res.numero} CREADA`);
       }
-  
-      console.log('[alta-mesa] voy a cerrar modal con role "saved"');
-  
-      // Si está abierta como modal → cerramos con 'saved'
-      const top = await this.modalCtrl.getTop();
-      if (top) {
-        await top.dismiss(mesaCreada ? { mesa: mesaCreada } : null, 'saved');
-      } else {
-        // Si NO es modal (ruta directa) → volvemos al listado
-        this.router.navigateByUrl('/admin/mesas', { replaceUrl: true });
-      }
-  
-      // Limpieza por si siguiera visible
-      this.resetForm();
-  
-    } catch (e: any) {
-      this.err((e?.message || 'NO SE PUDO GUARDAR LA MESA').toUpperCase());
-    } finally {
+      
+      // Ocultar spinner INMEDIATAMENTE después de crear/actualizar
+      this.spinner.hide(true); // force = true para ocultar sin esperar minMs
+      
+      // Limpiar estado ANTES de cerrar/navegar
       this.guardando = false;
       this.updateBtnDisabled();
-      this.spinner.hide();
+      this.resetForm();
+      
+      // Cerrar modal (si es modal) o navegar (si es ruta directa)
+      const top = await this.modalCtrl.getTop();
+      if (top) {
+        // Es modal → cerrar modal (el componente padre se encargará de la navegación)
+        await top.dismiss(null, 'saved');
+      } else {
+        // Si NO es modal (ruta directa) → volvemos al panel del admin
+        this.router.navigateByUrl('/home-admin', { replaceUrl: true });
+      }
+  
+    } catch (e: any) {
+      // Asegurar que el spinner se oculte incluso si hay error
+      this.spinner.hide(true); // force = true
+      this.guardando = false;
+      this.updateBtnDisabled();
+      this.err((e?.message || 'NO SE PUDO GUARDAR LA MESA').toUpperCase());
     }
   }
   

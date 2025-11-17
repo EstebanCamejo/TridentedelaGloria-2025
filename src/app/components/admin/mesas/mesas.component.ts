@@ -1,18 +1,18 @@
-import { ChangeDetectorRef, Component, OnInit, inject, NgZone } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject, NgZone, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-         IonList, IonItem, IonLabel, IonBadge, IonAvatar, IonIcon,
-         IonRefresher, IonRefresherContent, AlertController } from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonToolbar, IonTitle, IonButton,
+         IonBadge, IonIcon, IonRefresher, IonRefresherContent, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, pencil, refresh, trash } from 'ionicons/icons';
+import { add, pencil, refresh, trash, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { ModalController } from '@ionic/angular';
 import { AltaMesaComponent } from '../alta-mesa/alta-mesa.component';
 import { MesasService, MesaRow } from 'src/app/services/mesas.service';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { ToastrService } from 'ngx-toastr';
-import type { RefresherCustomEvent, ViewWillEnter } from '@ionic/angular';
+import type { RefresherCustomEvent, ViewWillEnter, ViewDidEnter } from '@ionic/angular';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
+import { register } from 'swiper/element/bundle';
 
 @Component({
   selector: 'app-mesas',
@@ -21,20 +21,21 @@ import { Router } from '@angular/router';
   styleUrls: ['./mesas.component.scss'],
   imports: [
     CommonModule,
-    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-    IonList, IonItem, IonLabel, IonBadge, IonAvatar, IonIcon,
-    IonRefresher, IonRefresherContent
+    IonContent, IonHeader, IonToolbar, IonTitle, IonButton,
+    IonBadge, IonIcon, IonRefresher, IonRefresherContent
   ],
   providers: [ModalController],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MesasComponent implements OnInit , ViewWillEnter{
+export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
   private modalCtrl = inject(ModalController);
   private mesasSrv = inject(MesasService);
   private alertCtrl = inject(AlertController);
 
   mesas: MesaRow[] = [];
   cargando = false;
+  currentSlide: number = 0;
 
   trackById = (_: number, m: MesaRow) => m.id;
 
@@ -56,27 +57,63 @@ export class MesasComponent implements OnInit , ViewWillEnter{
     private spinner: SpinnerService,
     private toast: ToastrService
   ) {
-    addIcons({ add, pencil, refresh, trash });
+    addIcons({ add, pencil, refresh, trash, chevronBackOutline, chevronForwardOutline });
+    register(); // Registrar Swiper
   }
 
   ngOnInit() {
     this.cargarMesas();
-    
   }
-  ionViewWillEnter(): void {
-    this.cargarMesas();
+  
+  async ionViewWillEnter(): Promise<void> {
+    // Forzar recarga cuando se vuelve a esta vista
+    console.log('[mesas] ionViewWillEnter: recargando mesas...');
+    console.log('[mesas] Estado actual: mesas.length =', this.mesas.length, 'cargando =', this.cargando);
     
+    // Limpiar array anterior para forzar actualización visual
+    this.zone.run(() => {
+      this.mesas = [];
+      this.cdr.markForCheck();
+    });
+    
+    // Recargar mesas
+    await this.cargarMesas();
+  }
+  
+  async ionViewDidEnter(): Promise<void> {
+    // Verificar que las mesas se cargaron correctamente
+    console.log('[mesas] ionViewDidEnter: verificando mesas...');
+    console.log('[mesas] Estado después de cargar: mesas.length =', this.mesas.length, 'cargando =', this.cargando);
+    
+    // Si no hay mesas después de un momento, intentar recargar una vez más
+    if (this.mesas.length === 0 && !this.cargando) {
+      console.log('[mesas] ⚠️ No hay mesas visibles después de cargar, intentando recargar...');
+      setTimeout(async () => {
+        if (this.mesas.length === 0 && !this.cargando) {
+          await this.cargarMesas();
+        }
+      }, 500);
+    }
   }
  
   async cargarMesas(ev?: CustomEvent) {
     console.time('[mesas] cargarMesas');
     try {
-      this.cargando = true;
+      // Actualizar estado de carga dentro de NgZone
+      this.zone.run(() => {
+        this.cargando = true;
+        this.cdr.markForCheck();
+      });
+      
       if (!ev) {
         // Solo mostrar spinner si no es pull-to-refresh (que ya tiene su propio indicador)
         this.spinner.show({ immediate: true });
       }
+      
       const list = await this.mesasSrv.listarMesas();
+      console.log('[mesas] listarMesas devolvió', list.length, 'mesas');
+      
+      // Actualizar mesas dentro de NgZone y forzar detección de cambios
       this.zone.run(() => {
         this.mesas = [...list];            // <- nueva referencia
         this.cdr.markForCheck();
@@ -89,7 +126,12 @@ export class MesasComponent implements OnInit , ViewWillEnter{
         timeOut: 3000
       });
     } finally {
-      this.cargando = false;
+      // Siempre actualizar estado de carga en finally
+      this.zone.run(() => {
+        this.cargando = false;
+        this.cdr.markForCheck();
+      });
+      
       if (!ev) {
         this.spinner.hide();
       }
@@ -138,17 +180,17 @@ export class MesasComponent implements OnInit , ViewWillEnter{
     });
     await modal.present();
   
-    // 👇 Un solo await; obtenemos role y data en la misma línea
-    const { role, data } = await modal.onWillDismiss();
+    // 👇 Esperar a que el modal se cierre
+    const { role } = await modal.onWillDismiss();
     console.log('[mesas] modal role =', role);
   
     if (role === 'saved') {
-      // Si la pantalla de alta devolvió la mesa creada, la insertamos optimistamente
-      if (data?.mesa) {
-        this.mesas = [data.mesa, ...this.mesas.filter(x => x.id !== data.mesa.id)];
-      }
-      // Y sincronizamos con Supabase por si la replicación tardó
-      setTimeout(() => this.cargarMesas(), 300);
+      // Pequeño delay para asegurar que la mesa se haya guardado completamente en la BD
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Navegar al panel del admin después de crear la mesa
+      console.log('[mesas] ✅ Mesa creada, navegando al panel del admin');
+      this.router.navigateByUrl('/home-admin', { replaceUrl: true });
     }
   }
   
@@ -531,5 +573,22 @@ export class MesasComponent implements OnInit , ViewWillEnter{
   //     console.error('[mesas] eliminarMesa error', e);
   //   }
   // }
-  
+
+  // Métodos para manejar la paginación del swiper
+  onSlideChange(event: any) {
+    this.currentSlide = event.detail[0].activeIndex;
+    this.cdr.markForCheck();
+  }
+
+  goToPrevious(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNext(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
+    }
+  }
 }

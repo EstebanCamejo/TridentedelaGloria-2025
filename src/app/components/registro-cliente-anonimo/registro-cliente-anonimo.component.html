@@ -43,6 +43,7 @@
     <div class="form-group">
       <input id="email" name="email" type="email"
              [(ngModel)]="email" #emailModel="ngModel" required email
+             (blur)="onEmailChange()"
              placeholder="Correo" />
       <small *ngIf="showError(emailModel, f)" class="msg-error">INGRESÁ UN CORREO VÁLIDO</small>
     </div>

@@ -74,25 +74,58 @@
     </ion-button>
   </div>
 
-  <div class="mesas-grid" *ngIf="!cargando && mesas.length > 0">
-    <div class="mesa-card" *ngFor="let m of mesas; trackBy: trackById" (click)="mostrarOpcionesMesa(m)">
-      <div class="mesa-card-photo">
-        <img [src]="m.foto_url || phSvg" alt="Mesa {{ m.numero }}" />
+  <!-- Contenedor con swiper para las mesas -->
+  <div class="mesas-swiper-container" *ngIf="!cargando && mesas.length > 0">
+    <swiper-container
+      #swiperMesas
+      class="mesas-swiper"
+      slides-per-view="1"
+      space-between="20"
+      centered-slides="true"
+      pagination="false"
+      navigation="false"
+      speed="300"
+      (swiperslidechange)="onSlideChange($event)">
+      <swiper-slide *ngFor="let m of mesas; trackBy: trackById">
+        <div class="mesa-card" (click)="mostrarOpcionesMesa(m)">
+          <div class="mesa-card-photo">
+            <img [src]="m.foto_url || phSvg" alt="Mesa {{ m.numero }}" />
+          </div>
+          
+          <div class="mesa-card-content">
+            <div class="mesa-card-header">
+              <h2 class="mesa-numero">MESA #{{ m.numero }}</h2>
+            </div>
+            <div class="mesa-estado-container">
+              <ion-badge [color]="estadoColor(m.estado)" class="mesa-estado">{{ estadoTexto(m.estado) }}</ion-badge>
+            </div>
+            
+            <div class="mesa-card-info">
+              <p class="mesa-tipo"><strong>{{ tipoTexto(m.tipo) }}</strong></p>
+              <p class="mesa-capacidad"><strong>PLAZAS:</strong> {{ m.capacidad }}</p>
+            </div>
+          </div>
+        </div>
+      </swiper-slide>
+    </swiper-container>
+
+    <!-- Paginación personalizada -->
+    <div class="custom-pagination">
+      <button 
+        class="pagination-btn"
+        (click)="goToPrevious(swiperMesas)"
+        [disabled]="currentSlide === 0">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+      <div class="pagination-counter">
+        {{ currentSlide + 1 }}/{{ mesas.length }}
       </div>
-      
-      <div class="mesa-card-content">
-        <div class="mesa-card-header">
-          <h2 class="mesa-numero">MESA #{{ m.numero }}</h2>
-        </div>
-        <div class="mesa-estado-container">
-          <ion-badge [color]="estadoColor(m.estado)" class="mesa-estado">{{ estadoTexto(m.estado) }}</ion-badge>
-        </div>
-        
-        <div class="mesa-card-info">
-          <p class="mesa-tipo"><strong>{{ tipoTexto(m.tipo) }}</strong></p>
-          <p class="mesa-capacidad"><strong>PLAZAS:</strong> {{ m.capacidad }}</p>
-        </div>
-      </div>
+      <button 
+        class="pagination-btn"
+        (click)="goToNext(swiperMesas)"
+        [disabled]="currentSlide === mesas.length - 1">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
     </div>
   </div>
 

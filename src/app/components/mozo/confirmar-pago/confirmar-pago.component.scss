@@ -6,18 +6,18 @@
 
 /* ===== Títulos y headers ===== */
 .mesa-title {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: #1976d2;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   
   ion-icon {
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: #1976d2;
   }
 }
@@ -50,10 +50,10 @@
 }
 
 .section-subtitle {
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   font-weight: 900;
   color: #ffffff;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
@@ -66,26 +66,26 @@
 
 /* ===== Cards principales ===== */
 .pago-card {
-  margin-bottom: 20px;
-  border-radius: 16px;
-  box-shadow: 0 6px 16px rgba(0,0,0,.08);
-  border-left: 4px solid #ff9800;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  border-left: 3px solid #ff9800;
 }
 
 /* ===== Información del cliente ===== */
 .cliente-info {
   background: #f8f9fa;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  border-left: 4px solid #2196f3;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 3px solid #2196f3;
 }
 
 .cliente-detail {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   
   &:last-child {
     margin-bottom: 0;
@@ -116,26 +116,26 @@
 }
 
 .cliente-label {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #333;
 }
 
 .cliente-value {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #1976d2;
 }
 
 /* ===== Lista de pedidos ===== */
 .pedidos-section {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .pedidos-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .pedido-item {
@@ -143,9 +143,9 @@
   justify-content: space-between;
   align-items: center;
   background: #f8f9fa;
-  padding: 14px;
-  border-radius: 10px;
-  border-left: 4px solid #4caf50;
+  padding: 10px;
+  border-radius: 8px;
+  border-left: 3px solid #4caf50;
 }
 
 .pedido-info {
@@ -153,20 +153,20 @@
 }
 
 .pedido-nombre {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #333;
-  margin: 0 0 4px 0;
+  margin: 0 0 3px 0;
 }
 
 .pedido-detalle {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: #666;
   margin: 0;
 }
 
 .pedido-subtotal {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 800;
   color: #2e7d32;
   text-shadow: 1px 1px 2px rgba(0,0,0,.1);
@@ -174,22 +174,22 @@
 
 /* ===== Sección de propinas ===== */
 .propina-section {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .propina-info {
   background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
-  padding: 16px;
-  border-radius: 12px;
-  border-left: 4px solid #4caf50;
-  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  padding: 10px;
+  border-radius: 8px;
+  border-left: 3px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
 }
 
 .propina-detail {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   
   &:last-child {
     margin-bottom: 0;
@@ -197,28 +197,28 @@
 }
 
 .propina-label {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #333;
 }
 
 .propina-value {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #2e7d32;
 }
 
 .totales-section {
   background: #f8f9fa;
-  padding: 20px;
+  padding: 12px;
   border-radius: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   
   .total-line {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
+    padding: 8px 0;
     border-bottom: 1px solid #e0e0e0;
     
     &:last-child {
@@ -226,13 +226,13 @@
     }
     
     .total-label {
-      font-size: 1.4rem;
+      font-size: 1rem;
       font-weight: 700;
       color: #333;
     }
     
     .total-value {
-      font-size: 1.4rem;
+      font-size: 1rem;
       font-weight: 800;
       color: #1976d2;
     }
@@ -256,18 +256,18 @@
     }
     
     &.total-final {
-      border-top: 3px solid #1976d2;
-      margin-top: 12px;
-      padding-top: 16px;
+      border-top: 2px solid #1976d2;
+      margin-top: 8px;
+      padding-top: 10px;
       
       .total-label {
-        font-size: 1.6rem;
+        font-size: 1.2rem;
         font-weight: 900;
         color: #1976d2;
       }
       
       .total-value {
-        font-size: 1.8rem;
+        font-size: 1.3rem;
         font-weight: 900;
         color: #1976d2;
       }
@@ -278,7 +278,10 @@
 .btn-confirmar {
   --background: #4caf50;
   --background-hover: #45a049;
-  margin-top: 16px;
+  margin-top: 10px;
+  font-size: 1rem;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
 }
 
 .no-pagos {
@@ -333,7 +336,7 @@
 }
 
 .btn-volver {
-  margin-top: 20px;
+  margin-top: 10px;
   --color: #fff;
   --background: #7b2f2f;
   --background-hover: #6b2727;
@@ -342,6 +345,9 @@
   --border-style: solid;
   --border-radius: 8px;
   font-weight: 700;
+  font-size: 0.95rem;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
 }
 
 // Responsive

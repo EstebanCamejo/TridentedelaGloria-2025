@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" style="--padding-top: 8px; --padding-bottom: 8px;">
   <ion-loading [isOpen]="loading" message="CARGANDO CUENTA..."></ion-loading>
 
   <div *ngIf="!loading && cuenta" class="cuenta-container">
@@ -55,11 +55,8 @@
 
         <!-- Sección de propinas -->
         <div class="propina-section">
-          <h4 class="section-subtitle">PROPINA:</h4>
-          <div *ngIf="propinaSeleccionada === 0" class="propina-placeholder">
-            <ion-icon name="qr-code-outline" class="placeholder-icon"></ion-icon>
-            <p>ESCANEÁ EL QR DE PROPINA PARA SELECCIONAR TU NIVEL DE SATISFACCIÓN</p>
-          </div>
+          <h4 class="section-subtitle" *ngIf="propinaSeleccionada === 0">ESCANEÁ EL QR PARA SELECCIONAR PROPINA</h4>
+          <h4 class="section-subtitle" *ngIf="propinaSeleccionada > 0">PROPINA:</h4>
           <div *ngIf="propinaSeleccionada > 0" class="propina-info">
             <div class="propina-detail">
               <span class="propina-label">NIVEL DE SATISFACCIÓN:</span>
@@ -105,7 +102,7 @@
             </div>
             
             <div class="total-line total-final">
-              <span class="total-label">TOTAL A PAGAR:</span>
+              <span class="total-label">TOTAL:</span>
               <span class="total-value">${{ totalFinal | number:'1.2-2' }}</span>
             </div>
           </div>

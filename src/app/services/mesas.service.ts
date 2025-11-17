@@ -269,27 +269,38 @@ export class MesasService {
   // }
 
   async listarMesas(): Promise<MesaRow[]> {
-    // 1) Asegurá que hay sesión; si no, intentá refrescar
-    const sessRes = await this.supa.client.auth.getSession();
-    let session = sessRes.data.session;
-    if (!session) {
-      const ref = await this.supa.client.auth.refreshSession();
-      session = ref.data.session ?? null;
+    try {
+      // 1) Asegurá que hay sesión; si no, intentá refrescar
+      const sessRes = await this.supa.client.auth.getSession();
+      let session = sessRes.data.session;
+      if (!session) {
+        const ref = await this.supa.client.auth.refreshSession();
+        session = ref.data.session ?? null;
+      }
+      console.log('[mesas.service] session?', !!session, 'user:', session?.user?.id || null);
+    
+      // 2) Query simple, sin count/range (evita preflight y edge cases)
+      const { data, error } = await this.supa.client
+        .from('mesas')
+        .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')
+        .order('numero', { ascending: true });
+    
+      if (error) {
+        console.error('[mesas.service] listarMesas error:', error);
+        console.error('[mesas.service] Error details:', JSON.stringify(error, null, 2));
+        throw new Error(`Error al listar mesas: ${error.message || JSON.stringify(error)}`);
+      }
+      
+      const mesas = (data ?? []) as MesaRow[];
+      console.log('[mesas.service] listarMesas ->', mesas.length, 'mesas encontradas');
+      if (mesas.length > 0) {
+        console.log('[mesas.service] Primeras mesas:', mesas.slice(0, 3).map(m => `#${m.numero}`));
+      }
+      return mesas;
+    } catch (e: any) {
+      console.error('[mesas.service] listarMesas excepción:', e);
+      throw e; // Re-lanzar el error para que el componente lo maneje
     }
-    console.log('[mesas.service] session?', !!session, 'user:', session?.user?.id || null);
-  
-    // 2) Query simple, sin count/range (evita preflight y edge cases)
-    const { data, error } = await this.supa.client
-      .from('mesas')
-      .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')
-      .order('numero', { ascending: true });
-  
-    if (error) {
-      console.error('[mesas.service] listarMesas error:', error);
-      return [];
-    }
-    console.log('[mesas.service] listarMesas ->', data?.length ?? 0);
-    return (data ?? []) as MesaRow[];
   }
   
 

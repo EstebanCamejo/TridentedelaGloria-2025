@@ -37,10 +37,12 @@ export class RegistroClienteAnonimoComponent {
   // 📸 foto
   photoPreview: string | null = null;    // para mostrar en <img>
   photoFile: File | null = null;         // para subir (Storage/backend)
+  photoUrl: string | null = null;       // URL de la foto guardada en storage
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   requirePhoto = false; // ponelo true si querés exigir foto
   showPhotoModal = false;              // control del modal
   tempPhotoPreview: string | null = null;  // foto temporal antes de confirmar
+  uploadingPhoto = false;              // estado de carga al subir foto
 
   constructor(
     private auth: SupabaseService,
@@ -150,16 +152,57 @@ export class RegistroClienteAnonimoComponent {
           this.photoFile = file;
           console.log('[registro-cliente-anonimo] ✅ Foto convertida desde URL:', file.name, file.size, 'bytes');
         }
+
+        // Si tenemos la foto y un email, subir inmediatamente al storage
+        if (this.photoFile && this.email && this.email.trim() !== '') {
+          await this.uploadPhotoImmediately();
+        } else if (this.photoFile && (!this.email || this.email.trim() === '')) {
+          console.log('[registro-cliente-anonimo] ⚠️ Foto lista pero no hay email. Se subirá durante el registro.');
+        }
       } catch (error) {
         console.error('[registro-cliente-anonimo] ❌ Error al convertir foto a File:', error);
         this.toastError('NO SE PUDO PROCESAR LA FOTO. INTENTÁ NUEVAMENTE');
         this.tempPhotoPreview = null;
         this.photoPreview = null;
+        this.photoFile = null;
+        this.photoUrl = null;
         this.closePhotoModal();
         return;
       }
     }
     this.closePhotoModal();
+  }
+
+  private async uploadPhotoImmediately() {
+    if (!this.photoFile || !this.email) {
+      console.warn('[registro-cliente-anonimo] No se puede subir foto: falta photoFile o email');
+      return;
+    }
+
+    this.uploadingPhoto = true;
+    try {
+      console.log('[registro-cliente-anonimo] 📤 Subiendo foto al storage inmediatamente...', {
+        email: this.email,
+        fileName: this.photoFile.name,
+        fileSize: this.photoFile.size
+      });
+
+      const result = await this.auth.uploadAvatar(this.photoFile, this.email);
+      
+      if (result?.publicUrl) {
+        this.photoUrl = result.publicUrl;
+        console.log('[registro-cliente-anonimo] ✅ Foto subida exitosamente, URL:', this.photoUrl);
+      } else {
+        throw new Error('No se recibió la URL de la foto');
+      }
+    } catch (error: any) {
+      console.error('[registro-cliente-anonimo] ❌ Error al subir foto:', error);
+      this.toastError('NO SE PUDO GUARDAR LA FOTO. SE INTENTARÁ DURANTE EL REGISTRO');
+      // No fallar completamente, la foto se intentará subir durante el registro
+      this.photoUrl = null;
+    } finally {
+      this.uploadingPhoto = false;
+    }
   }
 
   cancelPhoto() {
@@ -168,6 +211,14 @@ export class RegistroClienteAnonimoComponent {
     }
     this.tempPhotoPreview = null;
     this.closePhotoModal();
+  }
+
+  // Método para subir foto cuando el email cambia (si ya hay foto seleccionada)
+  onEmailChange() {
+    if (this.photoFile && this.email && this.email.trim() !== '' && !this.photoUrl && !this.uploadingPhoto) {
+      console.log('[registro-cliente-anonimo] Email ingresado, subiendo foto...');
+      this.uploadPhotoImmediately();
+    }
   }
 
   closePhotoModal() {
@@ -197,7 +248,7 @@ export class RegistroClienteAnonimoComponent {
     return 'NO PUDIMOS COMPLETAR EL REGISTRO. INTENTÁ DE NUEVO';
   }
 
-async onSubmit(form: NgForm) {
+  async onSubmit(form: NgForm) {
   this.errorMsg = '';
   this.passwordsMismatch = false;
 
@@ -225,7 +276,15 @@ async onSubmit(form: NgForm) {
   
   if (this.photoFile) {
     console.log('[registro-cliente-anonimo] onSubmit - Foto lista:', this.photoFile.name, this.photoFile.size, 'bytes');
+    console.log('[registro-cliente-anonimo] onSubmit - URL de foto guardada:', this.photoUrl || 'NO HAY URL (se subirá durante el registro)');
   }
+
+  // Si la foto no se subió antes (porque no había email), intentar subirla ahora
+  if (this.photoFile && !this.photoUrl) {
+    console.log('[registro-cliente-anonimo] 📤 La foto no se subió antes, subiendo ahora...');
+    await this.uploadPhotoImmediately();
+  }
+
   if (this.loading) return;
 
   this.loading = true;
@@ -234,6 +293,8 @@ async onSubmit(form: NgForm) {
 
   try {
     // 1) Alta + (foto) + inserción
+    // Si ya tenemos la URL, podríamos pasarla, pero el flujo actual sube la foto de nuevo
+    // que está bien porque la función edge maneja todo
     await this.auth.registrarAnonimoFlow(
       { nombre: this.nombre || 'Anónimo', email: this.email, password: this.password },
       this.photoFile
@@ -248,6 +309,7 @@ async onSubmit(form: NgForm) {
     this.nombre = this.email = this.password = this.confirm = '';
     this.photoFile = null;
     this.photoPreview = null;
+    this.photoUrl = null;
     form.resetForm();
 
     // 4) ir directo al home del cliente

@@ -366,12 +366,25 @@ export class SupabaseService {
      * reemplazá getPublicUrl por createSignedUrl en la vista.
      */
     async uploadAvatar(file: File, email: string) {
+    console.log('[uploadAvatar] Iniciando subida de foto...', { 
+      fileName: file.name, 
+      fileSize: file.size, 
+      fileType: file.type,
+      email: email 
+    });
+
+    if (!file || file.size === 0) {
+      throw new Error('El archivo de foto está vacío o no es válido');
+    }
+
     const safeEmail = (email || 'anon').replace(/[^a-z0-9@._-]/gi, ''); // permite @ . _ -
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const fileName = `${Date.now()}-${Math.random().toString(16).slice(2,8)}.${ext}`;
     const filePath = `clientes/${safeEmail}/${fileName}`; // 👈 Arranca con 'clientes/'
 
-    const { error: upErr } = await this._supabase
+    console.log('[uploadAvatar] Subiendo a:', { bucket: this.bucket, filePath });
+
+    const { data: uploadData, error: upErr } = await this._supabase
       .storage
       .from(this.bucket)               // 'avatars'
       .upload(filePath, file, {
@@ -379,46 +392,142 @@ export class SupabaseService {
         contentType: file.type || 'image/jpeg'
       });
 
-    if (upErr) throw upErr;
+    if (upErr) {
+      console.error('[uploadAvatar] ❌ Error al subir foto:', upErr);
+      throw new Error(`Error al subir la foto: ${upErr.message || 'Error desconocido'}`);
+    }
 
-    const { data } = this._supabase.storage.from(this.bucket).getPublicUrl(filePath);
-    return { path: filePath, publicUrl: data.publicUrl };
+    console.log('[uploadAvatar] ✅ Foto subida exitosamente:', uploadData?.path);
+
+    const { data: urlData } = this._supabase.storage.from(this.bucket).getPublicUrl(filePath);
+    const publicUrl = urlData?.publicUrl;
+    
+    if (!publicUrl) {
+      throw new Error('No se pudo obtener la URL pública de la foto');
+    }
+
+    console.log('[uploadAvatar] ✅ URL pública generada:', publicUrl);
+
+    return { path: filePath, publicUrl };
+  }
+
+  // Helper para convertir File a base64
+  private async fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      console.log('[fileToBase64] Convirtiendo archivo a base64...', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+      
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        if (!result) {
+          reject(new Error('No se pudo leer el archivo'));
+          return;
+        }
+        
+        // Remover el prefijo data:image/...;base64,
+        const base64 = result.includes(',') ? result.split(',')[1] : result;
+        
+        if (!base64 || base64.length === 0) {
+          reject(new Error('Base64 vacío después de procesar'));
+          return;
+        }
+        
+        console.log('[fileToBase64] ✅ Base64 generado, longitud:', base64.length);
+        resolve(base64);
+      };
+      reader.onerror = (error) => {
+        console.error('[fileToBase64] ❌ Error al leer archivo:', error);
+        reject(error);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   async registrarClienteFlow(
   form: { tipo_registro: 'cliente'|'anonimo'; nombre: string; apellido?: string|null; dni?: string|null; email: string; password: string; },
   photoFile?: File|null
   ) {
-    // 1) Foto opcional
-    let foto_url: string | null = null;
+    // 1) Convertir foto a base64 si existe (la función edge la subirá)
+    let photoBase64: string | null = null;
     if (photoFile) {
-      const up = await this.uploadAvatar(photoFile, form.email);
-      foto_url = up.publicUrl;
+      try {
+        console.log('[registrarClienteFlow] 📸 Convirtiendo foto a base64...', {
+          fileName: photoFile.name,
+          fileSize: photoFile.size,
+          fileType: photoFile.type,
+          email: form.email
+        });
+        
+        if (!photoFile || photoFile.size === 0) {
+          throw new Error('El archivo de foto está vacío');
+        }
+        
+        photoBase64 = await this.fileToBase64(photoFile);
+        
+        if (!photoBase64 || photoBase64.length === 0) {
+          throw new Error('No se pudo generar el base64 de la foto');
+        }
+        
+        console.log('[registrarClienteFlow] ✅ Foto convertida a base64, tamaño:', photoBase64.length, 'caracteres');
+      } catch (error: any) {
+        console.error('[registrarClienteFlow] ❌ Error al convertir foto a base64:', error);
+        throw new Error(`No se pudo procesar la foto: ${error?.message || 'Error desconocido'}`);
+      }
+    } else {
+      console.log('[registrarClienteFlow] ℹ️ No hay foto para subir (photoFile es null)');
     }
 
-    // 2) Llamar a la Edge para crear user + insertar en 'usuarios'
+    // 2) Llamar a la Edge para crear user + subir foto + insertar en 'usuarios'
+    const payload = {
+      email: form.email,
+      password: form.password,
+      nombre: form.nombre,
+      apellido: form.apellido ?? null,
+      dni: form.dni ?? null,
+      photoBase64, // ✅ Pasar foto como base64 para que la función edge la suba
+      perfil: form.tipo_registro === 'anonimo' ? 'clienteAnon' : 'clienteReg',
+    };
+    
+    console.log('[registrarClienteFlow] 📤 Enviando payload a register-client:', {
+      email: payload.email,
+      nombre: payload.nombre,
+      perfil: payload.perfil,
+      tienePhotoBase64: !!payload.photoBase64,
+      photoBase64Length: payload.photoBase64?.length || 0
+    });
+    
     const res = await fetch(`${this.edgeBase}/functions/v1/register-client`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${environment.supabaseAnonKey}`, // Verify JWT ON
       },
-      body: JSON.stringify({
-        email: form.email,
-        password: form.password,
-        nombre: form.nombre,
-        apellido: form.apellido ?? null,
-        dni: form.dni ?? null,
-        foto_url,
-        perfil: form.tipo_registro === 'anonimo' ? 'clienteAnon' : 'clienteReg',
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));
+      console.error('[registrarClienteFlow] ❌ Error en register-client:', j);
       throw new Error(j?.error || `register-client ${res.status}`);
     }
-    const { estado } = await res.json();
+    const result = await res.json();
+    console.log('[registrarClienteFlow] 📥 Respuesta completa de register-client:', JSON.stringify(result, null, 2));
+    
+    // Validar que la respuesta tenga el formato correcto
+    if (!result.ok && !result.estado) {
+      console.error('[registrarClienteFlow] ⚠️⚠️⚠️ RESPUESTA INESPERADA DE LA FUNCIÓN EDGE!');
+      console.error('[registrarClienteFlow] ⚠️ La función edge puede estar desactualizada. Desplegá la versión más reciente.');
+      console.error('[registrarClienteFlow] ⚠️ Respuesta recibida:', result);
+    }
+    
+    const { estado, foto_url, usuario_id } = result;
+    console.log('[registrarClienteFlow] ✅ Usuario creado');
+    console.log('[registrarClienteFlow] 📸 foto_url recibida de la función edge:', foto_url || 'UNDEFINED - NO SE RECIBIÓ');
+    console.log('[registrarClienteFlow] 📸 usuario_id recibido:', usuario_id || 'UNDEFINED');
 
     // 3) Enviar tu mail "en revisión"
     if (estado === 'pendiente') {
@@ -465,17 +574,51 @@ export class SupabaseService {
     ) {
     const email = form.email.trim().toLowerCase();
 
-    // 1) Subir foto PRIMERO (si existe) para obtener la URL
-    let foto_url: string | null = null;
+    // 1) Convertir foto a base64 si existe (la función edge la subirá)
+    let photoBase64: string | null = null;
     if (photoFile) {
-      console.log('[registrarAnonimoFlow] Subiendo foto al storage...');
-      const up = await this.uploadAvatar(photoFile, email);
-      foto_url = up.publicUrl;
-      console.log('[registrarAnonimoFlow] ✅ Foto subida, URL:', foto_url);
+      try {
+        console.log('[registrarAnonimoFlow] 📸 Convirtiendo foto a base64...', {
+          fileName: photoFile.name,
+          fileSize: photoFile.size,
+          fileType: photoFile.type,
+          email: email
+        });
+        
+        if (!photoFile || photoFile.size === 0) {
+          throw new Error('El archivo de foto está vacío');
+        }
+        
+        photoBase64 = await this.fileToBase64(photoFile);
+        
+        if (!photoBase64 || photoBase64.length === 0) {
+          throw new Error('No se pudo generar el base64 de la foto');
+        }
+        
+        console.log('[registrarAnonimoFlow] ✅ Foto convertida a base64, tamaño:', photoBase64.length, 'caracteres');
+      } catch (error: any) {
+        console.error('[registrarAnonimoFlow] ❌ Error al convertir foto a base64:', error);
+        throw new Error(`No se pudo procesar la foto: ${error?.message || 'Error desconocido'}`);
+      }
+    } else {
+      console.log('[registrarAnonimoFlow] ℹ️ No hay foto para subir (photoFile es null)');
     }
 
-    // 2) Crear user + fila usuarios via Edge (pasando foto_url)
-    console.log('[registrarAnonimoFlow] Llamando a register-anon con foto_url:', foto_url);
+    // 2) Crear user + subir foto + fila usuarios via Edge
+    const payload = { 
+      email, 
+      password: form.password, 
+      nombre: form.nombre,
+      photoBase64 // ✅ Pasar foto como base64 para que la función edge la suba
+    };
+    
+    console.log('[registrarAnonimoFlow] 📤 Enviando payload a register-anon:', {
+      email: payload.email,
+      nombre: payload.nombre,
+      tienePhotoBase64: !!payload.photoBase64,
+      photoBase64Length: payload.photoBase64?.length || 0
+    });
+    
     const res = await fetch(`${this.edgeBase}/functions/v1/register-anon`, {
       method: 'POST',
       headers: {
@@ -483,12 +626,7 @@ export class SupabaseService {
         'Authorization': `Bearer ${environment.supabaseAnonKey}`,
         ...(environment.appEdgeKey ? { 'x-app-key': environment.appEdgeKey } : {})
       },
-      body: JSON.stringify({ 
-        email, 
-        password: form.password, 
-        nombre: form.nombre,
-        foto_url // ✅ Pasar foto_url a la función edge
-      }),
+      body: JSON.stringify(payload),
     });
     
     if (!res.ok) {
@@ -498,7 +636,19 @@ export class SupabaseService {
     }
     
     const result = await res.json();
-    console.log('[registrarAnonimoFlow] ✅ Usuario creado, foto_url guardada:', result.foto_url);
+    console.log('[registrarAnonimoFlow] 📥 Respuesta completa de register-anon:', JSON.stringify(result, null, 2));
+    
+    // Validar que la respuesta tenga el formato correcto
+    if (!result.ok && !result.estado) {
+      console.error('[registrarAnonimoFlow] ⚠️⚠️⚠️ RESPUESTA INESPERADA DE LA FUNCIÓN EDGE!');
+      console.error('[registrarAnonimoFlow] ⚠️ La función edge puede estar desactualizada. Desplegá la versión más reciente.');
+      console.error('[registrarAnonimoFlow] ⚠️ Respuesta recibida:', result);
+    }
+    
+    const { foto_url, usuario_id } = result;
+    console.log('[registrarAnonimoFlow] ✅ Usuario creado');
+    console.log('[registrarAnonimoFlow] 📸 foto_url recibida de la función edge:', foto_url || 'UNDEFINED - NO SE RECIBIÓ');
+    console.log('[registrarAnonimoFlow] 📸 usuario_id recibido:', usuario_id || 'UNDEFINED');
     
     const { error: signInErr } = await this._supabase.auth.signInWithPassword({
       email,

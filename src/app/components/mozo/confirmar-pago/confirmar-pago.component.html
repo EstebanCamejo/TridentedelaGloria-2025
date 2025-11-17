@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" style="--padding-top: 8px; --padding-bottom: 8px;">
   <ion-loading [isOpen]="loading" message="CARGANDO PAGOS PENDIENTES..."></ion-loading>
 
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
@@ -110,20 +110,9 @@
       </ion-card>
     </div>
 
-    <!-- Estado vacío -->
-    <ng-template #noPagos>
-      <div class="no-pagos">
-        <div class="empty-message">
-          <div class="empty-icon">🧾</div>
-          <div class="empty-title">¡NO HAY PAGOS PENDIENTES!</div>
-          <div class="empty-subtitle">TODOS LOS PAGOS HAN SIDO CONFIRMADOS</div>
-          <div class="empty-description">LOS CLIENTES HAN COMPLETADO SUS TRANSACCIONES EXITOSAMENTE</div>
-        </div>
-      </div>
-    </ng-template>
-
-    <!-- Botón volver -->
+    <!-- Botón volver (solo si hay pagos pendientes) -->
     <ion-button 
+      *ngIf="pagosPendientes.length > 0"
       expand="block" 
       fill="solid"
       (click)="volver()"

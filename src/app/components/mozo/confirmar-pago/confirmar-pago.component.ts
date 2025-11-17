@@ -244,6 +244,14 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
       // 5. Generar factura
       await this.generarFactura(pago);
 
+      // 6. Si no hay más pagos pendientes, redirigir al home del mozo
+      if (this.pagosPendientes.length === 0) {
+        console.log('[ConfirmarPagoComponent] No hay más pagos pendientes, redirigiendo al home del mozo');
+        setTimeout(() => {
+          this.router.navigate(['/home-mozo']);
+        }, 1500); // Pequeño delay para que se vea el toast
+      }
+
     } catch (error: any) {
       console.error('Error al confirmar pago:', error);
       this.toast.error('ERROR AL CONFIRMAR EL PAGO', '', {
