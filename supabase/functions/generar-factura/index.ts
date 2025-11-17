@@ -969,6 +969,9 @@ const BRAND_LOGO_URL = Deno.env.get('BRAND_LOGO_URL') ?? ''
 function makeHtmlFactura(facturaData: FacturaData, pdfUrl: string, logoUrl?: string): string {
   const nombreCompleto = `${facturaData.datos_cliente.nombres} ${facturaData.datos_cliente.apellidos}`.trim()
   
+  // ===== DISEÑO RECOMENDADO: Opción B - Elegante con Detalles Finos =====
+  // Colores: Blanco puro, gradiente bordó, dorado para acentos
+  
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -987,39 +990,78 @@ function makeHtmlFactura(facturaData: FacturaData, pdfUrl: string, logoUrl?: str
     table { border-collapse:collapse; }
   </style>
 </head>
-<body style="margin:0; padding:0; background:#f7f7f7; font-family:Arial, Helvetica, sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f7f7f7; padding:24px 0;">
+<body style="margin:0; padding:0; background:#FFFFFF; font-family:'Lato', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FFFFFF; padding:32px 0;">
     <tr><td align="center">
       <table role="presentation" width="600" cellspacing="0" cellpadding="0"
              class="card"
-             style="width:600px; max-width:100%; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.06);">
+             style="width:600px; max-width:100%; background:#FFFFFF; border-radius:16px; overflow:hidden; box-shadow:0 6px 24px rgba(0,0,0,.15); border-top:3px solid #D4AF37;">
+        
+        <!-- HEADER con Gradiente -->
         <tr>
-          <td class="head" style="background:${BRAND_PRIMARY}; padding:18px 24px; text-align:center;">
-            ${
-              logoUrl
-                ? `<img src="${logoUrl.includes('cid:') ? logoUrl : `cid:brand-logo`}" alt="El Tridente de la Gloria" style="height:56px; max-width:100%; object-fit:contain; margin:0 auto; border-radius:6px; background:#ffffff; padding:6px;" />`
-                : `<div style="color:#fff; font-weight:700; font-size:18px; letter-spacing:.3px;">El Tridente de la Gloria</div>`
-            }
+          <td class="head" style="background:linear-gradient(135deg, ${BRAND_PRIMARY} 0%, #9C2A2A 100%); padding:28px 24px; text-align:center; position:relative;">
+            ${logoUrl ? `<img src="${logoUrl.includes('cid:') ? logoUrl : `cid:brand-logo`}" alt="El Tridente de la Gloria" style="height:64px; max-width:100%; object-fit:contain; margin:0 auto; border-radius:8px; background:#ffffff; padding:10px; box-shadow:0 2px 8px rgba(0,0,0,.2);" />` : `<div style="color:#fff; font-weight:700; font-size:22px; letter-spacing:.5px;">El Tridente de la Gloria</div>`}
+            <div style="margin-top:12px; display:inline-block; background:rgba(212, 175, 55, 0.3); color:#fff; padding:8px 20px; border-radius:20px; font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase; border:1px solid rgba(212, 175, 55, 0.5);">FACTURA</div>
           </td>
         </tr>
+        
+        <!-- ICONO Y TÍTULO -->
         <tr>
-          <td style="padding:22px 24px; background:${BRAND_BG};">
-            <h1 style="margin:0 0 8px; font-size:20px; line-height:1.35; color:#222;">¡Gracias por tu visita${nombreCompleto ? `, ${nombreCompleto}` : ''}!</h1>
-            <p style="margin:0 0 12px; color:#333;">Tu factura está lista para descargar.</p>
-            <div style="text-align:center; margin:20px 0;">
-              <a href="${pdfUrl}" style="display:inline-block; background:${BRAND_PRIMARY}; color:#fff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:600;">Descargar Factura</a>
+          <td style="padding:32px 24px 20px; background:#FFFFFF; text-align:center;">
+            <div style="font-size:56px; line-height:1; margin-bottom:16px;">🧾</div>
+            <h1 style="margin:0 0 8px; font-size:24px; line-height:1.3; color:#2C2C2C; font-weight:600;">¡Gracias por tu visita${nombreCompleto ? `, ${nombreCompleto}` : ''}!</h1>
+            <p style="margin:0; color:#666; font-size:15px;">Tu factura está lista para descargar</p>
+          </td>
+        </tr>
+        
+        <!-- LÍNEA DECORATIVA -->
+        <tr>
+          <td style="padding:0 24px; background:#FFFFFF;">
+            <div style="height:2px; background:linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%); margin:0 0 24px;"></div>
+          </td>
+        </tr>
+        
+        <!-- BODY -->
+        <tr>
+          <td style="padding:0 24px 24px; background:#FFFFFF;">
+            <!-- CAJA DE TOTAL DESTACADA -->
+            <div style="background:linear-gradient(135deg, #FFF9E6 0%, #FFF3CD 100%); border-radius:12px; padding:24px; margin:0 0 28px; border:2px solid #D4AF37; box-shadow:0 4px 12px rgba(212, 175, 55, 0.15);">
+              <div style="text-align:center;">
+                <div style="font-size:13px; color:#6D4C41; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:600;">Total a Pagar</div>
+                <div style="font-size:36px; color:#2C2C2C; font-weight:700; line-height:1.2;">$${facturaData.total_final.toFixed(2)}</div>
+                <div style="font-size:12px; color:#999; margin-top:8px;">Factura N° ${facturaData.numero_factura || facturaData.pedido_id}</div>
+              </div>
             </div>
-            <div style="margin:16px 0; padding:12px; background:#ffffff; border-radius:8px; border-left:4px solid ${BRAND_PRIMARY};">
-              <div style="font-size:14px; color:#333;">
-                <strong>Total:</strong> $${facturaData.total_final.toFixed(2)}
+            
+            <!-- BOTÓN PRINCIPAL -->
+            <div style="text-align:center; margin:28px 0;">
+              <a href="${pdfUrl}" style="display:inline-block; background:linear-gradient(135deg, ${BRAND_PRIMARY} 0%, #9C2A2A 100%); color:#fff; text-decoration:none; padding:16px 40px; border-radius:10px; font-weight:600; font-size:16px; box-shadow:0 4px 12px rgba(122, 30, 30, 0.3); transition:all 0.3s;">📥 Descargar Factura PDF</a>
+            </div>
+            
+            <!-- INFORMACIÓN ADICIONAL -->
+            <div style="margin-top:28px; padding:20px; background:#F9F9F9; border-radius:10px; border-left:4px solid ${BRAND_PRIMARY};">
+              <div style="font-size:14px; color:#2C2C2C; line-height:1.8;">
+                <div style="margin-bottom:8px;"><strong style="color:${BRAND_PRIMARY};">📅 Fecha:</strong> ${new Date(facturaData.fecha_pedido).toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                ${facturaData.numero_mesa > 0 ? `<div style="margin-bottom:8px;"><strong style="color:${BRAND_PRIMARY};">🪑 Mesa:</strong> N° ${facturaData.numero_mesa}</div>` : ''}
+                <div><strong style="color:${BRAND_PRIMARY};">📋 Pedido:</strong> #${facturaData.pedido_id}</div>
               </div>
             </div>
           </td>
         </tr>
+        
+        <!-- SEPARADOR ELEGANTE -->
         <tr>
-          <td style="padding:12px 24px 20px; background:#ffffff; text-align:center;">
-            <div class="muted" style="font-size:12px; color:#777;">
-              Mensaje automático de <strong>El Tridente de la Gloria</strong>.
+          <td style="padding:0 24px; background:#FFFFFF;">
+            <div style="height:1px; background:linear-gradient(90deg, transparent 0%, #E0E0E0 20%, #E0E0E0 80%, transparent 100%); margin:24px 0;"></div>
+          </td>
+        </tr>
+        
+        <!-- FOOTER -->
+        <tr>
+          <td style="padding:20px 24px 28px; background:#FFFFFF; text-align:center;">
+            <div class="muted" style="font-size:12px; color:#999; line-height:1.6;">
+              <strong style="color:#2C2C2C;">El Tridente de la Gloria</strong><br>
+              <span style="color:#BBB; font-size:11px;">Mensaje automático • Este es un email automático, por favor no respondas directamente.</span>
             </div>
           </td>
         </tr>
@@ -1035,7 +1077,7 @@ async function enviarEmailFactura(facturaData: FacturaData, pdfUrl: string, supa
     console.log('[enviarEmailFactura] Iniciando envío de email...')
     
     const apiKey = Deno.env.get('SENDGRID_API_KEY')
-    const fromEmail = Deno.env.get('SENDGRID_FROM') || Deno.env.get('FROM_EMAIL')
+    const fromEmail = Deno.env.get('SENDGRID_FROM') || Deno.env.get('FROM_EMAIL') || 'eltridentedelagloria@gmail.com'
     
     if (!apiKey) {
       console.error('[enviarEmailFactura] ❌ SENDGRID_API_KEY no está configurado como secret')
@@ -1114,7 +1156,7 @@ Descargá tu factura desde: ${pdfUrl}
             type: mime,
             content: base64,
             disposition: 'inline',
-            content_id: 'brand-logo',
+            content_id: 'brand-logo'
           }]
           console.log('[enviarEmailFactura] Logo adjuntado como inline attachment')
         }
@@ -1124,6 +1166,7 @@ Descargá tu factura desde: ${pdfUrl}
       }
     }
 
+    // Payload SendGrid
     const payload: Record<string, unknown> = {
       personalizations: [{ to: [{ email: to }] }],
       from: { email: fromEmail, name: 'El Tridente de la Gloria' },

@@ -170,7 +170,24 @@ serve(async (req: Request) => {
 
     const supa = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // 1) Insert preliminar
+    // 🆕 1) Verificar explícitamente si el número ya existe ANTES de insertar
+    // Esto evita problemas de caché/replicación cuando se elimina y crea una mesa con el mismo número
+    const { data: existingMesa, error: checkError } = await supa
+      .from("mesas")
+      .select("id, numero")
+      .eq("numero", numero)
+      .maybeSingle();
+    
+    if (checkError) {
+      console.error("[alta-mesa] Error al verificar número de mesa:", checkError);
+      return err("Error al verificar disponibilidad del número de mesa.", 500);
+    }
+    
+    if (existingMesa) {
+      return err("El número de mesa ya existe.", 409);
+    }
+
+    // 2) Insert preliminar (ahora sabemos que el número está disponible)
     const insRes = await supa
       .from("mesas")
       .insert({ numero, capacidad, tipo })

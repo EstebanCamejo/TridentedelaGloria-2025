@@ -433,6 +433,7 @@ export class AltaMesaComponent implements OnInit {
       if (this.mesaId) {
         // MODO EDICIÓN → actualizás y listo
         await this.actualizarMesa(this.mesaId);
+        mesaCreada = null; // No hay mesa nueva en edición
       } else {
         // MODO CREACIÓN → creamos y armamos el payload para el merge optimista
         const res = await this.mesas.crearMesaViaFunction({
@@ -440,28 +441,26 @@ export class AltaMesaComponent implements OnInit {
         });
         this.ok(`MESA #${res.numero} CREADA`);   // ← toast visible inmediato
 
-        // cerrar modal con role 'saved' + payload optimista
-        const top = await this.modalCtrl.getTop();
-        if (top) {
-          await top.dismiss({ mesa: {
-            id: res.id,
-            numero: res.numero,
-            capacidad: this.capacidad!,
-            tipo: this.tipo!,
-            estado: 'libre',
-            foto_url: this.fotoPreview ?? null,
-            qr_text: res.qr_text ?? null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }}, 'saved');
-        } else {
-          this.router.navigateByUrl('/admin/mesas', { replaceUrl: true });
-        }
+        // 🆕 Preparar datos de la mesa creada
+        mesaCreada = {
+          id: res.id,
+          numero: res.numero,
+          capacidad: this.capacidad!,
+          tipo: this.tipo!,
+          estado: 'libre',
+          foto_url: this.fotoPreview ?? null,
+          qr_text: res.qr_text ?? null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        
+        // 🆕 Cerrar el modal inmediatamente después de crear la mesa
+        // El delay para esperar a Supabase se maneja en mesas.component.ts
+        // Esto mejora la UX porque el usuario no ve el modal abierto esperando
+        console.log('[alta-mesa] Mesa creada, cerrando modal inmediatamente...');
       }
-  
-      console.log('[alta-mesa] voy a cerrar modal con role "saved"');
-  
-      // Si está abierta como modal → cerramos con 'saved'
+
+      // 🆕 Cerrar modal una sola vez con los datos correctos
       const top = await this.modalCtrl.getTop();
       if (top) {
         await top.dismiss(mesaCreada ? { mesa: mesaCreada } : null, 'saved');
