@@ -317,15 +317,27 @@ Punto 14, 16, 17, 18 y 19:
 - Delivery/ Cliente Chat → Esteban Camejo
 - Flujo pedido Delivery → Esteban Camejo
 - Flujo Reservas -> Sofia Dorbessan
-- Menú con acelerómetro y giroscopio  -> Ivan Laurito
+- Menú con acelerómetro y giroscopio  -> Esteban Camejo
 - Ingreso con Facebook  -> Ivan Laurito
 
   ✅ *Entrega:*
 - Puntos funcionando del 1 al 22 bis + puntos 24 al 31 + Requerimientos excluyentes.
 
-  ## 📆 Semana 8: Sábado 01/11 al 14/11
+
+## 📆 Semana 8: Sábado 01/11 al 08/11
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 31 + Punto 22 bis + Requerimientos excluyentes.
+
+  //correccion:
+  Punto 20 al 31: Corregidos por Alejandro Constanzo. Nos dijo que la funcionalidad estaba ok , pero que no iban a evaluar visual en esa entrega. 
+
+## 📆 Semana 9: Sábado 08/11 al 15/11 ENTREGA SEGUNDO PARCIAL
 
 *Diseño*
+//Sofia Dorbessan y Esteban Camejo arreglaron el diseño de toda la palicacion. Ampliaron el tamaño de la tipografía para mejorar la visualización 
+y asegurar que cada vista muestre únicamente la información necesaria, sin sobrecargar al usuario. 
+
 - Arreglo flujo vista admin  → Esteban Camejo
 - Arreglo flujo vista delivery  → Esteban Camejo
 - Arrgelo flujo vista cliente -> Sofia Dorbessan
@@ -334,7 +346,29 @@ Punto 14, 16, 17, 18 y 19:
 - Arreglo vista Menu  -> Sofia Dorbessan/Esteban Camejo  
 
   ✅ *Entrega:*
-- Puntos funcionando del 1 al 31 + Punto 22 bis + Requerimientos excluyentes.
+- Puntos funcionando del 23 al 31 + Requerimientos excluyentes.
+- LINK DRIVE CON IMÁGENES DE LA APP: https://drive.google.com/drive/u/0/folders/1I1E83pDBK4WMcVXDPcPinr95g_gDC9ra
+
+## 📆 Semana 10: Sábado 15/11 al 22/11 ENTREGA RECU PRIMER PARCIAL
+//Correccion diseño de la App realizada por Nicolas Ferrero
+
+Vista_mozo_detalle_pago_cliente Traten de que entre sin tener scroll
+- A los mails traten de darles una vuelta de tuerca a todos porque se los ve demasiado iguales salvo por algún icono (X y tilde que quedaron medio feos ahi donde estan), usen otros colores, fuentes diferentes o elementos que se les ocurran para variarlos más.
+- Detalle_de_cuenta_cliente_propina_aplicada Traten de que no tenga scroll o que tenga poco porque es excesivo. 
+- Vista_admin_listado_mesas Quedan cards cortadas y mostrar de a 4 es mucho, muestra o de a una como venían haciendo en casi todas la pantallas que hay listados o maximo 2 y que no se corten cuando se va pasando de “pagina en pagina” al scrollear
+
+Todas las imágenes que no se mencionan está OK
+
+*Diseño*
+//Sofia Dorbessan y Esteban Camejo hiceron los arreglos visuales de la aplicacion realizados por el profesor. 
+
+- Arreglo visa correos  → Esteban Camejo
+- Arrgelo de la cuenta cliente y mozo -> Sofia Dorbessan
+- Arreglo vista mesas por parte del admin -> Sofia Dorbessan
+
+  ✅ *Entrega:*
+- Puntos funcionando del 1 al 22 bis + Requerimientos excluyentes.
+
 
   ## 📲 Imagenes de la aplicacion 📲
 
@@ -344,7 +378,8 @@ Punto 14, 16, 17, 18 y 19:
 |<img width="379" height="828" alt="image" src="https://github.com/user-attachments/assets/0b71089e-19ef-4776-9ced-5a12368bbb03" />| Inicio de sesion con accesos rapidos desplegados |
 | <img width="380" height="825" alt="image" src="https://github.com/user-attachments/assets/e5b90f61-48f1-4dce-8648-1856393eecf4" /> | Pantalla registro nuevo cliente |
 | <img width="389" height="825" alt="image" src="https://github.com/user-attachments/assets/c2931b24-3625-44de-9676-64ba67d8d839" />| Panel dueño/supervisor |
-| <img width="381" height="828" alt="image" src="https://github.com/user-attachments/assets/d79399d3-8396-4899-a12f-afc665eb4ac1" /> | Panel Cliente |
+| <img width="381" height="828" alt="image" src="https://github.com/user-attachments/assets/d79399d3-8396-4899-a12f-afc665eb4ac1" /> |Panel Cliente Registrado |
+|<img width="272" height="589" alt="image" src="https://github.com/user-attachments/assets/657e9367-8e2f-42ad-9e3d-9ec88b7c1750" />|Panel Cliente Anonimo|
 |<img width="382" height="830" alt="image" src="https://github.com/user-attachments/assets/e813bceb-a951-4e7b-895f-f1948cf9d854" />|Vista Cliente: Menú|
 |<img width="376" height="821" alt="image" src="https://github.com/user-attachments/assets/3672a57d-33db-45af-b6ae-c85ebc3a2415" />|Vista Cliente: Mapa para realizar Delivery|
 |<img width="382" height="832" alt="image" src="https://github.com/user-attachments/assets/1eb05093-fd4c-495a-be63-f748b455847e" />|Vista Cliente: Reservas|
@@ -353,6 +388,7 @@ Punto 14, 16, 17, 18 y 19:
 |<img width="379" height="821" alt="image" src="https://github.com/user-attachments/assets/abb7afb0-26ad-4059-b13f-e408e451f5fe" />| Panel Repartidor|
 |<img width="381" height="827" alt="image" src="https://github.com/user-attachments/assets/a54caee0-4cf6-49df-8b97-f6bf7ef9e913" />| Panel Mozo: Pedidos en curso|
 |<img width="276" height="591" alt="image" src="https://github.com/user-attachments/assets/73e7155f-14c1-4b28-b618-a233a8996955" />|Chat Mozo/Cliente|
+|<img width="347" height="776" alt="image" src="https://github.com/user-attachments/assets/7780efd3-a4a6-4408-a8b4-b6e9bfda5a92" />|Vista Delivery: Ruta de entrega|
 
 
 | Imagen             | Valor                                   
