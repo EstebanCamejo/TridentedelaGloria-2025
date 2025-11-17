@@ -1,0 +1,363 @@
+[1mdiff --git a/src/app/components/admin/alta-mesa/alta-mesa.component.ts b/src/app/components/admin/alta-mesa/alta-mesa.component.ts[m
+[1mindex 714c035..6361c67 100644[m
+[1m--- a/src/app/components/admin/alta-mesa/alta-mesa.component.ts[m
+[1m+++ b/src/app/components/admin/alta-mesa/alta-mesa.component.ts[m
+[36m@@ -425,11 +425,13 @@[m [mexport class AltaMesaComponent implements OnInit {[m
+   [m
+     try {[m
+       let res: any = null;[m
+[32m+[m[32m      let mesaCreada: any = null;[m
+       [m
+       if (this.mesaId) {[m
+         // MODO EDICIÓN[m
+         await this.actualizarMesa(this.mesaId);[m
+         this.ok(`MESA #${this.numero} ACTUALIZADA`);[m
+[32m+[m[32m        mesaCreada = null; // No hay mesa nueva en edición[m
+       } else {[m
+         // MODO CREACIÓN[m
+         res = await this.mesas.crearMesaViaFunction({[m
+[36m@@ -438,27 +440,42 @@[m [mexport class AltaMesaComponent implements OnInit {[m
+           tipo: this.tipo!, [m
+           fotoBlob: this.fotoBlob![m
+         });[m
+[31m-        this.ok(`MESA #${res.numero} CREADA`);[m
+[32m+[m[32m        this.ok(`MESA #${res.numero} CREADA`);   // ← toast visible inmediato[m
+[32m+[m
+[32m+[m[32m        // 🆕 Preparar datos de la mesa creada[m
+[32m+[m[32m        mesaCreada = {[m
+[32m+[m[32m          id: res.id,[m
+[32m+[m[32m          numero: res.numero,[m
+[32m+[m[32m          capacidad: this.capacidad!,[m
+[32m+[m[32m          tipo: this.tipo!,[m
+[32m+[m[32m          estado: 'libre',[m
+[32m+[m[32m          foto_url: this.fotoPreview ?? null,[m
+[32m+[m[32m          qr_text: res.qr_text ?? null,[m
+[32m+[m[32m          created_at: new Date().toISOString(),[m
+[32m+[m[32m          updated_at: new Date().toISOString(),[m
+[32m+[m[32m        };[m
+[32m+[m[41m        [m
+[32m+[m[32m        // 🆕 Cerrar el modal inmediatamente después de crear la mesa[m
+[32m+[m[32m        // El delay para esperar a Supabase se maneja en mesas.component.ts[m
+[32m+[m[32m        // Esto mejora la UX porque el usuario no ve el modal abierto esperando[m
+[32m+[m[32m        console.log('[alta-mesa] Mesa creada, cerrando modal inmediatamente...');[m
+       }[m
+[31m-      [m
+[32m+[m
+       // Ocultar spinner INMEDIATAMENTE después de crear/actualizar[m
+       this.spinner.hide(true); // force = true para ocultar sin esperar minMs[m
+[31m-      [m
+[31m-      // Limpiar estado ANTES de cerrar/navegar[m
+[31m-      this.guardando = false;[m
+[31m-      this.updateBtnDisabled();[m
+[31m-      this.resetForm();[m
+[31m-      [m
+[31m-      // Cerrar modal (si es modal) o navegar (si es ruta directa)[m
+[32m+[m
+[32m+[m[32m      // 🆕 Cerrar modal una sola vez con los datos correctos[m
+       const top = await this.modalCtrl.getTop();[m
+       if (top) {[m
+[31m-        // Es modal → cerrar modal (el componente padre se encargará de la navegación)[m
+[31m-        await top.dismiss(null, 'saved');[m
+[32m+[m[32m        await top.dismiss(mesaCreada ? { mesa: mesaCreada } : null, 'saved');[m
+       } else {[m
+[31m-        // Si NO es modal (ruta directa) → volvemos al panel del admin[m
+[31m-        this.router.navigateByUrl('/home-admin', { replaceUrl: true });[m
+[32m+[m[32m        // Si NO es modal (ruta directa) → volvemos al listado[m
+[32m+[m[32m        this.router.navigateByUrl('/admin/mesas', { replaceUrl: true });[m
+       }[m
+   [m
+[32m+[m[32m      // Limpieza por si siguiera visible[m
+[32m+[m[32m      this.resetForm();[m
+[32m+[m[41m  [m
+     } catch (e: any) {[m
+       // Asegurar que el spinner se oculte incluso si hay error[m
+       this.spinner.hide(true); // force = true[m
+[1mdiff --git a/src/app/components/admin/mesas/mesas.component.ts b/src/app/components/admin/mesas/mesas.component.ts[m
+[1mindex d01002d..24f5d00 100644[m
+[1m--- a/src/app/components/admin/mesas/mesas.component.ts[m
+[1m+++ b/src/app/components/admin/mesas/mesas.component.ts[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-import { ChangeDetectorRef, Component, OnInit, inject, NgZone, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';[m
+[32m+[m[32mimport { ChangeDetectorRef, Component, OnInit, OnDestroy, inject, NgZone, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';[m
+ import { CommonModule } from '@angular/common';[m
+ import { IonContent, IonHeader, IonToolbar, IonTitle, IonButton,[m
+          IonBadge, IonIcon, IonRefresher, IonRefresherContent, AlertController } from '@ionic/angular/standalone';[m
+[36m@@ -7,12 +7,14 @@[m [mimport { add, pencil, refresh, trash, chevronBackOutline, chevronForwardOutline[m
+ import { ModalController } from '@ionic/angular';[m
+ import { AltaMesaComponent } from '../alta-mesa/alta-mesa.component';[m
+ import { MesasService, MesaRow } from 'src/app/services/mesas.service';[m
+[32m+[m[32mimport { MesasStateService } from 'src/app/services/mesas-state.service';[m
+ import { SpinnerService } from 'src/app/services/spinner.service';[m
+ import { ToastrService } from 'ngx-toastr';[m
+ import type { RefresherCustomEvent, ViewWillEnter, ViewDidEnter } from '@ionic/angular';[m
+ import { ChangeDetectionStrategy } from '@angular/core';[m
+ import { Router } from '@angular/router';[m
+ import { register } from 'swiper/element/bundle';[m
+[32m+[m[32mimport { Subscription } from 'rxjs';[m
+ [m
+ @Component({[m
+   selector: 'app-mesas',[m
+[36m@@ -28,10 +30,12 @@[m [mimport { register } from 'swiper/element/bundle';[m
+   schemas: [CUSTOM_ELEMENTS_SCHEMA],[m
+   changeDetection: ChangeDetectionStrategy.OnPush[m
+ })[m
+[31m-export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {[m
+[32m+[m[32mexport class MesasComponent implements OnInit, OnDestroy, ViewWillEnter, ViewDidEnter {[m
+   private modalCtrl = inject(ModalController);[m
+   private mesasSrv = inject(MesasService);[m
+[32m+[m[32m  private mesasState = inject(MesasStateService);[m
+   private alertCtrl = inject(AlertController);[m
+[32m+[m[32m  private mesasSubscription?: Subscription;[m
+ [m
+   mesas: MesaRow[] = [];[m
+   cargando = false;[m
+[36m@@ -62,8 +66,23 @@[m [mexport class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {[m
+   }[m
+ [m
+   ngOnInit() {[m
+[32m+[m[32m    // 🆕 Suscribirse al estado de mesas del servicio singleton[m
+[32m+[m[32m    this.mesasSubscription = this.mesasState.mesas$.subscribe(mesas => {[m
+[32m+[m[32m      this.zone.run(() => {[m
+[32m+[m[32m        this.mesas = [...mesas];[m
+[32m+[m[32m        this.cdr.markForCheck();[m
+[32m+[m[32m        console.log('[mesas] Estado actualizado desde servicio. Total:', mesas.length);[m
+[32m+[m[32m      });[m
+[32m+[m[32m    });[m
+[32m+[m
+[32m+[m[32m    // Cargar mesas desde Supabase (primera vez)[m
+     this.cargarMesas();[m
+   }[m
+[32m+[m
+[32m+[m[32m  ngOnDestroy() {[m
+[32m+[m[32m    // Limpiar suscripción[m
+[32m+[m[32m    this.mesasSubscription?.unsubscribe();[m
+[32m+[m[32m  }[m
+   [m
+   async ionViewWillEnter(): Promise<void> {[m
+     // Forzar recarga cuando se vuelve a esta vista[m
+[36m@@ -97,7 +116,15 @@[m [mexport class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {[m
+   }[m
+  [m
+   async cargarMesas(ev?: CustomEvent) {[m
+[32m+[m[32m    // 🆕 Evitar múltiples llamadas concurrentes usando un flag simple[m
+[32m+[m[32m    if (this.cargando && !ev) {[m
+[32m+[m[32m      console.log('[mesas] cargarMesas - Ya hay una carga en curso, omitiendo...');[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m[41m    [m
+     console.time('[mesas] cargarMesas');[m
+[32m+[m[32m    console.log('[mesas] cargarMesas - Iniciando carga de mesas...');[m
+[32m+[m[41m    [m
+     try {[m
+       // Actualizar estado de carga dentro de NgZone[m
+       this.zone.run(() => {[m
+[36m@@ -110,23 +137,27 @@[m [mexport class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {[m
+         this.spinner.show({ immediate: true });[m
+       }[m
+       [m
+[31m-      const list = await this.mesasSrv.listarMesas();[m
+[31m-      console.log('[mesas] listarMesas devolvió', list.length, 'mesas');[m
+[32m+[m[32m      // 🆕 Usar el servicio de estado para cargar mesas[m
+[32m+[m[32m      // El servicio actualizará automáticamente el observable y la UI se actualizará[m
+[32m+[m[32m      console.log('[mesas] Llamando a mesasState.cargarMesas()...');[m
+[32m+[m[32m      await this.mesasState.cargarMesas();[m
+[32m+[m[32m      console.log('[mesas] cargarMesas() completado');[m
+       [m
+[31m-      // Actualizar mesas dentro de NgZone y forzar detección de cambios[m
+[31m-      this.zone.run(() => {[m
+[31m-        this.mesas = [...list];            // <- nueva referencia[m
+[31m-        this.cdr.markForCheck();[m
+[31m-        console.log('[mesas] asignado this.mesas, len=', this.mesas.length);[m
+[31m-      });[m
+     } catch (e: any) {[m
+[31m-      console.error('[mesas] cargarMesas error', e);[m
+[31m-      this.toast.error((e?.message || 'ERROR AL CARGAR LAS MESAS').toUpperCase(), '', {[m
+[32m+[m[32m      console.error('[mesas] cargarMesas error:', e);[m
+[32m+[m[32m      console.error('[mesas] Error completo:', JSON.stringify(e, null, 2));[m
+[32m+[m[41m      [m
+[32m+[m[32m      const errorMessage = e?.message || e?.error?.message || 'ERROR AL CARGAR LAS MESAS';[m
+[32m+[m[32m      console.error('[mesas] Mostrando toast de error:', errorMessage);[m
+[32m+[m[41m      [m
+[32m+[m[32m      this.toast.error(errorMessage.toUpperCase(), '', {[m
+         positionClass: 'toast-center',[m
+[31m-        timeOut: 3000[m
+[32m+[m[32m        timeOut: 5000[m
+       });[m
+     } finally {[m
+[31m-      // Siempre actualizar estado de carga en finally[m
+[32m+[m[32m      // Asegurar que el estado de carga se actualice incluso si hay errores[m
+[32m+[m[32m      console.log('[mesas] cargarMesas - finally block, ocultando spinner...');[m
+[32m+[m[41m      [m
+       this.zone.run(() => {[m
+         this.cargando = false;[m
+         this.cdr.markForCheck();[m
+[36m@@ -134,12 +165,15 @@[m [mexport class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {[m
+       [m
+       if (!ev) {[m
+         this.spinner.hide();[m
+[32m+[m[32m        console.log('[mesas] Spinner ocultado');[m
+       }[m
+[32m+[m[41m      [m
+       // cerrar refresher de forma segura, si vino de pull-to-refresh[m
+       try {[m
+[31m-        // Ionic 7+: ev.detail.complete() es la forma recomendada[m
+         (ev as any)?.detail?.complete?.();[m
+[31m-      } catch {}[m
+[32m+[m[32m      } catch (err) {[m
+[32m+[m[32m        console.error('[mesas] Error al completar refresher:', err);[m
+[32m+[m[32m      }[m
+       console.timeEnd('[mesas] cargarMesas');[m
+     }[m
+   }[m
+[36m@@ -185,8 +219,23 @@[m [mexport class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {[m
+     console.log('[mesas] modal role =', role);[m
+   [m
+     if (role === 'saved') {[m
+[31m-      // Pequeño delay para asegurar que la mesa se haya guardado completamente en la BD[m
+[31m-      await new Promise(resolve => setTimeout(resolve, 500));[m
+[32m+[m[32m      // 🆕 Actualización optimista usando el servicio de estado[m
+[32m+[m[32m      console.log('[mesas] Mesa creada exitosamente. Agregando a la UI de forma optimista...');[m
+[32m+[m[41m      [m
+[32m+[m[32m      // Si la pantalla de alta devolvió la mesa creada, agregarla al servicio de estado[m
+[32m+[m[32m      if (data?.mesa) {[m
+[32m+[m[32m        // Agregar optimistamente al servicio (actualiza la UI automáticamente vía observable)[m
+[32m+[m[32m        this.mesasState.agregarMesaOptimista(data.mesa);[m
+[32m+[m[41m        [m
+[32m+[m[32m        // 🆕 NO sincronizar automáticamente para evitar problemas de LockManager[m
+[32m+[m[32m        // La mesa ya está visible en la UI de forma optimista[m
+[32m+[m[32m        // El usuario puede sincronizar manualmente con pull-to-refresh cuando quiera[m
+[32m+[m[32m        console.log('[mesas] Mesa agregada optimistamente. Sincronización manual disponible con pull-to-refresh.');[m
+[32m+[m[32m      } else {[m
+[32m+[m[32m        // Si no hay datos de mesa, hacer un pequeño delay y recargar[m
+[32m+[m[32m        await new Promise(resolve => setTimeout(resolve, 500));[m
+[32m+[m[32m        await this.recargarVista();[m
+[32m+[m[32m      }[m
+       [m
+       // Navegar al panel del admin después de crear la mesa[m
+       console.log('[mesas] ✅ Mesa creada, navegando al panel del admin');[m
+[36m@@ -395,9 +444,11 @@[m [mexport class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {[m
+           handler: async () => {[m
+             await alert.dismiss();[m
+             [m
+[31m-            // UI optimista: la saco de la lista ya mismo[m
+[31m-            const prev = this.mesas;[m
+[31m-            this.mesas = prev.filter(x => x.id !== m.id);[m
+[32m+[m[32m            // 🆕 Guardar la mesa antes de eliminar para rollback si falla[m
+[32m+[m[32m            const mesaAEliminar = m;[m
+[32m+[m[41m            [m
+[32m+[m[32m            // 🆕 Eliminar optimistamente del servicio de estado (actualiza UI inmediatamente)[m
+[32m+[m[32m            this.mesasState.eliminarMesaOptimista(m.id);[m
+             [m
+             // Mostrar spinner[m
+             this.spinner.show({ immediate: true, minMs: 1000 });[m
+[36m@@ -411,14 +462,15 @@[m [mexport class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {[m
+                 timeOut: 3000[m
+               });[m
+           [m
+[31m-              // sincronizo por si hay latencia de replicación/caché[m
+[31m-              await new Promise(r => setTimeout(r, 120));[m
+[31m-              await this.recargarVista();[m
+[32m+[m[32m              // 🆕 NO sincronizar automáticamente para evitar problemas de LockManager[m
+[32m+[m[32m              // La mesa ya fue eliminada de la UI de forma optimista[m
+[32m+[m[32m              // El usuario puede sincronizar manualmente con pull-to-refresh cuando quiera[m
+[32m+[m[32m              console.log('[mesas] Mesa eliminada optimistamente. Sincronización manual disponible con pull-to-refresh.');[m
+           [m
+             } catch (e: any) {[m
+               console.error('[mesas] eliminarMesa error', e);[m
+[31m-              // rollback si falló por RLS u otro motivo[m
+[31m-              this.mesas = prev;[m
+[32m+[m[32m              // 🆕 Rollback: restaurar la mesa en el servicio de estado[m
+[32m+[m[32m              this.mesasState.agregarMesaOptimista(mesaAEliminar);[m
+           [m
+               // mensajes típicos que vimos en tus logs[m
+               const msg = String(e?.message || e);[m
+[1mdiff --git a/src/app/services/mesas.service.ts b/src/app/services/mesas.service.ts[m
+[1mindex 2a121d3..9a69a30 100644[m
+[1m--- a/src/app/services/mesas.service.ts[m
+[1m+++ b/src/app/services/mesas.service.ts[m
+[36m@@ -269,38 +269,80 @@[m [mexport class MesasService {[m
+   // }[m
+ [m
+   async listarMesas(): Promise<MesaRow[]> {[m
+[31m-    try {[m
+[31m-      // 1) Asegurá que hay sesión; si no, intentá refrescar[m
+[31m-      const sessRes = await this.supa.client.auth.getSession();[m
+[31m-      let session = sessRes.data.session;[m
+[31m-      if (!session) {[m
+[31m-        const ref = await this.supa.client.auth.refreshSession();[m
+[31m-        session = ref.data.session ?? null;[m
+[31m-      }[m
+[31m-      console.log('[mesas.service] session?', !!session, 'user:', session?.user?.id || null);[m
+[32m+[m[32m    // 🆕 Retry mechanism para manejar errores de LockManager[m
+[32m+[m[32m    const maxRetries = 3;[m
+[32m+[m[32m    const retryDelay = 500; // ms[m
+     [m
+[31m-      // 2) Query simple, sin count/range (evita preflight y edge cases)[m
+[31m-      const { data, error } = await this.supa.client[m
+[31m-        .from('mesas')[m
+[31m-        .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')[m
+[31m-        .order('numero', { ascending: true });[m
+[31m-    [m
+[31m-      if (error) {[m
+[31m-        console.error('[mesas.service] listarMesas error:', error);[m
+[31m-        console.error('[mesas.service] Error details:', JSON.stringify(error, null, 2));[m
+[31m-        throw new Error(`Error al listar mesas: ${error.message || JSON.stringify(error)}`);[m
+[31m-      }[m
+[32m+[m[32m    for (let attempt = 1; attempt <= maxRetries; attempt++) {[m
+[32m+[m[32m      try {[m
+[32m+[m[32m        console.log(`[mesas.service] listarMesas - Intento ${attempt}/${maxRetries}...`);[m
+[32m+[m[41m        [m
+[32m+[m[32m        // 🆕 Delay antes de intentar (evita condiciones de carrera con LockManager)[m
+[32m+[m[32m        if (attempt > 1) {[m
+[32m+[m[32m          await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        // 1) Asegurá que hay sesión; si no, intentá refrescar[m
+[32m+[m[32m        const sessRes = await this.supa.client.auth.getSession();[m
+[32m+[m[32m        let session = sessRes.data.session;[m
+[32m+[m[32m        if (!session) {[m
+[32m+[m[32m          console.log('[mesas.service] No hay sesión, intentando refrescar...');[m
+[32m+[m[32m          const ref = await this.supa.client.auth.refreshSession();[m
+[32m+[m[32m          session = ref.data.session ?? null;[m
+[32m+[m[32m        }[m
+[32m+[m[32m        console.log('[mesas.service] session?', !!session, 'user:', session?.user?.id || null);[m
+[32m+[m[41m        [m
+[32m+[m[32m        if (!session) {[m
+[32m+[m[32m          throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');[m
+[32m+[m[32m        }[m
+[32m+[m[41m      [m
+[32m+[m[32m        // 2) Query simple, sin count/range (evita preflight y edge cases)[m
+[32m+[m[32m        console.log('[mesas.service] Ejecutando query a tabla mesas...');[m
+[32m+[m[32m        const { data, error } = await this.supa.client[m
+[32m+[m[32m          .from('mesas')[m
+[32m+[m[32m          .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')[m
+[32m+[m[32m          .order('numero', { ascending: true });[m
+       [m
+[31m-      const mesas = (data ?? []) as MesaRow[];[m
+[31m-      console.log('[mesas.service] listarMesas ->', mesas.length, 'mesas encontradas');[m
+[31m-      if (mesas.length > 0) {[m
+[31m-        console.log('[mesas.service] Primeras mesas:', mesas.slice(0, 3).map(m => `#${m.numero}`));[m
+[32m+[m[32m        if (error) {[m
+[32m+[m[32m          console.error('[mesas.service] listarMesas error:', error);[m
+[32m+[m[32m          console.error('[mesas.service] Error code:', error.code);[m
+[32m+[m[32m          console.error('[mesas.service] Error message:', error.message);[m
+[32m+[m[32m          console.error('[mesas.service] Error details:', error.details);[m
+[32m+[m[32m          console.error('[mesas.service] Error hint:', error.hint);[m
+[32m+[m[41m          [m
+[32m+[m[32m          // 🆕 Si es un error de LockManager, reintentar[m
+[32m+[m[32m          const errorMsg = (error.message || '').toLowerCase();[m
+[32m+[m[32m          if (errorMsg.includes('lockmanager') || errorMsg.includes('lock')) {[m
+[32m+[m[32m            console.warn(`[mesas.service] Error de LockManager detectado, reintentando... (intento ${attempt}/${maxRetries})`);[m
+[32m+[m[32m            if (attempt < maxRetries) {[m
+[32m+[m[32m              continue; // Reintentar[m
+[32m+[m[32m            }[m
+[32m+[m[32m          }[m
+[32m+[m[41m          [m
+[32m+[m[32m          // Si no es LockManager o ya agotamos los reintentos, lanzar error[m
+[32m+[m[32m          throw new Error(error.message || 'Error al cargar las mesas. Verifica los permisos.');[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        console.log('[mesas.service] listarMesas ->', data?.length ?? 0, 'mesas encontradas');[m
+[32m+[m[32m        return (data ?? []) as MesaRow[];[m
+[32m+[m[32m      } catch (e: any) {[m
+[32m+[m[32m 
