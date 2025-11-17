@@ -134,15 +134,41 @@ export class AdminPendientesService {
 
       if (error) {
         // error propio del invoke (red, auth, etc.)
-        return { ok: false, detail: error.message ?? String(error) };
+        // Si el error tiene un mensaje con "non-2xx", intentar extraer el detalle del data
+        const errorMsg = error.message ?? String(error);
+        if (errorMsg.includes('non-2xx') || errorMsg.includes('status code')) {
+          // Intentar obtener el detalle del data si está disponible
+          if (data && typeof data === 'object') {
+            const detail = (data as any).detail || (data as any).error || errorMsg;
+            return { ok: false, detail: String(detail) };
+          }
+        }
+        return { ok: false, detail: errorMsg };
       }
+      
       // La función devuelve { ok:true } o { ok:false, detail? }
-      if (data && data.ok === false) {
-        return { ok: false, detail: data.detail || data.error || 'Fallo desconocido' };
+      if (data && typeof data === 'object') {
+        if ((data as any).ok === false) {
+          return { ok: false, detail: (data as any).detail || (data as any).error || 'Fallo desconocido' };
+        }
+        if ((data as any).ok === true) {
+          return { ok: true };
+        }
       }
+      
+      // Si no hay data o no tiene la estructura esperada, asumir éxito
       return { ok: true };
     } catch (e: any) {
-      return { ok: false, detail: e?.message ?? String(e) };
+      // Si el error tiene información sobre el status code, intentar extraer el detalle
+      const errorMsg = e?.message ?? String(e);
+      if (errorMsg.includes('non-2xx') || errorMsg.includes('status code')) {
+        // Intentar obtener el detalle del error si está disponible
+        if (e?.context?.data) {
+          const detail = e.context.data.detail || e.context.data.error || errorMsg;
+          return { ok: false, detail: String(detail) };
+        }
+      }
+      return { ok: false, detail: errorMsg };
     }
   }
 }

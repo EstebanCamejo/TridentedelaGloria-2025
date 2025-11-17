@@ -11,19 +11,14 @@
 
 <ion-content class="ion-padding">
   <div class="direccion-container">
-    <!-- Instrucciones -->
-    <div class="instrucciones">
-      <p>INGRESÁ LA DIRECCIÓN DE ENTREGA O SELECCIONÁ LA UBICACIÓN EN EL MAPA</p>
-    </div>
-
     <!-- Input de dirección -->
-    <ion-item>
-      <ion-label position="stacked">DIRECCIÓN DE ENTREGA *</ion-label>
+    <ion-item class="direccion-input-item">
       <ion-input 
         [(ngModel)]="direccion"
-        placeholder="Ej: Av. Corrientes 1234, CABA"
+        placeholder="DIRECCION DE ENTREGA 123"
         required
-        clearOnEdit="true">
+        clearOnEdit="true"
+        class="direccion-input-large">
       </ion-input>
     </ion-item>
 
@@ -36,25 +31,19 @@
       </div>
     </div>
 
-    <!-- Coordenadas (opcional, solo para debug) -->
-    <div class="coordenadas" *ngIf="latitud && longitud">
-      <small>COORDENADAS: {{ latitud | number:'1.6-6' }}, {{ longitud | number:'1.6-6' }}</small>
-    </div>
-
     <!-- Botones -->
     <div class="button-group">
       <ion-button 
-        expand="block" 
-        fill="outline" 
+        class="btn-cancelar"
+        fill="clear"
         (click)="cancelar()">
-        CANCELAR
+        <ion-icon name="close-outline" slot="icon-only" class="icon-cancelar"></ion-icon>
       </ion-button>
       <ion-button 
-        expand="block" 
-        fill="solid"
+        class="btn-confirmar"
+        fill="clear"
         (click)="confirmar()">
-        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-        CONFIRMAR DIRECCIÓN
+        <ion-icon name="checkmark-outline" slot="icon-only" class="icon-confirmar"></ion-icon>
       </ion-button>
     </div>
   </div>

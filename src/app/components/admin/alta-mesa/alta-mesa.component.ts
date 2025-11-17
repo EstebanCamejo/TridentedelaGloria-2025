@@ -425,11 +425,13 @@ export class AltaMesaComponent implements OnInit {
   
     try {
       let res: any = null;
+      let mesaCreada: any = null;
       
       if (this.mesaId) {
         // MODO EDICIÓN
         await this.actualizarMesa(this.mesaId);
         this.ok(`MESA #${this.numero} ACTUALIZADA`);
+        mesaCreada = null; // No hay mesa nueva en edición
       } else {
         // MODO CREACIÓN
         res = await this.mesas.crearMesaViaFunction({
@@ -438,26 +440,41 @@ export class AltaMesaComponent implements OnInit {
           tipo: this.tipo!, 
           fotoBlob: this.fotoBlob!
         });
-        this.ok(`MESA #${res.numero} CREADA`);
+        this.ok(`MESA #${res.numero} CREADA`);   // ← toast visible inmediato
+
+        // 🆕 Preparar datos de la mesa creada
+        mesaCreada = {
+          id: res.id,
+          numero: res.numero,
+          capacidad: this.capacidad!,
+          tipo: this.tipo!,
+          estado: 'libre',
+          foto_url: this.fotoPreview ?? null,
+          qr_text: res.qr_text ?? null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        
+        // 🆕 Cerrar el modal inmediatamente después de crear la mesa
+        // El delay para esperar a Supabase se maneja en mesas.component.ts
+        // Esto mejora la UX porque el usuario no ve el modal abierto esperando
+        console.log('[alta-mesa] Mesa creada, cerrando modal inmediatamente...');
       }
-      
+
       // Ocultar spinner INMEDIATAMENTE después de crear/actualizar
       this.spinner.hide(true); // force = true para ocultar sin esperar minMs
-      
-      // Limpiar estado ANTES de cerrar/navegar
-      this.guardando = false;
-      this.updateBtnDisabled();
-      this.resetForm();
-      
-      // Cerrar modal (si es modal) o navegar (si es ruta directa)
+
+      // 🆕 Cerrar modal una sola vez con los datos correctos
       const top = await this.modalCtrl.getTop();
       if (top) {
-        // Es modal → cerrar modal (el componente padre se encargará de la navegación)
-        await top.dismiss(null, 'saved');
+        await top.dismiss(mesaCreada ? { mesa: mesaCreada } : null, 'saved');
       } else {
-        // Si NO es modal (ruta directa) → volvemos al panel del admin
-        this.router.navigateByUrl('/home-admin', { replaceUrl: true });
+        // Si NO es modal (ruta directa) → volvemos al listado
+        this.router.navigateByUrl('/admin/mesas', { replaceUrl: true });
       }
+  
+      // Limpieza por si siguiera visible
+      this.resetForm();
   
     } catch (e: any) {
       // Asegurar que el spinner se oculte incluso si hay error

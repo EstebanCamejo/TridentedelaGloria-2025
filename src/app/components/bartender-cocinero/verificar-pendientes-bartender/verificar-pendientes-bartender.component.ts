@@ -227,7 +227,8 @@ export class VerificarPendientesBartenderComponent  implements OnInit {
       const estadoBar = (pedido as any).estado_sector_bar;
       return !estadoBar || estadoBar === null;
     });
-    // 🆕 LISTOS: pedidos donde estado_sector_bar está en 'en preparación' (NO incluir 'listo para entregar')
+    // 🆕 LISTOS: pedidos donde estado_sector_bar está en 'en preparación' (excluir 'listo para entregar')
+    // Los pedidos "listo para entregar" desaparecen de todas las listas
     this.pedidosListos = todosLosPedidos.filter(pedido => {
       const estadoBar = (pedido as any).estado_sector_bar;
       return estadoBar === 'en preparación';

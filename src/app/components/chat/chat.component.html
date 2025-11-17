@@ -2,7 +2,7 @@
   <ion-toolbar>
     <ion-title class="title-large">
       <span *ngIf="esDeliveryChat && esModoDelivery">CHAT CON CLIENTE</span>
-      <span *ngIf="esDeliveryChat && !esModoDelivery">CHAT CON REPARTIDOR</span>
+      <span *ngIf="esDeliveryChat && !esModoDelivery">CHAT REPARTIDOR</span>
       <span *ngIf="!esDeliveryChat">CHAT CON MOZO</span>
     </ion-title>
   </ion-toolbar>
@@ -31,7 +31,7 @@
   <!-- footer visual fijo -->
   <div class="composer-footer" slot="fixed">
     <div class="composer">
-      <input [(ngModel)]="nuevo" (focus)="scrollDownSoon()" placeholder="ESCRIBÍ TU MENSAJE…" />
+      <input [(ngModel)]="nuevo" (focus)="onInputFocus()" placeholder="ESCRIBÍ TU MENSAJE…" />
       <button class="send-btn" (click)="enviar()" [disabled]="!nuevo.trim()">
         <ion-icon name="send-outline"></ion-icon>
       </button>

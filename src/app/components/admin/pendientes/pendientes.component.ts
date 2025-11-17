@@ -9,7 +9,7 @@ import {
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
-import { checkmarkCircle, closeCircle, refresh, chevronBackOutline, chevronForwardOutline, close, checkmark } from 'ionicons/icons';
+import { checkmarkCircle, closeCircle, refresh, chevronBackOutline, chevronForwardOutline, close, checkmark, hourglassOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { ToastrService } from 'ngx-toastr';
 import { AdminPendientesService, PendingClient } from 'src/app/services/admin-pendientes.service';
 import { AlertController } from '@ionic/angular';
@@ -51,7 +51,7 @@ export class PendientesComponent implements OnInit, OnDestroy, AfterViewInit {
     private spinner: SpinnerService,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ checkmarkCircle, closeCircle, refresh, chevronBackOutline, chevronForwardOutline, close, checkmark });
+    addIcons({ checkmarkCircle, closeCircle, refresh, chevronBackOutline, chevronForwardOutline, close, checkmark, hourglassOutline, checkmarkCircleOutline });
     register(); // Registrar Swiper
   }
 
@@ -122,11 +122,17 @@ export class PendientesComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.loadingId) return;
     this.loadingId = it.id;
     try {
-      await this.srv.approve(it.id, it.email, it.nombres, it.apellidos);
+      const res = await this.srv.approve(it.id, it.email, it.nombres, it.apellidos);
       this.toast.success(`APROBADO: ${it.nombres.toUpperCase()} ${it.apellidos.toUpperCase()}`, '', {
         positionClass: 'toast-center',
         timeOut: 3000
       });
+      if (!res.ok) {
+        this.toast.warning(`APROBADO, PERO EL CORREO NO SE ENVIÓ${res.detail ? `: ${res.detail.toUpperCase()}` : ''}`, '', {
+          positionClass: 'toast-center',
+          timeOut: 5000
+        });
+      }
       await this.load(false);
     } catch (e: any) {
       this.toast.error((e?.message || 'NO SE PUDO APROBAR').toUpperCase(), '', {

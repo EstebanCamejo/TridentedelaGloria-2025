@@ -79,8 +79,8 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
   // Configuración de sensibilidad (ajustable)
   private readonly TILT_THRESHOLD_X = 6.0;    // Menos sensible para izquierda/derecha
   private readonly TILT_THRESHOLD_Y = 4.0;    // Más sensible para adelante/atrás
-  private readonly SHAKE_THRESHOLD = 40;
-  private readonly SHAKE_TIMEOUT = 1000;
+  private readonly SHAKE_THRESHOLD = 30;      // Reducido para facilitar la detección
+  private readonly SHAKE_TIMEOUT = 1500;      // Aumentado para dar más tiempo entre shakes
   private readonly ACTION_COOLDOWN = 500;     // Más tiempo entre acciones
 
   private readonly MIN_MOVEMENT = 0.6;        // Movimiento mínimo requerido
@@ -167,6 +167,9 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
         // Cargar el pedido para editar después de que el menú esté listo
         await this.cargarPedidoParaEditar(this.pedidoAEditar);
       }
+      
+      // 🆕 Activar el seguimiento de movimiento del dispositivo (acelerómetro/giroscopio)
+      this.startMotionTracking();
       
     } catch (err) {
       console.error(err);
@@ -323,25 +326,22 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
   }
 
   private startListening() {
+    if (this.isListening) {
+      console.log('⚠️ Ya se está escuchando el movimiento');
+      return;
+    }
+    
     console.log('🎯 Agregando event listener para devicemotion');
     
-    window.addEventListener('devicemotion', (event) => {
-      console.log('📊 Evento de movimiento recibido:', {
-        x: event.accelerationIncludingGravity?.x,
-        y: event.accelerationIncludingGravity?.y,
-        z: event.accelerationIncludingGravity?.z
-      });
+    // Guardar referencia del handler para poder removerlo después
+    this.motionHandler = (event: DeviceMotionEvent) => {
       this.handleDeviceMotion(event);
-    });
+    };
     
-    // También probemos deviceorientation
-    window.addEventListener('deviceorientation', (event) => {
-      console.log('🧭 Evento de orientación:', {
-        alpha: event.alpha,
-        beta: event.beta,
-        gamma: event.gamma
-      });
-    });
+    window.addEventListener('devicemotion', this.motionHandler);
+    this.isListening = true;
+    
+    console.log('✅ Event listener agregado correctamente');
   }
 
   private stopMotionTracking() {
@@ -457,13 +457,14 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
     const hasMinMovement = deltaY > this.MIN_MOVEMENT;
 
     if (isYLargeEnough && isYDominant && hasMinMovement) {
-      //this.frontalMovementCount++;
+      // Corregido: dirY > 0 significa inclinar hacia adelante (siguiente producto)
+      // dirY < 0 significa inclinar hacia atrás (producto anterior)
       if (dirY > 0) {
-        console.log('⬇️ Movimiento ATRÁS (mejorado)');
-        this.navigateToPreviousProduct();
-      } else {
-        console.log('⬆️ Movimiento ADELANTE (mejorado)');
+        console.log('⬆️ Movimiento ADELANTE (inclinar hacia ti) → Siguiente producto');
         this.navigateToNextProduct();
+      } else {
+        console.log('⬇️ Movimiento ATRÁS (inclinar alejándolo) → Producto anterior');
+        this.navigateToPreviousProduct();
       }
       return true;
     }
@@ -476,24 +477,26 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
   private detectShake(deltaX: number, deltaY: number, deltaZ: number, currentTime: number): boolean {
     const totalMovement = Math.abs(deltaX) + Math.abs(deltaY) + Math.abs(deltaZ);
     
+    // Si el movimiento es muy grande, es un shake
     if (totalMovement > this.SHAKE_THRESHOLD) {
-      this.shakeCount++;
+      // Si es el primer shake o pasó mucho tiempo desde el último, reiniciar contador
+      if (currentTime - this.lastShakeTime > this.SHAKE_TIMEOUT) {
+        this.shakeCount = 1;
+        this.lastShakeTime = currentTime;
+        console.log('📳 Shake detectado (1/2)');
+        return false;
+      }
       
-      // Detectar 2 shakes rápidos
+      // Si hay un segundo shake dentro del timeout, activar
+      this.shakeCount++;
       if (this.shakeCount >= 2) {
-        if (currentTime - this.lastShakeTime < this.SHAKE_TIMEOUT) {
-          this.shakeCount = 0;
-          this.lastShakeTime = currentTime;
-          return true;
-        }
+        console.log('📳 Shake doble detectado → Reseteando al primer producto');
+        this.shakeCount = 0;
+        this.lastShakeTime = currentTime;
+        return true;
       }
       
       this.lastShakeTime = currentTime;
-    }
-
-    // Resetear contador si pasa mucho tiempo
-    if (currentTime - this.lastShakeTime > this.SHAKE_TIMEOUT) {
-      this.shakeCount = 0;
     }
     
     return false;
@@ -611,6 +614,9 @@ export class ClienteRealizaPedidoComponent implements OnInit, OnDestroy {
         heavy: [150]
       };
       navigator.vibrate(patterns[type]);
+      console.log(`📳 Feedback háptico activado: ${type} (${patterns[type][0]}ms)`);
+    } else {
+      console.log('⚠️ Feedback háptico no disponible (navigator.vibrate no soportado)');
     }
   }
 

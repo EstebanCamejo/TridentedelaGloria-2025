@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, inject, NgZone, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, inject, NgZone, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonButton,
          IonBadge, IonIcon, IonRefresher, IonRefresherContent, AlertController } from '@ionic/angular/standalone';
@@ -7,12 +7,14 @@ import { add, pencil, refresh, trash, chevronBackOutline, chevronForwardOutline 
 import { ModalController } from '@ionic/angular';
 import { AltaMesaComponent } from '../alta-mesa/alta-mesa.component';
 import { MesasService, MesaRow } from 'src/app/services/mesas.service';
+import { MesasStateService } from 'src/app/services/mesas-state.service';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { ToastrService } from 'ngx-toastr';
 import type { RefresherCustomEvent, ViewWillEnter, ViewDidEnter } from '@ionic/angular';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { register } from 'swiper/element/bundle';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-mesas',
@@ -28,10 +30,12 @@ import { register } from 'swiper/element/bundle';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
+export class MesasComponent implements OnInit, OnDestroy, ViewWillEnter, ViewDidEnter {
   private modalCtrl = inject(ModalController);
   private mesasSrv = inject(MesasService);
+  private mesasState = inject(MesasStateService);
   private alertCtrl = inject(AlertController);
+  private mesasSubscription?: Subscription;
 
   mesas: MesaRow[] = [];
   cargando = false;
@@ -62,7 +66,22 @@ export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
   }
 
   ngOnInit() {
+    // 🆕 Suscribirse al estado de mesas del servicio singleton
+    this.mesasSubscription = this.mesasState.mesas$.subscribe(mesas => {
+      this.zone.run(() => {
+        this.mesas = [...mesas];
+        this.cdr.markForCheck();
+        console.log('[mesas] Estado actualizado desde servicio. Total:', mesas.length);
+      });
+    });
+
+    // Cargar mesas desde Supabase (primera vez)
     this.cargarMesas();
+  }
+
+  ngOnDestroy() {
+    // Limpiar suscripción
+    this.mesasSubscription?.unsubscribe();
   }
   
   async ionViewWillEnter(): Promise<void> {
@@ -97,7 +116,15 @@ export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
   }
  
   async cargarMesas(ev?: CustomEvent) {
+    // 🆕 Evitar múltiples llamadas concurrentes usando un flag simple
+    if (this.cargando && !ev) {
+      console.log('[mesas] cargarMesas - Ya hay una carga en curso, omitiendo...');
+      return;
+    }
+    
     console.time('[mesas] cargarMesas');
+    console.log('[mesas] cargarMesas - Iniciando carga de mesas...');
+    
     try {
       // Actualizar estado de carga dentro de NgZone
       this.zone.run(() => {
@@ -110,23 +137,27 @@ export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
         this.spinner.show({ immediate: true });
       }
       
-      const list = await this.mesasSrv.listarMesas();
-      console.log('[mesas] listarMesas devolvió', list.length, 'mesas');
+      // 🆕 Usar el servicio de estado para cargar mesas
+      // El servicio actualizará automáticamente el observable y la UI se actualizará
+      console.log('[mesas] Llamando a mesasState.cargarMesas()...');
+      await this.mesasState.cargarMesas();
+      console.log('[mesas] cargarMesas() completado');
       
-      // Actualizar mesas dentro de NgZone y forzar detección de cambios
-      this.zone.run(() => {
-        this.mesas = [...list];            // <- nueva referencia
-        this.cdr.markForCheck();
-        console.log('[mesas] asignado this.mesas, len=', this.mesas.length);
-      });
     } catch (e: any) {
-      console.error('[mesas] cargarMesas error', e);
-      this.toast.error((e?.message || 'ERROR AL CARGAR LAS MESAS').toUpperCase(), '', {
+      console.error('[mesas] cargarMesas error:', e);
+      console.error('[mesas] Error completo:', JSON.stringify(e, null, 2));
+      
+      const errorMessage = e?.message || e?.error?.message || 'ERROR AL CARGAR LAS MESAS';
+      console.error('[mesas] Mostrando toast de error:', errorMessage);
+      
+      this.toast.error(errorMessage.toUpperCase(), '', {
         positionClass: 'toast-center',
-        timeOut: 3000
+        timeOut: 5000
       });
     } finally {
-      // Siempre actualizar estado de carga en finally
+      // Asegurar que el estado de carga se actualice incluso si hay errores
+      console.log('[mesas] cargarMesas - finally block, ocultando spinner...');
+      
       this.zone.run(() => {
         this.cargando = false;
         this.cdr.markForCheck();
@@ -134,12 +165,15 @@ export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
       
       if (!ev) {
         this.spinner.hide();
+        console.log('[mesas] Spinner ocultado');
       }
+      
       // cerrar refresher de forma segura, si vino de pull-to-refresh
       try {
-        // Ionic 7+: ev.detail.complete() es la forma recomendada
         (ev as any)?.detail?.complete?.();
-      } catch {}
+      } catch (err) {
+        console.error('[mesas] Error al completar refresher:', err);
+      }
       console.timeEnd('[mesas] cargarMesas');
     }
   }
@@ -185,8 +219,23 @@ export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
     console.log('[mesas] modal role =', role);
   
     if (role === 'saved') {
-      // Pequeño delay para asegurar que la mesa se haya guardado completamente en la BD
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // 🆕 Actualización optimista usando el servicio de estado
+      console.log('[mesas] Mesa creada exitosamente. Agregando a la UI de forma optimista...');
+      
+      // Si la pantalla de alta devolvió la mesa creada, agregarla al servicio de estado
+      if (data?.mesa) {
+        // Agregar optimistamente al servicio (actualiza la UI automáticamente vía observable)
+        this.mesasState.agregarMesaOptimista(data.mesa);
+        
+        // 🆕 NO sincronizar automáticamente para evitar problemas de LockManager
+        // La mesa ya está visible en la UI de forma optimista
+        // El usuario puede sincronizar manualmente con pull-to-refresh cuando quiera
+        console.log('[mesas] Mesa agregada optimistamente. Sincronización manual disponible con pull-to-refresh.');
+      } else {
+        // Si no hay datos de mesa, hacer un pequeño delay y recargar
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await this.recargarVista();
+      }
       
       // Navegar al panel del admin después de crear la mesa
       console.log('[mesas] ✅ Mesa creada, navegando al panel del admin');
@@ -395,9 +444,11 @@ export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
           handler: async () => {
             await alert.dismiss();
             
-            // UI optimista: la saco de la lista ya mismo
-            const prev = this.mesas;
-            this.mesas = prev.filter(x => x.id !== m.id);
+            // 🆕 Guardar la mesa antes de eliminar para rollback si falla
+            const mesaAEliminar = m;
+            
+            // 🆕 Eliminar optimistamente del servicio de estado (actualiza UI inmediatamente)
+            this.mesasState.eliminarMesaOptimista(m.id);
             
             // Mostrar spinner
             this.spinner.show({ immediate: true, minMs: 1000 });
@@ -411,14 +462,15 @@ export class MesasComponent implements OnInit, ViewWillEnter, ViewDidEnter {
                 timeOut: 3000
               });
           
-              // sincronizo por si hay latencia de replicación/caché
-              await new Promise(r => setTimeout(r, 120));
-              await this.recargarVista();
+              // 🆕 NO sincronizar automáticamente para evitar problemas de LockManager
+              // La mesa ya fue eliminada de la UI de forma optimista
+              // El usuario puede sincronizar manualmente con pull-to-refresh cuando quiera
+              console.log('[mesas] Mesa eliminada optimistamente. Sincronización manual disponible con pull-to-refresh.');
           
             } catch (e: any) {
               console.error('[mesas] eliminarMesa error', e);
-              // rollback si falló por RLS u otro motivo
-              this.mesas = prev;
+              // 🆕 Rollback: restaurar la mesa en el servicio de estado
+              this.mesasState.agregarMesaOptimista(mesaAEliminar);
           
               // mensajes típicos que vimos en tus logs
               const msg = String(e?.message || e);

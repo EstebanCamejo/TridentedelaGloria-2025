@@ -3,24 +3,58 @@
   padding: 0;
 }
 
-.instrucciones {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: var(--ion-color-light);
-  border-radius: 8px;
+.direccion-input-item {
+  margin-bottom: 20px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+  --inner-padding-start: 0;
+  --background: #ffffff;
+  --border-radius: 8px;
   
-  p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--ion-color-dark);
+  ::ng-deep {
+    .direccion-input-large {
+      font-size: 1.3rem !important;
+      padding: 16px 12px !important;
+      min-height: 60px !important;
+      background: #ffffff !important;
+      
+      &::placeholder {
+        font-size: 1.3rem !important;
+        color: #000000 !important;
+      }
+    }
+    
+    ion-input {
+      font-size: 1.3rem !important;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      --padding-top: 16px;
+      --padding-bottom: 16px;
+      --background: #ffffff;
+      min-height: 60px !important;
+      
+      input {
+        font-size: 1.3rem !important;
+        padding: 16px 12px !important;
+        min-height: 60px !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        
+        &::placeholder {
+          font-size: 1.3rem !important;
+          color: #000000 !important;
+        }
+      }
+    }
   }
 }
 
 .map-container {
   position: relative;
   width: 100%;
-  height: 400px;
-  margin: 16px 0;
+  height: 550px;
+  margin: 20px 0;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -70,11 +104,32 @@
 
 .button-group {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  margin-top: 24px;
 
-  ion-button {
-    flex: 1;
+  .btn-cancelar,
+  .btn-confirmar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+    
+    ::ng-deep {
+      .icon-cancelar {
+        font-size: 48px;
+        color: #ff0000 !important;
+      }
+      
+      .icon-confirmar {
+        font-size: 48px;
+        color: #28a745 !important;
+      }
+    }
   }
 }
 
@@ -94,12 +149,48 @@
 // Responsive
 @media (max-width: 576px) {
   .map-container {
-    height: 300px;
+    height: 450px;
   }
   
   .map-instructions {
     font-size: 11px;
     padding: 6px 10px;
+  }
+  
+  .direccion-input-item {
+    ::ng-deep {
+      ion-input {
+        font-size: 1.1rem !important;
+        --padding-top: 14px;
+        --padding-bottom: 14px;
+        min-height: 56px !important;
+        
+        input {
+          font-size: 1.1rem !important;
+          padding: 14px 10px !important;
+          min-height: 56px !important;
+          
+          &::placeholder {
+            font-size: 1.1rem !important;
+          }
+        }
+      }
+    }
+  }
+  
+  .button-group {
+    .btn-cancelar,
+    .btn-confirmar {
+      width: 70px;
+      height: 70px;
+      
+      ::ng-deep {
+        .icon-cancelar,
+        .icon-confirmar {
+          font-size: 42px;
+        }
+      }
+    }
   }
 }
 

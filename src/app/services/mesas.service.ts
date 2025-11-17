@@ -269,38 +269,80 @@ export class MesasService {
   // }
 
   async listarMesas(): Promise<MesaRow[]> {
-    try {
-      // 1) Asegurá que hay sesión; si no, intentá refrescar
-      const sessRes = await this.supa.client.auth.getSession();
-      let session = sessRes.data.session;
-      if (!session) {
-        const ref = await this.supa.client.auth.refreshSession();
-        session = ref.data.session ?? null;
-      }
-      console.log('[mesas.service] session?', !!session, 'user:', session?.user?.id || null);
+    // 🆕 Retry mechanism para manejar errores de LockManager
+    const maxRetries = 3;
+    const retryDelay = 500; // ms
     
-      // 2) Query simple, sin count/range (evita preflight y edge cases)
-      const { data, error } = await this.supa.client
-        .from('mesas')
-        .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')
-        .order('numero', { ascending: true });
-    
-      if (error) {
-        console.error('[mesas.service] listarMesas error:', error);
-        console.error('[mesas.service] Error details:', JSON.stringify(error, null, 2));
-        throw new Error(`Error al listar mesas: ${error.message || JSON.stringify(error)}`);
-      }
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`[mesas.service] listarMesas - Intento ${attempt}/${maxRetries}...`);
+        
+        // 🆕 Delay antes de intentar (evita condiciones de carrera con LockManager)
+        if (attempt > 1) {
+          await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+        }
+        
+        // 1) Asegurá que hay sesión; si no, intentá refrescar
+        const sessRes = await this.supa.client.auth.getSession();
+        let session = sessRes.data.session;
+        if (!session) {
+          console.log('[mesas.service] No hay sesión, intentando refrescar...');
+          const ref = await this.supa.client.auth.refreshSession();
+          session = ref.data.session ?? null;
+        }
+        console.log('[mesas.service] session?', !!session, 'user:', session?.user?.id || null);
+        
+        if (!session) {
+          throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
+        }
       
-      const mesas = (data ?? []) as MesaRow[];
-      console.log('[mesas.service] listarMesas ->', mesas.length, 'mesas encontradas');
-      if (mesas.length > 0) {
-        console.log('[mesas.service] Primeras mesas:', mesas.slice(0, 3).map(m => `#${m.numero}`));
+        // 2) Query simple, sin count/range (evita preflight y edge cases)
+        console.log('[mesas.service] Ejecutando query a tabla mesas...');
+        const { data, error } = await this.supa.client
+          .from('mesas')
+          .select('id, numero, capacidad, tipo, estado, foto_url, qr_text, created_at, updated_at')
+          .order('numero', { ascending: true });
+      
+        if (error) {
+          console.error('[mesas.service] listarMesas error:', error);
+          console.error('[mesas.service] Error code:', error.code);
+          console.error('[mesas.service] Error message:', error.message);
+          console.error('[mesas.service] Error details:', error.details);
+          console.error('[mesas.service] Error hint:', error.hint);
+          
+          // 🆕 Si es un error de LockManager, reintentar
+          const errorMsg = (error.message || '').toLowerCase();
+          if (errorMsg.includes('lockmanager') || errorMsg.includes('lock')) {
+            console.warn(`[mesas.service] Error de LockManager detectado, reintentando... (intento ${attempt}/${maxRetries})`);
+            if (attempt < maxRetries) {
+              continue; // Reintentar
+            }
+          }
+          
+          // Si no es LockManager o ya agotamos los reintentos, lanzar error
+          throw new Error(error.message || 'Error al cargar las mesas. Verifica los permisos.');
+        }
+        
+        console.log('[mesas.service] listarMesas ->', data?.length ?? 0, 'mesas encontradas');
+        return (data ?? []) as MesaRow[];
+      } catch (e: any) {
+        console.error(`[mesas.service] listarMesas - Excepción en intento ${attempt}:`, e);
+        
+        // 🆕 Si es un error de LockManager y aún tenemos reintentos, continuar
+        const errorMsg = (e?.message || String(e) || '').toLowerCase();
+        if ((errorMsg.includes('lockmanager') || errorMsg.includes('lock')) && attempt < maxRetries) {
+          console.warn(`[mesas.service] Error de LockManager, reintentando en ${retryDelay * attempt}ms...`);
+          continue;
+        }
+        
+        // Si no es LockManager o ya agotamos los reintentos, lanzar error
+        throw e;
       }
-      return mesas;
-    } catch (e: any) {
-      console.error('[mesas.service] listarMesas excepción:', e);
-      throw e; // Re-lanzar el error para que el componente lo maneje
     }
+    
+    // Esto no debería ejecutarse, pero por si acaso
+    throw new Error('No se pudo cargar las mesas después de múltiples intentos.');
+>>>>>>> origin/main
   }
   
 

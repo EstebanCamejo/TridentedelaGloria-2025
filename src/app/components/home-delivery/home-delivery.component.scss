@@ -5,6 +5,43 @@
   --maroon-700:#5d2222;
   --ink:#3b2a2a;
   --shadow: 0 10px 28px rgba(61,43,43,.22);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ===== Header con mismo estilo que mozo ===== */
+.mz-header { 
+  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
+}
+
+.mz-header ion-toolbar {
+  --background: #5d2222;
+  --color: #ffffff;
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+}
+
+.mz-header{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: calc(var(--safe-top) + 10px) 0 10px;
+  background: #5d2222;
+  color: #ffffff;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 4px 8px rgba(61,43,43,.28);
+}
+
+.nav-pill{
+  width: min(520px, 92vw);
+  margin: 0 auto;
+  padding: 12px 16px;
+  background: #5d2222;
+  color: #ffffff;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  letter-spacing: .2px;
+  font-size: 1.25rem;
 }
 
 /* ===== Barra de tabs ===== */
@@ -16,22 +53,47 @@
   border-bottom: 1px solid rgba(61,43,43,.10);
   box-shadow: 0 4px 12px rgba(61,43,43,.12);
 }
-.top-segment{ --background: transparent; justify-content:center; gap:10px; }
+.top-segment{ --background: transparent; justify-content:center; gap:8px; }
 .top-segment ion-segment-button{
   --color:#fff; --color-checked:#fff;
   --background:#7b2f2f55; --background-checked:#5d2222;
   --indicator-color:transparent;
-  border-radius:999px; min-height:36px; padding-inline:16px;
+  border-radius:999px; min-height:36px; padding-inline:14px;
   box-shadow:0 2px 8px rgba(61,43,43,.18);
   border:1px solid rgba(93,34,34,.18);
+  flex: 0 1 auto;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.top-segment ion-segment-button::part(native){ font-weight:700; letter-spacing:.3px; }
+.top-segment ion-segment-button::part(native){ 
+  font-weight:700; 
+  letter-spacing:.3px; 
+  font-size: 0.9rem;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.top-segment ion-segment-button ion-label{
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
 
 /* ===== Pedido card ===== */
 .pedido{
   border-radius: 16px;
   box-shadow: var(--shadow);
-  margin: 12px;
+  margin: 0;
+  width: 100%;
 }
 .pedido ion-card-header{
   background: #6f2dd680;
@@ -43,22 +105,91 @@
 
 .info{ 
   display:grid; 
-  gap:6px; 
-  margin:6px 0 10px; 
+  gap: 16px; 
+  margin: 16px 0 20px;
+  text-align: center;
 }
 
 .direccion {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 8px;
-  background: rgba(123, 47, 47, 0.1);
-  border-radius: 8px;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 18px;
+  background: rgba(123, 47, 47, 0.2);
+  border-radius: 12px;
+  border: 3px solid var(--maroon-700);
+  box-shadow: 0 2px 8px rgba(123, 47, 47, 0.15);
   
-  ion-icon {
+  .direccion-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    
+    ion-icon {
+      color: var(--maroon-700);
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    
+    strong {
+      color: var(--maroon-700);
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  .direccion-texto {
+    color: var(--ink);
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.4;
+    word-wrap: break-word;
+    text-align: center;
+  }
+}
+
+.fecha-hora {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(123, 47, 47, 0.08);
+  border-radius: 10px;
+  align-items: center;
+  
+  .fecha, .hora {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+    
+    strong {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--maroon-700);
+    }
+  }
+}
+
+.total {
+  padding: 14px;
+  background: rgba(123, 47, 47, 0.1);
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+  border: 2px solid var(--maroon-700);
+  
+  strong {
+    font-size: 1.4rem;
+    font-weight: 900;
     color: var(--maroon-700);
-    font-size: 18px;
   }
 }
 
@@ -73,30 +204,112 @@
   --background: #28a745;
   --color: #fff;
   font-weight: 700;
+  font-size: 1rem;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  min-height: 48px;
+  
+  ::ng-deep {
+    ion-label, span {
+      white-space: normal;
+      word-wrap: break-word;
+      text-align: center;
+    }
+  }
 }
 
 .btn-ver-mapa {
-  --border-color: #007bff;
-  --color: #007bff;
-  font-weight: 700;
+  --background: #0066ff;
+  --color: #ffffff;
+  --border-color: #0066ff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  min-height: 52px;
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.4);
+  
+  ::ng-deep {
+    ion-label, span {
+      white-space: normal;
+      word-wrap: break-word;
+      text-align: center;
+      color: #ffffff;
+      font-weight: 800;
+    }
+    
+    ion-icon {
+      color: #ffffff;
+    }
+  }
+  
+  &:hover {
+    --background: #0052cc;
+    box-shadow: 0 6px 16px rgba(0, 102, 255, 0.5);
+  }
+  
+  &:active {
+    --background: #0047b3;
+  }
 }
 
 .btn-navegar {
   --border-color: #6f42c1;
   --color: #6f42c1;
   font-weight: 700;
+  font-size: 1rem;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  min-height: 48px;
+  
+  ::ng-deep {
+    ion-label, span {
+      white-space: normal;
+      word-wrap: break-word;
+      text-align: center;
+    }
+  }
 }
 
 .btn-chat {
   --border-color: #17a2b8;
   --color: #17a2b8;
   font-weight: 700;
+  font-size: 1rem;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  min-height: 48px;
+  
+  ::ng-deep {
+    ion-label, span {
+      white-space: normal;
+      word-wrap: break-word;
+      text-align: center;
+    }
+  }
 }
 
 .btn-entregar {
   --background: #28a745;
   --color: #fff;
   font-weight: 700;
+  font-size: 1rem;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  min-height: 48px;
+  
+  ::ng-deep {
+    ion-label, span {
+      white-space: normal;
+      word-wrap: break-word;
+      text-align: center;
+    }
+  }
 }
 
 /* ===== Content y fondo ===== */
@@ -238,10 +451,65 @@
   font-weight: 700;
 }
 
+/* ===== Estilos para botones de iconos en alert de entrega ===== */
+.entrega-alert {
+  .alert-button-cancel-icon,
+  .alert-button-confirm-icon {
+    width: 100px;
+    height: 100px;
+    min-width: 100px;
+    min-height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0 20px;
+    
+    ion-icon {
+      font-size: 56px !important;
+    }
+  }
+  
+  .alert-button-cancel-icon {
+    --background: transparent;
+    --color: #ff0000;
+    border: 3px solid #ff0000;
+    
+    ion-icon {
+      color: #ff0000 !important;
+    }
+  }
+  
+  .alert-button-confirm-icon {
+    --background: transparent;
+    --color: #28a745;
+    border: 3px solid #28a745;
+    
+    ion-icon {
+      color: #28a745 !important;
+    }
+  }
+  
+  /* Ocultar el mensaje si está vacío */
+  .alert-message {
+    display: none;
+  }
+  
+  /* Centrar los botones con más espacio */
+  .alert-button-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 30px 20px;
+  }
+}
+
 /* ===== Cards de CONSULTAS (mismo estilo que home-mozo) ===== */
 .chat-card{
-  margin: 12px 12px;
-  border-radius: 16px;
+  margin: 16px 12px;
+  border-radius: 18px;
   overflow: hidden;
   box-shadow: var(--shadow);
   background: #1f1b1b;           /* body oscuro para contraste */
@@ -255,16 +523,20 @@
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: #7b2f2f;
   color: var(--ink);
-  padding: 10px 14px;
+  padding: 16px 18px;
 }
-.chat-head .pedido{ font-weight: 800; color: #fff7ea; }
+.chat-head .pedido{ 
+  font-weight: 800; 
+  color: #fff7ea;
+  font-size: 1.1rem;
+}
 
 /* chevron a la derecha */
 .chev{
-  font-size: 18px;
+  font-size: 22px;
   opacity: .65;
   color: #fff7ea;
 }
@@ -272,18 +544,110 @@
 /* body del card */
 .chat-body{
   display: grid;
-  gap: 6px;
-  padding: 12px 14px 14px;
+  gap: 10px;
+  padding: 18px 18px 20px;
 }
 .chat-body .ultimo{
   font-weight: 700;
-  line-height: 1.25;
+  font-size: 1.05rem;
+  line-height: 1.4;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   color: #fff7ea;
 }
 .chat-body .updated{
-  font-size: .86rem;
+  font-size: 1rem;
   opacity: .75;
   color: #fff7ea;
+}
+
+/* ===== Estilos para Swiper (carrusel de pedidos) ===== */
+.pedidos-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  gap: 8px;
+}
+
+.pedidos-swiper {
+  width: 100%;
+  padding-bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pedidos-swiper swiper-slide {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(100, 100, 100, 0.9);
+  border-radius: 12px;
+  margin-top: 8px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pagination-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #5d2222;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+  
+  ion-icon {
+    font-size: 24px;
+    color: #ffffff;
+  }
+  
+  &:hover:not(:disabled) {
+    background: #7b2f2f;
+    transform: scale(1.05);
+  }
+  
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+  
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(93, 34, 34, 0.5);
+  }
+}
+
+.pagination-counter {
+  background: #5d2222;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 60px;
+  text-align: center;
+  font-family: "Inter", sans-serif;
 }
 

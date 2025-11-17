@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ViewWillEnter, ViewWillLeave, ViewDidEnter } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
@@ -7,10 +7,11 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon,
   IonCardSubtitle, IonSpinner, IonRefresher, IonRefresherContent, AlertController
 } from '@ionic/angular/standalone';
-import { checkmarkCircleOutline, locationOutline, chatbubbleEllipsesOutline, navigateOutline, chevronForwardOutline } from 'ionicons/icons';
+import { checkmarkCircleOutline, locationOutline, chatbubbleEllipsesOutline, navigateOutline, chevronForwardOutline, chevronBackOutline, closeOutline, checkmarkOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { FormsModule } from '@angular/forms';
 import type { SegmentChangeEventDetail } from '@ionic/angular';
+import { register } from 'swiper/element/bundle';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { Observable, Subscription } from 'rxjs';
 import { DeliveryPedidosService, PedidoDeliveryAsignado, PedidoDeliveryEnCamino } from 'src/app/services/delivery-pedidos.service';
@@ -23,12 +24,14 @@ import { DeliveryMapaService } from 'src/app/services/delivery-mapa.service';
 import { ChatService, DeliveryChatRow } from 'src/app/services/chat.service';
 import { App } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
+import { SesionService } from 'src/app/services/sesion.service';
 
 @Component({
   selector: 'app-home-delivery',
   standalone: true,
   templateUrl: './home-delivery.component.html',
   styleUrls: ['./home-delivery.component.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule, DatePipe, CurrencyPipe,
     IonHeader, IonToolbar, IonContent,
@@ -40,6 +43,7 @@ import type { PluginListenerHandle } from '@capacitor/core';
 })
 export class HomeDeliveryComponent implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave, ViewDidEnter {
   email!: Observable<string | null>;
+  nombre!: string | null;
   tab: 'asignados' | 'en-camino' | 'consultas' = 'asignados';
 
   // Pedidos asignados
@@ -51,6 +55,10 @@ export class HomeDeliveryComponent implements OnInit, OnDestroy, ViewWillEnter, 
   pedidosEnCamino: PedidoDeliveryEnCamino[] = [];
   cargandoEnCamino = false;
   entregandoId: number | null = null;
+
+  // Paginación
+  currentSlideAsignados: number = 0;
+  currentSlideEnCamino: number = 0;
 
   private pedidosAsignadosSub?: Subscription;
   private pedidosEnCaminoSub?: Subscription;
@@ -71,7 +79,8 @@ export class HomeDeliveryComponent implements OnInit, OnDestroy, ViewWillEnter, 
     private deliveryRt: DeliveryRealtimeService,
     private modalCtrl: ModalController,
     private mapaService: DeliveryMapaService,
-    private chatService: ChatService
+    private chatService: ChatService,
+    private sesion: SesionService
   ) {
     console.log('[HomeDeliveryComponent] 🏗️ Constructor ejecutado');
     addIcons({ 
@@ -79,9 +88,14 @@ export class HomeDeliveryComponent implements OnInit, OnDestroy, ViewWillEnter, 
       locationOutline,
       chatbubbleEllipsesOutline,
       navigateOutline,
-      chevronForwardOutline
+      chevronForwardOutline,
+      chevronBackOutline,
+      closeOutline,
+      checkmarkOutline
     });
+    register(); // Registrar Swiper
     this.email = this.supa.authEmail$;
+    this.nombre = this.sesion.usuarioBD?.nombres || null;
   }
 
   async ngOnInit() {
@@ -294,23 +308,53 @@ export class HomeDeliveryComponent implements OnInit, OnDestroy, ViewWillEnter, 
 
     const alert = await this.alertCtrl.create({
       header: 'CONFIRMAR ENTREGA',
-      message: `¿CONFIRMÁS QUE ENTREGASTE EL PEDIDO #${pedido.id} AL CLIENTE?\n\nCLIENTE: ${pedido.cliente_email}\nDIRECCIÓN: ${pedido.direccion_entrega || 'SIN DIRECCIÓN'}`,
+      message: '', // 🆕 Sin mensaje, solo el título
       buttons: [
         {
-          text: 'CANCELAR',
+          text: '✕', // 🆕 X roja como texto temporal
           role: 'cancel',
-          cssClass: 'alert-button-cancel'
+          cssClass: 'alert-button-cancel-icon',
+          handler: () => {
+            // No hacer nada, solo cancelar
+          }
         },
         {
-          text: 'CONFIRMAR',
-          cssClass: 'alert-button-confirm',
+          text: '✓', // 🆕 Tilde verde como texto temporal
+          cssClass: 'alert-button-confirm-icon',
           handler: () => this.procesarEntrega(pedido)
         }
       ],
-      cssClass: 'custom-alert'
+      cssClass: 'custom-alert entrega-alert'
     });
     
     await alert.present();
+    
+    // 🆕 Reemplazar texto con iconos después de que el alert se presente
+    setTimeout(() => {
+      const alertElement = document.querySelector('.entrega-alert');
+      if (alertElement) {
+        const buttons = alertElement.querySelectorAll('.alert-button');
+        if (buttons.length >= 2) {
+          // Botón cancelar (X roja)
+          const cancelButton = buttons[0] as HTMLElement;
+          const cancelIcon = document.createElement('ion-icon');
+          cancelIcon.setAttribute('name', 'close-outline');
+          cancelIcon.style.fontSize = '56px';
+          cancelIcon.style.color = '#ff0000';
+          cancelButton.innerHTML = '';
+          cancelButton.appendChild(cancelIcon);
+          
+          // Botón confirmar (✓ verde)
+          const confirmButton = buttons[1] as HTMLElement;
+          const confirmIcon = document.createElement('ion-icon');
+          confirmIcon.setAttribute('name', 'checkmark-outline');
+          confirmIcon.style.fontSize = '56px';
+          confirmIcon.style.color = '#28a745';
+          confirmButton.innerHTML = '';
+          confirmButton.appendChild(confirmIcon);
+        }
+      }
+    }, 150);
   }
 
   private async procesarEntrega(pedido: PedidoDeliveryEnCamino) {
@@ -536,6 +580,39 @@ export class HomeDeliveryComponent implements OnInit, OnDestroy, ViewWillEnter, 
 
   abrirChatDelivery(roomId: number, pedidoId: number) {
     this.router.navigate(['/delivery/chat', roomId], { queryParams: { pedidoId } });
+  }
+
+  // Métodos para manejar la paginación
+  onSlideChangeAsignados(event: any) {
+    this.currentSlideAsignados = event.detail[0].activeIndex;
+  }
+
+  onSlideChangeEnCamino(event: any) {
+    this.currentSlideEnCamino = event.detail[0].activeIndex;
+  }
+
+  goToPreviousAsignados(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNextAsignados(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
+    }
+  }
+
+  goToPreviousEnCamino(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slidePrev();
+    }
+  }
+
+  goToNextEnCamino(swiperEl: any) {
+    if (swiperEl && swiperEl.swiper) {
+      swiperEl.swiper.slideNext();
+    }
   }
 }
 
