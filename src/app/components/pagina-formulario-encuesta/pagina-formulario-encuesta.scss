@@ -154,6 +154,60 @@
   opacity: 0.8;
 }
 
+/* ===== Estilos para botones grandes del modal del select ===== */
+::ng-deep ion-action-sheet {
+  .action-sheet-button-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+
+  .action-sheet-button {
+    width: 100% !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    border-radius: 14px !important;
+    margin: 0 !important;
+    font-size: 64px !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 4px solid !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+
+    .button-inner,
+    span {
+      font-size: 64px !important;
+      font-weight: 700 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    // Botón cancelar (✗) - rojo - primer botón
+    &:first-of-type {
+      background: #dc3545 !important;
+      color: #ffffff !important;
+      border-color: #bd2130 !important;
+      --background: #dc3545 !important;
+      --color: #ffffff !important;
+    }
+
+    // Botón confirmar (✓) - verde - último botón
+    &:last-of-type {
+      background: #28a745 !important;
+      color: #ffffff !important;
+      border-color: #1e7e34 !important;
+      --background: #28a745 !important;
+      --color: #ffffff !important;
+    }
+  }
+}
+
 /* ===== Checkboxes ===== */
 .checkboxes-container {
   display: flex;

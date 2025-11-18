@@ -44,8 +44,7 @@
           <ion-select 
             placeholder="ELEGÍ UNA OPCIÓN" 
             [(ngModel)]="aspecto_valorado" 
-            okText="CONFIRMAR" 
-            cancelText="CANCELAR"
+            interface="popover"
             class="custom-select">
             <!-- Opciones para mesa -->
             <ng-container *ngIf="!esDelivery">

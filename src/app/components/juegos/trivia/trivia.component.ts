@@ -359,45 +359,96 @@ private endClaiming() {
         prizeClaimed: this.prizeClaimed,
         discount: this.discount
       });
+      // Asegurar que el spinner se oculte incluso si hay validación fallida
+      try {
+        this.spinner.hide();
+      } catch (e) {
+        console.error('[DEBUG TRIVIA] Error al ocultar spinner en validación:', e);
+      }
+      this.claiming = false;
       return;
     }
 
-    // rescatar pedidoId por si vino en history.state
-    if (!this.pedidoId) {
-      const fromState = (history.state?.pedidoId as number) || 0;
-      if (fromState) this.pedidoId = fromState;
-      console.log('[DEBUG TRIVIA] PedidoId rescatado de history.state:', this.pedidoId);
-    }
-    
-    if (!this.pedidoId) {
-      console.log('[DEBUG TRIVIA] ❌ No hay pedidoId');
-      const t = await this.toast.create({
-        message: 'NO SE PUDO OBTENER EL PEDIDO ACTIVO',
-        duration: 2000,
-        color: 'warning',
-        position: 'middle',
-        cssClass: 'toast-center'
-      });
-      t.present();
-      return;
-    }
-
-    // 🆕 VERIFICACIÓN DE ESTADO: El pedido debe estar en "pedido en curso" o posterior
+    // Envolver todo en try-finally para asegurar limpieza y navegación
     try {
-      const { data: pedidoData, error: pedidoError } = await this.supabase
-        .from('pedidos')
-        .select('estado, tipo_pedido')
-        .eq('id', this.pedidoId)
-        .maybeSingle();
-      
-      if (pedidoError) {
-        console.error('[DEBUG TRIVIA] Error al verificar estado del pedido:', pedidoError);
-        throw pedidoError;
+
+      // rescatar pedidoId por si vino en history.state
+      if (!this.pedidoId) {
+        const fromState = (history.state?.pedidoId as number) || 0;
+        if (fromState) this.pedidoId = fromState;
+        console.log('[DEBUG TRIVIA] PedidoId rescatado de history.state:', this.pedidoId);
       }
       
-      if (!pedidoData) {
+      if (!this.pedidoId) {
+        console.log('[DEBUG TRIVIA] ❌ No hay pedidoId');
         const t = await this.toast.create({
-          message: 'NO SE ENCONTRÓ EL PEDIDO',
+          message: 'NO SE PUDO OBTENER EL PEDIDO ACTIVO',
+          duration: 2000,
+          color: 'warning',
+          position: 'middle',
+          cssClass: 'toast-center'
+        });
+        t.present();
+        return;
+      }
+
+      // 🆕 VERIFICACIÓN DE ESTADO: El pedido debe estar en "pedido en curso" o posterior
+      try {
+        const { data: pedidoData, error: pedidoError } = await this.supabase
+          .from('pedidos')
+          .select('estado, tipo_pedido')
+          .eq('id', this.pedidoId)
+          .maybeSingle();
+        
+        if (pedidoError) {
+          console.error('[DEBUG TRIVIA] Error al verificar estado del pedido:', pedidoError);
+          throw pedidoError;
+        }
+        
+        if (!pedidoData) {
+          const t = await this.toast.create({
+            message: 'NO SE ENCONTRÓ EL PEDIDO',
+            duration: 2000,
+            color: 'danger',
+            position: 'middle',
+            cssClass: 'toast-center'
+          });
+          t.present();
+          return;
+        }
+        
+        const estado = pedidoData.estado;
+        const estadosValidos = [
+          'pedido en curso',
+          'en preparación',
+          'en preparación parcial',
+          'listo para entregar',
+          'asignado a delivery',
+          'confirmado por delivery',
+          'en camino',
+          'entregado',
+          'pendiente confirmacion pago',
+          'pagado'
+        ];
+        
+        if (!estadosValidos.includes(estado)) {
+          console.log('[DEBUG TRIVIA] ⚠️ Pedido no está en estado válido para reclamar descuento. Estado actual:', estado);
+          const t = await this.toast.create({
+            message: `EL PEDIDO DEBE ESTAR CONFIRMADO PARA RECLAMAR DESCUENTOS. ESTADO ACTUAL: ${estado.toUpperCase()}`,
+            duration: 3000,
+            color: 'warning',
+            position: 'middle',
+            cssClass: 'toast-center'
+          });
+          t.present();
+          return;
+        }
+        
+        console.log('[DEBUG TRIVIA] ✅ Estado del pedido válido:', estado);
+      } catch (error) {
+        console.error('[DEBUG TRIVIA] Error al verificar estado del pedido:', error);
+        const t = await this.toast.create({
+          message: 'ERROR AL VERIFICAR EL ESTADO DEL PEDIDO',
           duration: 2000,
           color: 'danger',
           position: 'middle',
@@ -406,162 +457,149 @@ private endClaiming() {
         t.present();
         return;
       }
-      
-      const estado = pedidoData.estado;
-      const estadosValidos = [
-        'pedido en curso',
-        'en preparación',
-        'en preparación parcial',
-        'listo para entregar',
-        'asignado a delivery',
-        'confirmado por delivery',
-        'en camino',
-        'entregado',
-        'pendiente confirmacion pago',
-        'pagado'
-      ];
-      
-      if (!estadosValidos.includes(estado)) {
-        console.log('[DEBUG TRIVIA] ⚠️ Pedido no está en estado válido para reclamar descuento. Estado actual:', estado);
-        const t = await this.toast.create({
-          message: `EL PEDIDO DEBE ESTAR CONFIRMADO PARA RECLAMAR DESCUENTOS. ESTADO ACTUAL: ${estado.toUpperCase()}`,
-          duration: 3000,
-          color: 'warning',
-          position: 'middle',
-          cssClass: 'toast-center'
-        });
-        t.present();
-        return;
-      }
-      
-      console.log('[DEBUG TRIVIA] ✅ Estado del pedido válido:', estado);
-    } catch (error) {
-      console.error('[DEBUG TRIVIA] Error al verificar estado del pedido:', error);
-      const t = await this.toast.create({
-        message: 'ERROR AL VERIFICAR EL ESTADO DEL PEDIDO',
-        duration: 2000,
-        color: 'danger',
-        position: 'middle',
-        cssClass: 'toast-center'
-      });
-      t.present();
-      return;
-    }
 
-    // 🆕 VERIFICACIÓN CRÍTICA: Verificar nuevamente si ya se aplicó descuento (puede haber cambiado desde ngOnInit)
-    // Esto es importante porque el usuario puede haber reclamado desde otro juego
-    try {
-      const yaSeAplico = await this.supabaseSvc.yaSeAplicoDescuento(this.pedidoId);
-      if (yaSeAplico) {
-        console.log('[DEBUG TRIVIA] ⚠️ Ya se aplicó un descuento desde otro juego o anteriormente');
-        this.yaSeAplicoDescuento = true;
-        // Verificar también el campo legacy
-        const { data } = await this.supabase
-          .from('pedidos')
-          .select('juego_premio_reclamado')
-          .eq('id', this.pedidoId)
-          .maybeSingle();
-        this.prizeClaimed = !!data?.juego_premio_reclamado || yaSeAplico;
+      // 🆕 VERIFICACIÓN CRÍTICA: Verificar nuevamente si ya se aplicó descuento (puede haber cambiado desde ngOnInit)
+      // Esto es importante porque el usuario puede haber reclamado desde otro juego
+      try {
+        const yaSeAplico = await this.supabaseSvc.yaSeAplicoDescuento(this.pedidoId);
+        if (yaSeAplico) {
+          console.log('[DEBUG TRIVIA] ⚠️ Ya se aplicó un descuento desde otro juego o anteriormente');
+          this.yaSeAplicoDescuento = true;
+          // Verificar también el campo legacy
+          const { data } = await this.supabase
+            .from('pedidos')
+            .select('juego_premio_reclamado')
+            .eq('id', this.pedidoId)
+            .maybeSingle();
+          this.prizeClaimed = !!data?.juego_premio_reclamado || yaSeAplico;
+          
+          const t = await this.toast.create({
+            message: 'YA SE RECLAMÓ UN DESCUENTO PARA ESTE PEDIDO. PODÉS SEGUIR JUGANDO PERO NO SE APLICARÁ OTRO DESCUENTO',
+            duration: 3000,
+            color: 'warning',
+            position: 'middle',
+            cssClass: 'toast-center'
+          });
+          t.present();
+          return;
+        }
+      } catch (error) {
+        console.error('[DEBUG TRIVIA] Error al verificar descuento antes de reclamar:', error);
+        // Continuar de todas formas, el RPC también validará
+      }
+
+      console.log('[DEBUG TRIVIA] Reclamando descuento de trivia...');
+      console.log('[DEBUG TRIVIA] PedidoId:', this.pedidoId);
+      console.log('[DEBUG TRIVIA] Score:', this.score);
+      console.log('[DEBUG TRIVIA] Descuento esperado:', this.discount);
+
+      this.claiming = true;
+      this.spinner.show({ immediate: true });
+      
+      try {
+        console.log('[DEBUG TRIVIA] Llamando RPC claim_game_discount...');
+        const { data, error } = await this.supabase.rpc('claim_game_discount', {
+          p_pedido_id: Number(this.pedidoId),
+          p_juego: 'trivia',
+          p_score: this.score
+        });
         
+        console.log('[DEBUG TRIVIA] Respuesta RPC completa:', { data, error });
+        
+        if (error) {
+          console.log('[DEBUG TRIVIA] ❌ Error en RPC:', error);
+          console.log('[DEBUG TRIVIA] Error code:', error.code);
+          console.log('[DEBUG TRIVIA] Error message:', error.message);
+          console.log('[DEBUG TRIVIA] Error details:', error.details);
+          throw error;
+        }
+
+        const row = Array.isArray(data) ? data[0] : data;
+        console.log('[DEBUG TRIVIA] Row obtenida:', row);
+        
+        const pct = Number(row?.pct ?? 0);
+        const tot = Number(row?.total_final ?? 0);
+        const reason = row?.reason ?? '';
+
+        console.log('[DEBUG TRIVIA] Descuento aplicado (%):', pct);
+        console.log('[DEBUG TRIVIA] Total con descuento:', tot);
+
+        // Actualizar estado local
+        this.prizeClaimed = pct > 0;
+        if (pct > 0) {
+          this.yaSeAplicoDescuento = true;
+          console.log('[DEBUG TRIVIA] ✅ Descuento aplicado exitosamente');
+          const t = await this.toast.create({
+            message: `¡DESCUENTO DEL ${pct}% APLICADO!`,
+            duration: 2000,
+            color: 'success',
+            position: 'middle',
+            cssClass: 'toast-center'
+          });
+          t.present();
+        } else {
+          console.log('[DEBUG TRIVIA] ⚠️ No se aplicó descuento (pct = 0)');
+          const t = await this.toast.create({
+            message: (reason || 'NO SE APLICÓ DESCUENTO').toUpperCase(),
+            duration: 2000,
+            color: 'medium',
+            position: 'middle',
+            cssClass: 'toast-center'
+          });
+          t.present();
+        }
+
+      } catch (e: any) {
+        console.error('[DEBUG TRIVIA] ❌ Error al reclamar descuento:', e);
+        console.error('[DEBUG TRIVIA] Error completo:', JSON.stringify(e, null, 2));
+        
+        // Mostrar mensaje de error al usuario
         const t = await this.toast.create({
-          message: 'YA SE RECLAMÓ UN DESCUENTO PARA ESTE PEDIDO. PODÉS SEGUIR JUGANDO PERO NO SE APLICARÁ OTRO DESCUENTO',
+          message: 'ERROR AL APLICAR DESCUENTO: ' + (e?.message || 'ERROR DESCONOCIDO').toUpperCase(),
           duration: 3000,
-          color: 'warning',
+          color: 'danger',
           position: 'middle',
           cssClass: 'toast-center'
         });
         t.present();
-        return;
       }
-    } catch (error) {
-      console.error('[DEBUG TRIVIA] Error al verificar descuento antes de reclamar:', error);
-      // Continuar de todas formas, el RPC también validará
+    } finally {
+      // Siempre ejecutar limpieza y navegación, incluso si hay returns tempranos
+      console.log('[DEBUG TRIVIA] Redirigiendo a pedido en curso...');
+      console.log('🚫🚫🚫🚫DESCUENTOS🚫🚫🚫🚫');
+      
+      // Asegurar que el spinner se oculte SIEMPRE, incluso si hay errores
+      try {
+        this.spinner.hide();
+      } catch (e) {
+        console.error('[DEBUG TRIVIA] Error al ocultar spinner:', e);
+      }
+      
+      this.claiming = false;
+      
+      // Timeout de seguridad para asegurar que el spinner se oculte
+      setTimeout(() => {
+        try {
+          this.spinner.hide();
+        } catch (e) {
+          console.error('[DEBUG TRIVIA] Error al ocultar spinner en timeout:', e);
+        }
+      }, 100);
+      
+      // Redirigir siempre a la pestaña
+      setTimeout(() => {
+        this.zone.run(() => {
+          try {
+            this.router.navigate(['/cliente-pedido-en-curso'], { state: { pedidoId: this.pedidoId } });
+          } catch (e) {
+            console.error('[DEBUG TRIVIA] Error al navegar:', e);
+            // Si falla la navegación, intentar ocultar spinner de nuevo
+            this.spinner.hide();
+          }
+        });
+      }, 200);
     }
-
-  console.log('[DEBUG TRIVIA] Reclamando descuento de trivia...');
-  console.log('[DEBUG TRIVIA] PedidoId:', this.pedidoId);
-  console.log('[DEBUG TRIVIA] Score:', this.score);
-  console.log('[DEBUG TRIVIA] Descuento esperado:', this.discount);
-
-  this.claiming = true;
-  this.spinner.show({ immediate: true });
-  try {
-    console.log('[DEBUG TRIVIA] Llamando RPC claim_game_discount...');
-    const { data, error } = await this.supabase.rpc('claim_game_discount', {
-      p_pedido_id: Number(this.pedidoId),
-      p_juego: 'trivia',
-      p_score: this.score
-    });
-    
-    console.log('[DEBUG TRIVIA] Respuesta RPC completa:', { data, error });
-    
-    if (error) {
-      console.log('[DEBUG TRIVIA] ❌ Error en RPC:', error);
-      console.log('[DEBUG TRIVIA] Error code:', error.code);
-      console.log('[DEBUG TRIVIA] Error message:', error.message);
-      console.log('[DEBUG TRIVIA] Error details:', error.details);
-      throw error;
-    }
-
-    const row = Array.isArray(data) ? data[0] : data;
-    console.log('[DEBUG TRIVIA] Row obtenida:', row);
-    
-    const pct = Number(row?.pct ?? 0);
-    const tot = Number(row?.total_final ?? 0);
-    const reason = row?.reason ?? '';
-
-    console.log('[DEBUG TRIVIA] Descuento aplicado (%):', pct);
-    console.log('[DEBUG TRIVIA] Total con descuento:', tot);
-
-    // Actualizar estado local
-    this.prizeClaimed = pct > 0;
-    if (pct > 0) {
-      this.yaSeAplicoDescuento = true;
-      console.log('[DEBUG TRIVIA] ✅ Descuento aplicado exitosamente');
-      const t = await this.toast.create({
-        message: `¡DESCUENTO DEL ${pct}% APLICADO!`,
-        duration: 2000,
-        color: 'success',
-        position: 'middle',
-        cssClass: 'toast-center'
-      });
-      t.present();
-    } else {
-      console.log('[DEBUG TRIVIA] ⚠️ No se aplicó descuento (pct = 0)');
-      const t = await this.toast.create({
-        message: (reason || 'NO SE APLICÓ DESCUENTO').toUpperCase(),
-        duration: 2000,
-        color: 'medium',
-        position: 'middle',
-        cssClass: 'toast-center'
-      });
-      t.present();
-    }
-
-  } catch (e: any) {
-    console.error('[DEBUG TRIVIA] ❌ Error al reclamar descuento:', e);
-    console.error('[DEBUG TRIVIA] Error completo:', JSON.stringify(e, null, 2));
-    
-    // Mostrar mensaje de error al usuario
-    const t = await this.toast.create({
-      message: 'ERROR AL APLICAR DESCUENTO: ' + (e?.message || 'ERROR DESCONOCIDO').toUpperCase(),
-      duration: 3000,
-      color: 'danger',
-      position: 'middle',
-      cssClass: 'toast-center'
-    });
-    t.present();
-  } finally {
-    console.log('[DEBUG TRIVIA] Redirigiendo a pedido en curso...');
-    console.log('🚫🚫🚫🚫DESCUENTOS🚫🚫🚫🚫');
-    this.claiming = false;
-    this.spinner.hide();
-    // Redirigir siempre a la pestaña
-    this.zone.run(() => {
-      this.router.navigate(['/cliente-pedido-en-curso'], { state: { pedidoId: this.pedidoId } });
-    });
   }
-}
 
 
   restart() {

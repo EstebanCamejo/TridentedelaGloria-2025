@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel,
+  IonHeader, IonToolbar, IonContent, IonLabel,
   IonTextarea, IonSelect, IonSelectOption, IonButton,
-  IonSegment, IonSegmentButton, IonList, IonCheckbox,
+  IonSegment, IonSegmentButton, IonCheckbox,
   IonCard, IonCardContent
 } from '@ionic/angular/standalone';
 import { ToastrService } from 'ngx-toastr';
@@ -24,13 +24,13 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
   styleUrls: ['./pagina-formulario-encuesta.scss'],
   imports: [
     CommonModule, FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonItem, IonLabel, IonTextarea, IonSelect, IonSelectOption,
-    IonButton, IonSegment, IonSegmentButton, IonList, IonCheckbox,
+    IonHeader, IonToolbar, IonContent, IonLabel,
+    IonTextarea, IonSelect, IonSelectOption, IonButton,
+    IonSegment, IonSegmentButton, IonCheckbox,
     IonCard, IonCardContent
   ]
 })
-export class PaginaFormularioEncuestaPage implements OnInit {
+export class PaginaFormularioEncuestaPage implements OnInit, AfterViewInit {
 
   // 🆕 ID de la encuesta según tipo (mesa o delivery)
   encuestaId = '00000000-0000-0000-0000-000000000001'; // Default: mesa
@@ -79,6 +79,102 @@ export class PaginaFormularioEncuestaPage implements OnInit {
     
     // Verificar si puede completar la encuesta
     await this.verificarPermisosEncuesta();
+  }
+
+  ngAfterViewInit() {
+    // Configurar observer para aplicar estilos cuando se abre el modal del select
+    this.configurarEstilosSelectModal();
+  }
+
+  private configurarEstilosSelectModal() {
+    // Usar un observer para detectar cuando se crea el action sheet
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeName === 'ION-ACTION-SHEET') {
+            // El modal se acaba de crear, aplicar estilos después de pequeños delays
+            setTimeout(() => this.aplicarEstilosSelectModal(), 50);
+            setTimeout(() => this.aplicarEstilosSelectModal(), 150);
+            setTimeout(() => this.aplicarEstilosSelectModal(), 300);
+            setTimeout(() => this.aplicarEstilosSelectModal(), 500);
+          }
+        });
+      });
+    });
+
+    // Observar cambios en el body para detectar cuando se agrega el action sheet
+    observer.observe(document.body, {
+      childList: true,
+      subtree: false
+    });
+  }
+
+  private aplicarEstilosSelectModal() {
+    // Misma lógica que home-cliente.component.ts - buscar action sheet
+    const actionSheet = document.querySelector('ion-action-sheet');
+    if (!actionSheet) return;
+
+    // Buscar botones usando la misma lógica que home-cliente
+    const buttonSelectors = [
+      '.action-sheet-button',
+      'button.action-sheet-button',
+      '.action-sheet-button-group button',
+      'button[class*="action-sheet-button"]'
+    ];
+    
+    let buttons: NodeListOf<Element> | null = null;
+    for (const selector of buttonSelectors) {
+      buttons = actionSheet.querySelectorAll(selector);
+      if (buttons && buttons.length > 0) break;
+    }
+    
+    if (!buttons || buttons.length === 0) return;
+    
+    buttons.forEach((btn: any) => {
+      if (!btn || !btn.style) return;
+      
+      // Estilos base para todos los botones (EXACTAMENTE igual que home-cliente)
+      btn.style.setProperty('width', '100%', 'important');
+      btn.style.setProperty('height', '100px', 'important');
+      btn.style.setProperty('font-size', '64px', 'important');
+      btn.style.setProperty('font-weight', '700', 'important');
+      btn.style.setProperty('color', '#ffffff', 'important');
+      btn.style.setProperty('display', 'flex', 'important');
+      btn.style.setProperty('align-items', 'center', 'important');
+      btn.style.setProperty('justify-content', 'center', 'important');
+      btn.style.setProperty('border-radius', '14px', 'important');
+      btn.style.setProperty('margin', '0', 'important');
+      
+      // Misma lógica que home-cliente: verificar si tiene checkmark
+      const buttonText = btn.textContent || btn.innerText || '';
+      const hasCheckmark = buttonText.includes('✓');
+      
+      // Si tiene checkmark, aplicar verde (igual que home-cliente)
+      if (hasCheckmark) {
+        btn.style.setProperty('background', '#28a745', 'important');
+        btn.style.setProperty('border', '4px solid #1e7e34', 'important');
+      } else {
+        // Si no tiene checkmark, es cancelar (rojo)
+        btn.style.setProperty('background', '#dc3545', 'important');
+        btn.style.setProperty('border', '4px solid #bd2130', 'important');
+      }
+      
+      // Aplicar al texto interno (igual que home-cliente)
+      const buttonInner = btn.querySelector('.button-inner') || btn.querySelector('span');
+      if (buttonInner) {
+        (buttonInner as HTMLElement).style.setProperty('font-size', '64px', 'important');
+        (buttonInner as HTMLElement).style.setProperty('color', '#ffffff', 'important');
+      }
+    });
+    
+    // Estilizar el contenedor de botones (igual que home-cliente)
+    const buttonGroup = actionSheet.querySelector('.action-sheet-button-group');
+    if (buttonGroup) {
+      (buttonGroup as HTMLElement).style.setProperty('display', 'flex', 'important');
+      (buttonGroup as HTMLElement).style.setProperty('flex-direction', 'column', 'important');
+      (buttonGroup as HTMLElement).style.setProperty('gap', '15px', 'important');
+      (buttonGroup as HTMLElement).style.setProperty('width', '100%', 'important');
+    }
   }
 
   /**

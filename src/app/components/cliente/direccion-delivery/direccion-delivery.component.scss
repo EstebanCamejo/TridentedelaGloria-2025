@@ -14,35 +14,33 @@
   
   ::ng-deep {
     .direccion-input-large {
-      font-size: 1.3rem !important;
-      padding: 16px 12px !important;
-      min-height: 60px !important;
+      padding: 8px 6px !important;
+      min-height: 30px !important;
       background: #ffffff !important;
       
       &::placeholder {
-        font-size: 1.3rem !important;
+        font-size: 1.2rem !important; /* Mismo tamaño que el texto del input */
         color: #000000 !important;
       }
     }
     
     ion-input {
-      font-size: 1.3rem !important;
-      --padding-start: 12px;
-      --padding-end: 12px;
-      --padding-top: 16px;
-      --padding-bottom: 16px;
+      --padding-start: 6px;
+      --padding-end: 6px;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
       --background: #ffffff;
-      min-height: 60px !important;
+      min-height: 30px !important;
       
       input {
-        font-size: 1.3rem !important;
-        padding: 16px 12px !important;
-        min-height: 60px !important;
+        font-size: 1.2rem !important; /* Tamaño igual al título */
+        padding: 8px 6px !important;
+        min-height: 30px !important;
         background: #ffffff !important;
         color: #000000 !important;
         
         &::placeholder {
-          font-size: 1.3rem !important;
+          font-size: 1.2rem !important; /* Mismo tamaño que el texto del input */
           color: #000000 !important;
         }
       }
@@ -160,18 +158,17 @@
   .direccion-input-item {
     ::ng-deep {
       ion-input {
-        font-size: 1.1rem !important;
-        --padding-top: 14px;
-        --padding-bottom: 14px;
-        min-height: 56px !important;
+        --padding-top: 7px;
+        --padding-bottom: 7px;
+        min-height: 28px !important;
         
         input {
-          font-size: 1.1rem !important;
-          padding: 14px 10px !important;
-          min-height: 56px !important;
+          font-size: 1.1rem !important; /* Tamaño igual al título en móviles */
+          padding: 7px 5px !important;
+          min-height: 28px !important;
           
           &::placeholder {
-            font-size: 1.1rem !important;
+            font-size: 1.1rem !important; /* Mismo tamaño que el texto del input en móviles */
           }
         }
       }

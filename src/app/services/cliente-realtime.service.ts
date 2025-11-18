@@ -203,6 +203,13 @@ export class ClienteRealtimeService implements OnDestroy {
           }
         }
 
+        // 🆕 CRÍTICO: NO notificar al cliente cuando un pedido de MESA cambia a "pedido en curso"
+        // Esto es solo para mozos, el cliente no necesita saber cuando el mozo confirma su pedido
+        if (tipoPedido === 'mesa' && oldPedido.estado === 'pendiente' && pedido.estado === 'pedido en curso') {
+          console.log('[ClienteRealtimeService] ⚠️ Pedido de mesa confirmado por mozo, NO notificar al cliente (solo mozos reciben esta notificación)');
+          return; // Salir sin notificar
+        }
+
         // 🆕 Notificar cuando un pedido DELIVERY es confirmado por el admin
         if (tipoPedido === 'delivery' && oldPedido.estado === 'pendiente' && pedido.estado === 'pedido en curso') {
           console.log('[ClienteRealtimeService] ✅ Pedido delivery confirmado por admin, notificando al cliente!');

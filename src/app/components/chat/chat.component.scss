@@ -50,21 +50,38 @@
   --offset-bottom: 0px;
   --padding-top: 0px;
   --padding-bottom: 0px;
+  --overflow: hidden; /* Evitar scroll no deseado */
 }
 
 /* Asegurar que el content no se desplace con el teclado */
 ::ng-deep ion-content.chat-content {
   --offset-top: 0px;
   --offset-bottom: 0px;
+  --overflow: hidden;
+}
+
+/* Prevenir que el teclado mueva toda la pantalla - usar env() para el teclado */
+::ng-deep ion-content.chat-content {
+  --keyboard-offset: 0px !important;
+  --offset-bottom: 0px !important;
+  --offset-top: 0px !important;
+}
+
+::ng-deep ion-content.chat-content .inner-scroll {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: env(keyboard-inset-height, 0px) !important;
 }
 
 /* Lista con padding superior para el header fijo y padding inferior para el footer */
 .list {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 76px); /* Header fijo + safe area */
+  padding-top: calc(env(safe-area-inset-top, 0px) + 100px); /* Aumentado para que no quede detrás del navbar */
   padding-left: 12px;
   padding-right: 12px;
   padding-bottom: calc(var(--composer-h) + env(safe-area-inset-bottom) + 20px);
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   min-height: 100vh;
 }
@@ -143,12 +160,22 @@
 
 /* burbujas */
 .bubble {
-  max-width: 78%;
-  padding: 10px 12px 6px 12px; /* Reducido padding inferior de 10px a 6px */
-  border-radius: 14px;
+  max-width: 55%;
+  width: fit-content;
+  min-width: fit-content; /* Ajustar al contenido */
+  padding: 8px 10px 4px 10px; /* Padding inferior mínimo para que se corte después de la hora */
+  border-radius: 12px;
   background: #513131d3;
   color: #fff7ea;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  display: inline-flex; /* Cambiar a inline-flex para ajuste al contenido */
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 0; /* Sin margen inferior extra */
+  box-sizing: border-box; /* Incluir padding en el tamaño */
 }
 .bubble.mine {
   margin-left: auto;
@@ -156,26 +183,33 @@
   color: #fff7ea;
 }
 .meta {
-  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-size: clamp(0.9rem, 2vw, 1.1rem); /* Reducido tamaño de fuente */
   font-weight: 700;
   opacity: 0.9;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .text {
   white-space: pre-wrap;
   word-wrap: break-word;
-  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
-  line-height: 1.5;
-  margin-bottom: 2px; /* Agregado pequeño margen inferior al texto */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  font-size: clamp(0.95rem, 2vw, 1.15rem); /* Reducido tamaño de fuente */
+  line-height: 1.4;
+  margin-bottom: 0; /* Sin margen inferior */
+  max-width: 100%;
+  overflow: hidden;
 }
 .time {
   font-size: clamp(0.9rem, 2vw, 1.1rem);
   opacity: 0.7;
-  margin-top: 2px; /* Reducido de 6px a 2px para menos espacio */
+  margin-top: 2px;
+  margin-bottom: 0; /* Sin margen inferior para que se corte justo después */
   text-align: right;
   font-weight: 500;
+  align-self: flex-end; /* Alinear a la derecha dentro del globo */
+  width: 100%; /* Ocupar todo el ancho para alinear a la derecha */
 }
 /* Título grande y visible */
 .title-large {
@@ -242,4 +276,24 @@
   opacity: 0.9;
   font-style: italic;
   margin-top: 0.5rem;
+}
+
+/* Ajustes para pantallas pequeñas - globos más compactos */
+@media (max-width: 576px) {
+  .list {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 110px); /* Más espacio en móviles */
+  }
+  
+  .bubble {
+    max-width: 50%;
+    padding: 6px 8px 3px 8px; /* Padding inferior mínimo en móviles */
+  }
+  
+  .text {
+    font-size: clamp(0.9rem, 1.8vw, 1.05rem);
+  }
+  
+  .meta {
+    font-size: clamp(0.85rem, 1.8vw, 1rem);
+  }
 }

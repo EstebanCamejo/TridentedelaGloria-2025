@@ -240,13 +240,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
             message: 'EL CÓDIGO QR ESCANEADO NO ES VÁLIDO. POR FAVOR INTENTA NUEVAMENTE',
             buttons: [
               {
-                text: 'CONFIRMAR',
-                cssClass: 'alert-button-confirm'
+                text: '✓',
+                cssClass: 'cliente-alert-btn-confirm'
               }
             ],
             cssClass: 'custom-alert'
           });
           await alert.present();
+          this.applyAlertStyles(alert);
           return;
         }
 
@@ -293,13 +294,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
           message: 'NO SE PUDO IDENTIFICAR EL USUARIO. POR FAVOR INICIA SESIÓN NUEVAMENTE',
           buttons: [
             {
-              text: 'CONFIRMAR',
-              cssClass: 'alert-button-confirm'
+              text: '✓',
+              cssClass: 'cliente-alert-btn-confirm'
             }
           ],
           cssClass: 'custom-alert'
         });
         await alert.present();
+        this.applyAlertStyles(alert);
         return;
       }
 
@@ -337,13 +339,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
           message: mensaje,
           buttons: [
             {
-              text: 'ENTENDIDO',
-              cssClass: 'alert-button-confirm'
+              text: '✓',
+              cssClass: 'cliente-alert-btn-confirm'
             }
           ],
           cssClass: 'custom-alert'
         });
         await alert.present();
+        this.applyAlertStyles(alert);
         return;
       }
 
@@ -379,13 +382,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
               message: 'No se pudo verificar el estado de la mesa. Intenta nuevamente.',
               buttons: [
                 {
-                  text: 'CONFIRMAR',
-                  cssClass: 'alert-button-confirm'
+                  text: '✓',
+                  cssClass: 'cliente-alert-btn-confirm'
                 }
               ],
               cssClass: 'custom-alert'
             });
             await alert.present();
+            this.applyAlertStyles(alert);
             return;
           }
 
@@ -396,13 +400,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
               message: `⏳ La mesa N° ${mesa.numero || '?'} aún no está lista para tu reserva.\n\nPor favor espera a que el personal active tu mesa.`,
               buttons: [
                 {
-                  text: 'CONFIRMAR',
-                  cssClass: 'alert-button-confirm'
+                  text: '✓',
+                  cssClass: 'cliente-alert-btn-confirm'
                 }
               ],
               cssClass: 'custom-alert'
             });
             await alert.present();
+            this.applyAlertStyles(alert);
             return;
           }
 
@@ -424,13 +429,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
             message: `Tu reserva es a las ${reservaConfirmada.hora}.\n\nPor favor espera hasta la hora de tu reserva.`,
             buttons: [
               {
-                text: 'CONFIRMAR',
-                cssClass: 'alert-button-confirm'
+                text: '✓',
+                cssClass: 'cliente-alert-btn-confirm'
               }
             ],
             cssClass: 'custom-alert'
           });
           await alert.present();
+          this.applyAlertStyles(alert);
           return;
         } else {
           // Tiempo expirado
@@ -439,13 +445,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
             message: `El tiempo máximo de espera para tu reserva ha expirado (${tiempoMaximoEspera} minutos).\n\nPor favor contacta al personal.`,
             buttons: [
               {
-                text: 'CONFIRMAR',
-                cssClass: 'alert-button-confirm'
+                text: '✓',
+                cssClass: 'cliente-alert-btn-confirm'
               }
             ],
             cssClass: 'custom-alert'
           });
           await alert.present();
+          this.applyAlertStyles(alert);
           return;
         }
       }
@@ -469,12 +476,13 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
           buttons: [
             {
               text: '✓',
-              cssClass: 'alert-button-confirm'
+              cssClass: 'cliente-alert-btn-confirm'
             }
           ],
           cssClass: 'custom-alert'
         });
         await alert.present();
+        this.applyAlertStyles(alert);
         return;
       }
 
@@ -495,13 +503,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
           message: 'ERROR AL VERIFICAR TU ESTADO. INTENTA NUEVAMENTE',
           buttons: [
             {
-              text: 'CONFIRMAR',
-              cssClass: 'alert-button-confirm'
+              text: '✓',
+              cssClass: 'cliente-alert-btn-confirm'
             }
           ],
           cssClass: 'custom-alert'
         });
         await alert.present();
+        this.applyAlertStyles(alert);
         return;
       }
 
@@ -513,12 +522,13 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
           buttons: [
             {
               text: '✓',
-              cssClass: 'alert-button-confirm'
+              cssClass: 'cliente-alert-btn-confirm'
             }
           ],
           cssClass: 'custom-alert'
         });
         await alert.present();
+        this.applyAlertStyles(alert);
         return;
       }
 
@@ -531,13 +541,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
             message: 'MESA ASIGNADA INCORRECTAMENTE. CONTACTA AL PERSONAL',
             buttons: [
               {
-                text: 'CONFIRMAR',
-                cssClass: 'alert-button-confirm'
+                text: '✓',
+                cssClass: 'cliente-alert-btn-confirm'
               }
             ],
             cssClass: 'custom-alert'
           });
           await alert.present();
+          this.applyAlertStyles(alert);
           return;
         }
 
@@ -559,14 +570,15 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
                     `POR FAVOR ESCANEA EL QR DE LA MESA ${numeroAsignado}`,
             buttons: [
               {
-                text: 'CONFIRMAR',
-                cssClass: 'alert-button-confirm'
+                text: '✓',
+                cssClass: 'cliente-alert-btn-confirm'
               }
             ],
             cssClass: 'custom-alert'
           });
           
           await alert.present();
+          this.applyAlertStyles(alert);
           return;
         }
 
@@ -589,13 +601,14 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
         message: 'ERROR AL VERIFICAR LA MESA: ' + (e?.message || 'ERROR DESCONOCIDO').toUpperCase(),
         buttons: [
           {
-            text: 'CONFIRMAR',
-            cssClass: 'alert-button-confirm'
+            text: '✓',
+            cssClass: 'cliente-alert-btn-confirm'
           }
         ],
         cssClass: 'custom-alert'
       });
       await alert.present();
+      this.applyAlertStyles(alert);
     }
   }
 
@@ -624,8 +637,88 @@ export class HomeClienteComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Aplica estilos a los botones del alert para hacer la tilde verde grande
+   * Similar a la implementación en mesas.component.ts
+   */
+  private applyAlertStyles(alert: HTMLIonAlertElement) {
+    const applyStyles = () => {
+      const selectors = [
+        '.alert-wrapper.custom-alert',
+        '.alert-wrapper',
+        'ion-alert.custom-alert',
+        'ion-alert'
+      ];
+      
+      let alertWrapper: Element | null = null;
+      for (const selector of selectors) {
+        alertWrapper = document.querySelector(selector);
+        if (alertWrapper) break;
+      }
+      
+      if (!alertWrapper) return;
+      
+      const buttonSelectors = [
+        '.alert-button',
+        'button.alert-button',
+        '.alert-button-group button',
+        'button[class*="alert-button"]'
+      ];
+      
+      let buttons: NodeListOf<Element> | null = null;
+      for (const selector of buttonSelectors) {
+        buttons = alertWrapper.querySelectorAll(selector);
+        if (buttons && buttons.length > 0) break;
+      }
+      
+      if (!buttons || buttons.length === 0) return;
+      
+      buttons.forEach((btn: any) => {
+        if (!btn || !btn.style) return;
+        
+        // Estilos base para todos los botones
+        btn.style.setProperty('width', '100%', 'important');
+        btn.style.setProperty('height', '100px', 'important');
+        btn.style.setProperty('font-size', '64px', 'important');
+        btn.style.setProperty('font-weight', '700', 'important');
+        btn.style.setProperty('color', '#ffffff', 'important');
+        btn.style.setProperty('display', 'flex', 'important');
+        btn.style.setProperty('align-items', 'center', 'important');
+        btn.style.setProperty('justify-content', 'center', 'important');
+        btn.style.setProperty('border-radius', '14px', 'important');
+        btn.style.setProperty('margin', '0', 'important');
+        
+        const buttonText = btn.textContent || btn.innerText || '';
+        const hasCheckmark = buttonText.includes('✓');
+        
+        // Si tiene checkmark o es el botón de confirmar, aplicar verde
+        if (btn.classList.contains('cliente-alert-btn-confirm') || hasCheckmark) {
+          btn.style.setProperty('background', '#28a745', 'important');
+          btn.style.setProperty('border', '4px solid #1e7e34', 'important');
+        }
+        
+        const buttonInner = btn.querySelector('.button-inner') || btn.querySelector('span');
+        if (buttonInner) {
+          (buttonInner as HTMLElement).style.setProperty('font-size', '64px', 'important');
+          (buttonInner as HTMLElement).style.setProperty('color', '#ffffff', 'important');
+        }
+      });
+      
+      const buttonGroup = alertWrapper.querySelector('.alert-button-group');
+      if (buttonGroup) {
+        (buttonGroup as HTMLElement).style.setProperty('display', 'flex', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('flex-direction', 'column', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('gap', '15px', 'important');
+        (buttonGroup as HTMLElement).style.setProperty('width', '100%', 'important');
+      }
+    };
 
-
+    // Aplicar múltiples veces para asegurar que se apliquen
+    setTimeout(applyStyles, 50);
+    setTimeout(applyStyles, 150);
+    setTimeout(applyStyles, 300);
+    setTimeout(applyStyles, 500);
+  }
 
   verEncuestas() {
     this.router.navigate(['/pagina-resultados-encuestas']);

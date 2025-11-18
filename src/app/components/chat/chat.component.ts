@@ -229,29 +229,22 @@ async ngOnInit() {
   }
 }
 
-  /** 🆕 Configura los listeners del teclado para mantener el último mensaje visible */
+  /** 🆕 Configura los listeners del teclado - NO mover la pantalla, solo el input */
   private configurarTeclado() {
     try {
       // Listener cuando el teclado va a aparecer
       this.keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (info) => {
         console.log('[ChatComponent] ⌨️ Teclado apareciendo, altura:', info.keyboardHeight);
-        // Ajustar el scroll para mantener el último mensaje visible
-        // Esperar un poco para que el teclado termine de aparecer
-        setTimeout(() => {
-          this.scrollDownSoon();
-        }, 350);
+        // NO hacer scroll - la pantalla permanece fija, solo el input se mueve
       });
 
       // Listener cuando el teclado va a desaparecer
       this.keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => {
         console.log('[ChatComponent] ⌨️ Teclado desapareciendo');
-        // Mantener el scroll en el último mensaje cuando se cierra el teclado
-        setTimeout(() => {
-          this.scrollDownSoon();
-        }, 150);
+        // NO hacer scroll - mantener la posición actual
       });
 
-      console.log('[ChatComponent] ✅ Listeners del teclado configurados');
+      console.log('[ChatComponent] ✅ Listeners del teclado configurados (sin scroll automático)');
     } catch (error) {
       console.warn('[ChatComponent] ⚠️ No se pudieron configurar los listeners del teclado (puede ser navegador):', error);
     }
@@ -514,14 +507,11 @@ async enviar() {
     }, 50);
   }
 
-  /** 🆕 Maneja el foco en el input para mantener el último mensaje visible */
+  /** 🆕 Maneja el foco en el input - NO mover la pantalla, solo el input se desplaza */
   onInputFocus() {
     console.log('[ChatComponent] ⌨️ Input enfocado');
-    // Hacer scroll al último mensaje cuando se enfoca el input
-    // Esperar un poco para que el teclado empiece a aparecer
-    setTimeout(() => {
-      this.scrollDownSoon();
-    }, 200);
+    // NO hacer scroll automático - la pantalla permanece fija
+    // El input se moverá hacia arriba con el teclado pero la pantalla no se desplazará
   }
 
   ngOnDestroy() { 

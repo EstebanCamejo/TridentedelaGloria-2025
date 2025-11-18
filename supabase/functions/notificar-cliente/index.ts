@@ -188,7 +188,7 @@ function makeHtml(nombres: string, apellidos: string, estado: string, tipo: stri
                 </div>
               ` : estado === "rechazado" && !esReserva ? `
                 <div style="margin:24px 0; padding:16px; background:#FFEBEE; border-radius:8px; text-align:center;">
-                  <p style="margin:0; color:${textColor}; font-size:14px;">Si creés que es un error, respondé este email y lo revisaremos.</p>
+                  <p style="margin:0; color:${textColor}; font-size:14px;">Estamos a tu disposición para cualquier consulta o aclaración.</p>
                 </div>
               ` : ''}
             </td>
