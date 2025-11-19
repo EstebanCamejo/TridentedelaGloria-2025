@@ -616,30 +616,91 @@ export class SupabaseService {
       email: payload.email,
       nombre: payload.nombre,
       tienePhotoBase64: !!payload.photoBase64,
-      photoBase64Length: payload.photoBase64?.length || 0
+      photoBase64Length: payload.photoBase64?.length || 0,
+      edgeUrl: `${this.edgeBase}/functions/v1/register-anon`,
+      isNative: Capacitor.isNativePlatform()
     });
     
-    const res = await fetch(`${this.edgeBase}/functions/v1/register-anon`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${environment.supabaseAnonKey}`,
-        ...(environment.appEdgeKey ? { 'x-app-key': environment.appEdgeKey } : {})
-      },
-      body: JSON.stringify(payload),
-    });
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      console.error('[registrarAnonimoFlow] Error en register-anon:', errorData);
-      throw new Error(errorData?.error || `register-anon ${res.status}`);
+    // ✅ Usar el cliente de Supabase para invocar la función edge (mejor soporte en móviles)
+    let result: any;
+    try {
+      const { data, error } = await this._supabase.functions.invoke('register-anon', {
+        body: payload,
+        // No pasamos headers personalizados - Supabase los maneja automáticamente
+      });
+
+      if (error) {
+        console.error('[registrarAnonimoFlow] ❌ Error de Supabase functions.invoke:', error);
+        console.error('[registrarAnonimoFlow] ❌ Detalles:', JSON.stringify(error, null, 2));
+        
+        // Manejar errores específicos
+        const errorMsg = (error?.message || '').toLowerCase();
+        if (errorMsg.includes('failed to fetch') || errorMsg.includes('networkerror') || errorMsg.includes('network request failed') || errorMsg.includes('network')) {
+          throw new Error('PROBLEMA DE CONEXIÓN. VERIFICÁ TU INTERNET E INTENTÁ OTRA VEZ');
+        }
+        if (errorMsg.includes('timeout') || errorMsg.includes('timed out')) {
+          throw new Error('LA SOLICITUD TARDÓ DEMASIADO. VERIFICÁ TU CONEXIÓN E INTENTÁ NUEVAMENTE');
+        }
+        if (errorMsg.includes('not found') || errorMsg.includes('404')) {
+          throw new Error('LA FUNCIÓN DE REGISTRO NO ESTÁ DISPONIBLE. CONTACTÁ AL ADMINISTRADOR');
+        }
+        
+        throw new Error(error?.message || 'PROBLEMA DE CONEXIÓN. VERIFICÁ TU INTERNET E INTENTÁ OTRA VEZ');
+      }
+
+      result = data;
+      
+      // Si la respuesta es un string, intentar parsearlo
+      if (typeof result === 'string') {
+        try {
+          result = JSON.parse(result);
+        } catch (e) {
+          console.error('[registrarAnonimoFlow] No se pudo parsear la respuesta como JSON');
+        }
+      }
+      
+    } catch (invokeError: any) {
+      console.error('[registrarAnonimoFlow] ❌ Error al invocar función edge:', invokeError);
+      console.error('[registrarAnonimoFlow] ❌ Tipo de error:', invokeError?.name);
+      console.error('[registrarAnonimoFlow] ❌ Mensaje:', invokeError?.message);
+      console.error('[registrarAnonimoFlow] ❌ Stack:', invokeError?.stack);
+      
+      // Si ya es un Error con mensaje personalizado, relanzarlo
+      if (invokeError?.message && invokeError.message.includes('PROBLEMA DE CONEXIÓN') || invokeError.message.includes('LA FUNCIÓN')) {
+        throw invokeError;
+      }
+      
+      // Detectar diferentes tipos de errores
+      const errorMsg = (invokeError?.message || '').toLowerCase();
+      if (errorMsg.includes('failed to fetch') || errorMsg.includes('networkerror') || errorMsg.includes('network request failed') || errorMsg.includes('network')) {
+        throw new Error('PROBLEMA DE CONEXIÓN. VERIFICÁ TU INTERNET E INTENTÁ OTRA VEZ');
+      }
+      if (errorMsg.includes('cors') || errorMsg.includes('cross-origin')) {
+        throw new Error('ERROR DE CONFIGURACIÓN DEL SERVIDOR. CONTACTÁ AL ADMINISTRADOR');
+      }
+      if (errorMsg.includes('timeout') || errorMsg.includes('timed out')) {
+        throw new Error('LA SOLICITUD TARDÓ DEMASIADO. VERIFICÁ TU CONEXIÓN E INTENTÁ NUEVAMENTE');
+      }
+      if (errorMsg.includes('not found') || errorMsg.includes('404')) {
+        throw new Error('LA FUNCIÓN DE REGISTRO NO ESTÁ DISPONIBLE. CONTACTÁ AL ADMINISTRADOR');
+      }
+      
+      // Error genérico de red
+      throw new Error('PROBLEMA DE CONEXIÓN. VERIFICÁ TU INTERNET E INTENTÁ OTRA VEZ');
     }
     
-    const result = await res.json();
+    // Validar que la respuesta tenga el formato correcto
+    if (!result || (result.ok === false)) {
+      console.error('[registrarAnonimoFlow] ❌ Respuesta inválida o con error:', result);
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+      throw new Error('ERROR EN LA RESPUESTA DEL SERVIDOR. INTENTÁ NUEVAMENTE');
+    }
     console.log('[registrarAnonimoFlow] 📥 Respuesta completa de register-anon:', JSON.stringify(result, null, 2));
     
-    // Validar que la respuesta tenga el formato correcto
-    if (!result.ok && !result.estado) {
+    // Validar que la respuesta tenga el formato correcto (ya validamos ok === false arriba, pero verificamos estado también)
+    if (!result.estado && result.ok !== true) {
       console.error('[registrarAnonimoFlow] ⚠️⚠️⚠️ RESPUESTA INESPERADA DE LA FUNCIÓN EDGE!');
       console.error('[registrarAnonimoFlow] ⚠️ La función edge puede estar desactualizada. Desplegá la versión más reciente.');
       console.error('[registrarAnonimoFlow] ⚠️ Respuesta recibida:', result);
