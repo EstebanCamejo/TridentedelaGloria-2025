@@ -233,24 +233,27 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
       // Remover de la lista
       this.pagosPendientes = this.pagosPendientes.filter(p => p.id !== pago.id);
 
+      // 4. Mostrar mensaje de éxito
       this.toast.success(`PAGO CONFIRMADO PARA MESA ${pago.numero_mesa}. MESA LIBERADA.`, '', {
         positionClass: 'toast-center',
-        timeOut: 3000
+        timeOut: 2000
       });
 
-      // 4. Enviar notificaciones push
-      await this.enviarNotificacionesPago(pago);
+      // 5. Redirigir inmediatamente al home del mozo (sin mostrar la pantalla de confirmar pagos)
+      console.log('[ConfirmarPagoComponent] Pago confirmado, redirigiendo inmediatamente al home del mozo');
+      await this.router.navigate(['/home-mozo'], { 
+        replaceUrl: true // Reemplaza la ruta actual para que no pueda volver atrás
+      });
 
-      // 5. Generar factura
-      await this.generarFactura(pago);
-
-      // 6. Si no hay más pagos pendientes, redirigir al home del mozo
-      if (this.pagosPendientes.length === 0) {
-        console.log('[ConfirmarPagoComponent] No hay más pagos pendientes, redirigiendo al home del mozo');
-        setTimeout(() => {
-          this.router.navigate(['/home-mozo']);
-        }, 1500); // Pequeño delay para que se vea el toast
-      }
+      // 6. Enviar notificaciones push y generar factura en segundo plano (después de redirigir)
+      // Esto permite que el usuario vea inmediatamente los pedidos pendientes
+      Promise.all([
+        this.enviarNotificacionesPago(pago),
+        this.generarFactura(pago)
+      ]).catch(error => {
+        console.error('[ConfirmarPagoComponent] Error en tareas en segundo plano:', error);
+        // No mostramos error al usuario ya que el pago ya se confirmó
+      });
 
     } catch (error: any) {
       console.error('Error al confirmar pago:', error);

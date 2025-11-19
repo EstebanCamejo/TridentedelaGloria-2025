@@ -292,33 +292,47 @@ export class RegistroClienteAnonimoComponent {
   (document.activeElement as HTMLElement | null)?.blur?.(); // opcional, evita glitches con teclado en mobile
 
   try {
-    // 1) Alta + (foto) + inserción
-    // Si ya tenemos la URL, podríamos pasarla, pero el flujo actual sube la foto de nuevo
-    // que está bien porque la función edge maneja todo
+    // 1) Alta + (foto) + inserción + login automático
+    // registrarAnonimoFlow ya hace el login internamente, no necesitamos hacerlo de nuevo
     await this.auth.registrarAnonimoFlow(
       { nombre: this.nombre || 'Anónimo', email: this.email, password: this.password },
       this.photoFile
     );
 
-    // 2) Iniciar sesión automáticamente
-    await this.auth.login(this.email, this.password);
+    console.log('[registro-cliente-anonimo] ✅ Registro completado, verificando sesión...');
+    
+    // 2) Verificar que la sesión esté establecida antes de navegar
+    const { data: sessionData } = await this.auth.client.auth.getSession();
+    if (!sessionData?.session) {
+      console.warn('[registro-cliente-anonimo] ⚠️ No hay sesión después del registro, intentando login...');
+      await this.auth.login(this.email, this.password);
+    }
+
+    // 3) Esperar un momento para asegurar que todo esté sincronizado (especialmente en móviles)
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     this.toastOk('BIENVENIDO. REGISTRO ANÓNIMO COMPLETADO');
 
-    // 3) limpiar UI
+    // 4) limpiar UI
     this.nombre = this.email = this.password = this.confirm = '';
     this.photoFile = null;
     this.photoPreview = null;
     this.photoUrl = null;
     form.resetForm();
 
-    // 4) ir directo al home del cliente
-    await this.router.navigate(['/home-cliente']);
+    // 5) ir directo al home del cliente (usando replaceUrl para evitar problemas de navegación en móviles)
+    console.log('[registro-cliente-anonimo] 🏠 Navegando al home del cliente...');
+    await this.router.navigate(['/home-cliente'], { 
+      replaceUrl: true, // Reemplaza la ruta actual en el historial (mejor para móviles)
+      skipLocationChange: false 
+    });
+    
+    console.log('[registro-cliente-anonimo] ✅ Navegación completada');
   } catch (error: any) {
     const msg = this.mapRegisterError(error);
     this.errorMsg = msg;
     this.toastError(msg);
-    console.error('Registrar anónimo error:', error);
+    console.error('[registro-cliente-anonimo] ❌ Error al registrar:', error);
   } finally {
     this.cargando = false;
     this.loading = false;
