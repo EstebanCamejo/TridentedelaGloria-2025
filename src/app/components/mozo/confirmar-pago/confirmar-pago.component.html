@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding" style="--padding-top: 8px; --padding-bottom: 8px;">
+<ion-content class="ion-padding confirmar-pago-content" style="--padding-top: 8px; --padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px) + 60px);">
   <ion-loading [isOpen]="loading" message="CARGANDO PAGOS PENDIENTES..."></ion-loading>
 
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
@@ -54,21 +54,7 @@
 
           <!-- Información de propina -->
           <div *ngIf="pago.propina_monto > 0" class="propina-section">
-            <h4 class="section-subtitle">PROPINA:</h4>
-            <div class="propina-info">
-              <div class="propina-detail">
-                <span class="propina-label">NIVEL DE SATISFACCIÓN:</span>
-                <span class="propina-value">{{ getPropinaLabel(pago.propina_pct) }}</span>
-              </div>
-              <div class="propina-detail">
-                <span class="propina-label">PORCENTAJE:</span>
-                <span class="propina-value">{{ pago.propina_pct }}%</span>
-              </div>
-              <div class="propina-detail">
-                <span class="propina-label">MONTO:</span>
-                <span class="propina-value">${{ pago.propina_monto | number:'1.2-2' }}</span>
-              </div>
-            </div>
+            <h4 class="section-subtitle">PROPINA ({{ pago.propina_pct }}%)</h4>
           </div>
 
           <!-- Resumen de totales -->

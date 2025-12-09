@@ -246,45 +246,63 @@ ion-header ion-toolbar ion-title {
   font-weight: 800;
 }
 
-/* Paginación personalizada */
+/* Paginación personalizada (igual que cliente-realiza-pedido) */
 .custom-pagination {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   gap: 16px;
-  padding: 12px 0;
+  padding: 12px 20px;
+  background: rgba(100, 100, 100, 0.9);
+  border-radius: 12px;
   margin-top: 8px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .pagination-btn {
-  background: linear-gradient(180deg, rgba(63,23,23,.72), rgba(46,18,18,.72));
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 12px;
-  color: #f3e7da;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #5d2222;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  font-size: 1.5rem;
-}
-
-.pagination-btn:active {
-  transform: scale(0.95);
-}
-
-.pagination-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  transition: all 0.3s ease;
+  padding: 0;
+  
+  ion-icon {
+    font-size: 24px;
+  }
+  
+  &:hover:not(:disabled) {
+    background: #7b2f2f;
+    transform: scale(1.05);
+  }
+  
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
 }
 
 .pagination-counter {
-  color: #5d2222;
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 1.1rem;
+  background: #5d2222;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
   min-width: 60px;
   text-align: center;
+  font-family: "Inter", sans-serif;
 }

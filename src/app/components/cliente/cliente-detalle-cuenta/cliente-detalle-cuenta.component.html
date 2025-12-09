@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding" style="--padding-top: 8px; --padding-bottom: 8px;">
+<ion-content class="ion-padding detalle-cuenta-content" style="--padding-top: 8px; --padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px) + 60px);">
   <ion-loading [isOpen]="loading" message="CARGANDO CUENTA..."></ion-loading>
 
   <div *ngIf="!loading && cuenta" class="cuenta-container">
@@ -56,22 +56,9 @@
         <!-- Sección de propinas -->
         <div class="propina-section">
           <h4 class="section-subtitle" *ngIf="propinaSeleccionada === 0">ESCANEÁ EL QR PARA SELECCIONAR PROPINA</h4>
-          <h4 class="section-subtitle" *ngIf="propinaSeleccionada > 0">PROPINA:</h4>
-          <div *ngIf="propinaSeleccionada > 0" class="propina-info">
-            <div class="propina-detail">
-              <span class="propina-label">NIVEL DE SATISFACCIÓN:</span>
-              <span class="propina-value">{{ getPropinaLabel(propinaSeleccionada) }}</span>
-            </div>
-            <div class="propina-detail">
-              <span class="propina-label">PORCENTAJE:</span>
-              <span class="propina-value">{{ propinaSeleccionada }}%</span>
-            </div>
-            <div class="propina-detail">
-              <span class="propina-label">MONTO:</span>
-              <span class="propina-value">${{ propinaMonto | number:'1.2-2' }}</span>
-            </div>
-          </div>
-          
+          <h4 class="section-subtitle" *ngIf="propinaSeleccionada > 0">
+            PROPINA ({{ propinaSeleccionada }}%)
+          </h4>
           <ion-button 
             expand="block" 
             fill="outline" 

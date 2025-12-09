@@ -1,9 +1,9 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton, IonButtons, IonContent, IonHeader, IonInput, IonItem,
-  IonSelect, IonSelectOption, IonTitle, IonToolbar, IonIcon
+  IonSelect, IonSelectOption, IonTitle, IonToolbar, IonIcon, IonModal
 } from '@ionic/angular/standalone';
 import { ViewChild, ElementRef } from '@angular/core';
 import { addIcons } from 'ionicons';
@@ -25,11 +25,23 @@ import { ActivatedRoute, Router } from '@angular/router';
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonItem, IonInput, IonSelect, IonSelectOption,
-    IonButton, IonButtons, IonIcon
+    IonButton, IonButtons, IonIcon, IonModal
   ],
   providers: [ModalController]
 })
-export class AltaMesaComponent implements OnInit {
+export class AltaMesaComponent implements OnInit, OnDestroy {
+  // Limpiar recursos al destruir el componente
+  ngOnDestroy() {
+    if (this.previewObjectUrl) {
+      URL.revokeObjectURL(this.previewObjectUrl);
+    }
+    if (this.tempObjectUrl) {
+      URL.revokeObjectURL(this.tempObjectUrl);
+    }
+    if (this.tempPhotoPreview && this.tempPhotoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(this.tempPhotoPreview);
+    }
+  }
   // ====== MODO (creación/edición) ======
   @Input() mesaId?: string;                 // si viene por modal
   private modalCtrl = inject(ModalController);
@@ -42,15 +54,20 @@ export class AltaMesaComponent implements OnInit {
   tipo: MesaTipo | null = 'estandar';
 
   // Foto
-  fotoPreview: string | null = null; // UI
+  fotoPreview: string | null = null; // UI (foto confirmada)
   private fotoBlob: Blob | null = null; // a subir
   @ViewChild('fileInput', { static: false }) fileInput?: ElementRef<HTMLInputElement>;
+
+  // Modal de confirmación de foto
+  tempPhotoPreview: string | null = null; // foto temporal antes de confirmar
+  showPhotoModal = false; // control del modal
 
   guardando = false;
   btnDisabled = true;
 
   private takingPhoto = false;
   private previewObjectUrl?: string; // para revocar el URL y evitar fugas
+  private tempObjectUrl?: string; // para revocar el URL temporal
   private numeroOriginal: number | null = null; // para evitar editar número en edición
 
   constructor(
@@ -179,21 +196,10 @@ export class AltaMesaComponent implements OnInit {
       });
 
       if (img?.webPath) {
-        // Leemos el blob de la URI
-        const rawBlob = await fetch(img.webPath).then(r => r.blob());
-  
-        // Compactamos (máx lado + calidad más baja en Android)
-        const maxSide  = this.isAndroid() ? 900 : 1024;
-        const quality  = this.isAndroid() ? 0.6 : 0.72;
-        const compact  = rawBlob.size < 350_000 ? rawBlob : await this.downscaleToJpeg(rawBlob, maxSide, quality);
-        this.fotoBlob  = compact;
-  
-        // Preview: generamos un ObjectURL chiquito (y revocamos el anterior)
-        if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
-        this.previewObjectUrl = URL.createObjectURL(compact);
-        this.fotoPreview = this.previewObjectUrl;
-  
-        this.updateBtnDisabled();
+        // 🆕 Solo guardamos el webPath temporal y mostramos el modal
+        // NO procesamos la imagen todavía (evita problemas de memoria y reinicio)
+        this.tempPhotoPreview = img.webPath;
+        this.showPhotoModal = true;
       }
     } catch (e: any) {
       const msg = String(e?.message || e || '');
@@ -205,28 +211,64 @@ export class AltaMesaComponent implements OnInit {
     }
   }
 
+  // 🆕 Confirmar foto: procesar la imagen solo cuando el usuario confirma
+  async confirmPhoto() {
+    if (!this.tempPhotoPreview) return;
+
+    try {
+      // Ahora sí procesamos la imagen (fetch, downscale, etc.)
+      const rawBlob = await fetch(this.tempPhotoPreview).then(r => r.blob());
+  
+      // Compactamos (máx lado + calidad más baja en Android)
+      const maxSide  = this.isAndroid() ? 900 : 1024;
+      const quality  = this.isAndroid() ? 0.6 : 0.72;
+      const compact  = rawBlob.size < 350_000 ? rawBlob : await this.downscaleToJpeg(rawBlob, maxSide, quality);
+      this.fotoBlob  = compact;
+  
+      // Preview: generamos un ObjectURL (y revocamos el anterior)
+      if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
+      this.previewObjectUrl = URL.createObjectURL(compact);
+      this.fotoPreview = this.previewObjectUrl;
+  
+      this.updateBtnDisabled();
+      this.closePhotoModal();
+    } catch (e: any) {
+      console.error('[alta-mesa] Error al procesar foto:', e);
+      this.err('NO SE PUDO PROCESAR LA FOTO');
+      this.closePhotoModal();
+    }
+  }
+
+  // 🆕 Cancelar foto: limpiar sin procesar
+  cancelPhoto() {
+    this.closePhotoModal();
+  }
+
+  // 🆕 Cerrar modal y limpiar recursos
+  closePhotoModal() {
+    this.showPhotoModal = false;
+    // Limpiar blob URL temporal si existe
+    if (this.tempPhotoPreview && this.tempPhotoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(this.tempPhotoPreview);
+    }
+    // También limpiar tempObjectUrl si existe
+    if (this.tempObjectUrl) {
+      URL.revokeObjectURL(this.tempObjectUrl);
+      this.tempObjectUrl = undefined;
+    }
+    this.tempPhotoPreview = null;
+  }
+
   onFileSelected(ev: Event) {
     const input = ev.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     
-    // Leer el archivo como blob
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const dataUrl = reader.result as string;
-      // Convertir dataUrl a blob
-      fetch(dataUrl)
-        .then(res => res.blob())
-        .then(blob => {
-          this.fotoBlob = blob;
-          // Preview
-          if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
-          this.previewObjectUrl = URL.createObjectURL(blob);
-          this.fotoPreview = this.previewObjectUrl;
-          this.updateBtnDisabled();
-        });
-    };
-    reader.readAsDataURL(file);
+    // 🆕 Para web/desktop, también mostrar modal de confirmación
+    if (this.tempObjectUrl) URL.revokeObjectURL(this.tempObjectUrl);
+    this.tempObjectUrl = URL.createObjectURL(file);
+    this.tempPhotoPreview = this.tempObjectUrl;
+    this.showPhotoModal = true;
   }
   
 
@@ -443,13 +485,14 @@ export class AltaMesaComponent implements OnInit {
         this.ok(`MESA #${res.numero} CREADA`);   // ← toast visible inmediato
 
         // 🆕 Preparar datos de la mesa creada
+        // 🆕 CRÍTICO: Usar res.foto_url (URL pública de Supabase) en lugar de fotoPreview (blob URL temporal)
         mesaCreada = {
           id: res.id,
           numero: res.numero,
           capacidad: this.capacidad!,
           tipo: this.tipo!,
           estado: 'libre',
-          foto_url: this.fotoPreview ?? null,
+          foto_url: res.foto_url ?? null, // 🆕 Usar la URL pública real de Supabase, no el blob URL temporal
           qr_text: res.qr_text ?? null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),

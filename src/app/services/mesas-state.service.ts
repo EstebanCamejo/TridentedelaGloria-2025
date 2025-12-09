@@ -48,10 +48,14 @@ export class MesasStateService {
     if (mesasActuales.some(m => m.id === mesa.id)) {
       console.log('[mesas-state] Mesa ya existe en estado local, actualizando...');
       const mesasActualizadas = mesasActuales.map(m => m.id === mesa.id ? mesa : m);
+      // 🆕 Mantener orden por número después de actualizar
+      mesasActualizadas.sort((a, b) => a.numero - b.numero);
       this.mesasSubject.next([...mesasActualizadas]);
     } else {
-      // Agregar al inicio del array
-      this.mesasSubject.next([mesa, ...mesasActuales]);
+      // 🆕 Agregar al final del array y ordenar por número para mantener consistencia
+      const mesasActualizadas = [...mesasActuales, mesa];
+      mesasActualizadas.sort((a, b) => a.numero - b.numero);
+      this.mesasSubject.next([...mesasActualizadas]);
       console.log('[mesas-state] Mesa agregada optimistamente. Total:', this.mesasSubject.value.length);
     }
   }

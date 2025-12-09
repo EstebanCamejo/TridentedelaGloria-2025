@@ -1,7 +1,22 @@
+/* ===== Configuración de scroll para ion-content ===== */
+:host {
+  display: block;
+  height: 100%;
+}
+
+.detalle-cuenta-content {
+  --overflow: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  --padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px) + 60px);
+}
+
 .cuenta-container {
   max-width: 700px;
   margin: 0 auto;
   padding: 0 8px;
+  min-height: fit-content;
+  padding-bottom: 20px; // Espacio adicional al final para evitar superposición
 }
 
 /* ===== Títulos y headers ===== */
@@ -293,6 +308,7 @@
 
 .btn-volver {
   margin-top: 10px;
+  margin-bottom: 20px; // Espacio adicional al final para evitar superposición con controles del sistema
   --color: #fff;
   --background: #7b2f2f;
   --background-hover: #6b2727;

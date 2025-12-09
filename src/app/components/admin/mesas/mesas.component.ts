@@ -66,17 +66,32 @@ export class MesasComponent implements OnInit, OnDestroy, ViewWillEnter, ViewDid
   }
 
   ngOnInit() {
+    // 🆕 Obtener el estado actual inmediatamente (por si el observable ya tiene datos)
+    const mesasActuales = this.mesasState.getMesas();
+    if (mesasActuales.length > 0) {
+      console.log('[mesas] Ya hay mesas en el estado, actualizando UI inmediatamente:', mesasActuales.length);
+      this.zone.run(() => {
+        this.mesas = [...mesasActuales];
+        this.cdr.markForCheck();
+      });
+    }
+
     // 🆕 Suscribirse al estado de mesas del servicio singleton
+    // BehaviorSubject emite el valor actual inmediatamente al suscribirse
     this.mesasSubscription = this.mesasState.mesas$.subscribe(mesas => {
+      console.log('[mesas] Observable emitió. Total mesas:', mesas.length);
       this.zone.run(() => {
         this.mesas = [...mesas];
         this.cdr.markForCheck();
-        console.log('[mesas] Estado actualizado desde servicio. Total:', mesas.length);
+        console.log('[mesas] Estado actualizado desde servicio. Total:', mesas.length, 'this.mesas.length =', this.mesas.length);
       });
     });
 
-    // Cargar mesas desde Supabase (primera vez)
-    this.cargarMesas();
+    // Cargar mesas desde Supabase (primera vez o si no hay datos)
+    // Usar setTimeout para asegurar que la suscripción esté lista
+    setTimeout(() => {
+      this.cargarMesas();
+    }, 0);
   }
 
   ngOnDestroy() {
@@ -89,47 +104,104 @@ export class MesasComponent implements OnInit, OnDestroy, ViewWillEnter, ViewDid
     console.log('[mesas] ionViewWillEnter: recargando mesas...');
     console.log('[mesas] Estado actual: mesas.length =', this.mesas.length, 'cargando =', this.cargando);
     
-    // Limpiar array anterior para forzar actualización visual
-    this.zone.run(() => {
-      this.mesas = [];
-      this.cdr.markForCheck();
-    });
+    // 🆕 Verificar si ya hay mesas en el estado antes de cargar
+    const mesasEnEstado = this.mesasState.getMesas();
+    console.log('[mesas] Mesas en estado al entrar:', mesasEnEstado.length);
     
-    // Recargar mesas
+    if (mesasEnEstado.length > 0) {
+      // Si ya hay mesas en el estado, actualizar la UI inmediatamente
+      console.log('[mesas] Actualizando UI con mesas existentes en estado...');
+      this.zone.run(() => {
+        this.mesas = [...mesasEnEstado];
+        this.cdr.markForCheck();
+        console.log('[mesas] UI actualizada. mesas.length =', this.mesas.length);
+      });
+    }
+    
+    // Recargar mesas desde Supabase (actualizará el observable y la UI se actualizará automáticamente)
     await this.cargarMesas();
   }
   
   async ionViewDidEnter(): Promise<void> {
     // Verificar que las mesas se cargaron correctamente
     console.log('[mesas] ionViewDidEnter: verificando mesas...');
-    console.log('[mesas] Estado después de cargar: mesas.length =', this.mesas.length, 'cargando =', this.cargando);
     
-    // Si no hay mesas después de un momento, intentar recargar una vez más
-    if (this.mesas.length === 0 && !this.cargando) {
-      console.log('[mesas] ⚠️ No hay mesas visibles después de cargar, intentando recargar...');
-      setTimeout(async () => {
-        if (this.mesas.length === 0 && !this.cargando) {
-          await this.cargarMesas();
-        }
-      }, 500);
-    }
+    // 🆕 Verificación con delay para asegurar que todo esté sincronizado
+    setTimeout(() => {
+      const mesasEnEstado = this.mesasState.getMesas();
+      console.log('[mesas] ionViewDidEnter (después de delay): mesas.length =', this.mesas.length, 'mesasEnEstado.length =', mesasEnEstado.length, 'cargando =', this.cargando);
+      
+      // 🆕 CRÍTICO: Si cargando está en true pero ya hay mesas, forzar reset
+      if (this.cargando && (this.mesas.length > 0 || mesasEnEstado.length > 0)) {
+        console.log('[mesas] ⚠️ cargando está en true pero hay mesas, forzando reset de cargando...');
+        this.zone.run(() => {
+          this.cargando = false;
+          this.cdr.markForCheck();
+          console.log('[mesas] ✅ cargando = false (forzado en ionViewDidEnter)');
+        });
+      }
+      
+      // Si hay mesas en el estado pero no en la UI, forzar actualización
+      if (mesasEnEstado.length > 0 && this.mesas.length === 0) {
+        console.log('[mesas] ⚠️ Hay mesas en el estado pero no en la UI, forzando actualización...');
+        this.zone.run(() => {
+          this.mesas = [...mesasEnEstado];
+          this.cargando = false; // Asegurar que cargando esté en false
+          this.cdr.markForCheck();
+          console.log('[mesas] ✅ UI actualizada forzadamente. mesas.length =', this.mesas.length);
+        });
+      }
+      
+      // Si no hay mesas después de un momento, intentar recargar una vez más
+      if (this.mesas.length === 0 && !this.cargando && mesasEnEstado.length === 0) {
+        console.log('[mesas] ⚠️ No hay mesas visibles después de cargar, intentando recargar...');
+        setTimeout(async () => {
+          const mesasActuales = this.mesasState.getMesas();
+          if (mesasActuales.length === 0 && !this.cargando) {
+            await this.cargarMesas();
+          } else if (mesasActuales.length > 0 && this.mesas.length === 0) {
+            // Forzar actualización si hay mesas en el estado
+            console.log('[mesas] ⚠️ Forzando actualización final...');
+            this.zone.run(() => {
+              this.mesas = [...mesasActuales];
+              this.cargando = false; // Asegurar que cargando esté en false
+              this.cdr.markForCheck();
+              console.log('[mesas] ✅ UI actualizada finalmente. mesas.length =', this.mesas.length);
+            });
+          }
+        }, 500);
+      }
+    }, 100);
   }
  
   async cargarMesas(ev?: CustomEvent) {
     // 🆕 Evitar múltiples llamadas concurrentes usando un flag simple
+    // PERO si viene de pull-to-refresh, siempre ejecutar
     if (this.cargando && !ev) {
       console.log('[mesas] cargarMesas - Ya hay una carga en curso, omitiendo...');
+      // 🆕 Si cargando está en true por mucho tiempo, forzar reset
+      setTimeout(() => {
+        if (this.cargando) {
+          console.log('[mesas] ⚠️ cargando está en true por mucho tiempo, forzando reset...');
+          this.zone.run(() => {
+            this.cargando = false;
+            this.cdr.markForCheck();
+          });
+        }
+      }, 5000); // 5 segundos de timeout
       return;
     }
     
     console.time('[mesas] cargarMesas');
     console.log('[mesas] cargarMesas - Iniciando carga de mesas...');
+    console.log('[mesas] Estado ANTES de cargar: mesas.length =', this.mesas.length, 'cargando =', this.cargando);
     
     try {
       // Actualizar estado de carga dentro de NgZone
       this.zone.run(() => {
         this.cargando = true;
         this.cdr.markForCheck();
+        console.log('[mesas] cargando = true (marcado)');
       });
       
       if (!ev) {
@@ -140,8 +212,23 @@ export class MesasComponent implements OnInit, OnDestroy, ViewWillEnter, ViewDid
       // 🆕 Usar el servicio de estado para cargar mesas
       // El servicio actualizará automáticamente el observable y la UI se actualizará
       console.log('[mesas] Llamando a mesasState.cargarMesas()...');
-      await this.mesasState.cargarMesas();
-      console.log('[mesas] cargarMesas() completado');
+      const mesasCargadas = await this.mesasState.cargarMesas();
+      console.log('[mesas] cargarMesas() completado. Mesas cargadas:', mesasCargadas.length);
+      
+      // 🆕 Verificar que el observable se actualizó
+      const mesasEnEstado = this.mesasState.getMesas();
+      console.log('[mesas] Mesas en estado después de cargar:', mesasEnEstado.length);
+      console.log('[mesas] Mesas en componente después de cargar:', this.mesas.length);
+      
+      // 🆕 Si hay mesas en el estado pero no en el componente, forzar actualización
+      if (mesasEnEstado.length > 0 && this.mesas.length === 0) {
+        console.log('[mesas] ⚠️ Forzando actualización de UI después de cargar...');
+        this.zone.run(() => {
+          this.mesas = [...mesasEnEstado];
+          this.cdr.markForCheck();
+          console.log('[mesas] UI actualizada. mesas.length =', this.mesas.length);
+        });
+      }
       
     } catch (e: any) {
       console.error('[mesas] cargarMesas error:', e);
@@ -157,10 +244,23 @@ export class MesasComponent implements OnInit, OnDestroy, ViewWillEnter, ViewDid
     } finally {
       // Asegurar que el estado de carga se actualice incluso si hay errores
       console.log('[mesas] cargarMesas - finally block, ocultando spinner...');
+      console.log('[mesas] Estado ANTES de finally: mesas.length =', this.mesas.length, 'cargando =', this.cargando);
       
+      // 🆕 CRÍTICO: Asegurar que cargando se ponga en false SIEMPRE
+      // Usar setTimeout para asegurar que se ejecute incluso si hay problemas
+      setTimeout(() => {
+        this.zone.run(() => {
+          this.cargando = false;
+          this.cdr.markForCheck();
+          console.log('[mesas] ✅ cargando = false (marcado en finally con timeout)');
+        });
+      }, 0);
+      
+      // También ponerlo inmediatamente (por si el timeout no es necesario)
       this.zone.run(() => {
         this.cargando = false;
         this.cdr.markForCheck();
+        console.log('[mesas] ✅ cargando = false (marcado en finally inmediato)');
       });
       
       if (!ev) {
@@ -174,6 +274,20 @@ export class MesasComponent implements OnInit, OnDestroy, ViewWillEnter, ViewDid
       } catch (err) {
         console.error('[mesas] Error al completar refresher:', err);
       }
+      
+      // Verificar después de un momento que cargando esté en false
+      setTimeout(() => {
+        console.log('[mesas] Verificación final: mesas.length =', this.mesas.length, 'cargando =', this.cargando);
+        if (this.cargando) {
+          console.error('[mesas] ❌ ERROR: cargando sigue en true después de finally! Forzando reset...');
+          this.zone.run(() => {
+            this.cargando = false;
+            this.cdr.markForCheck();
+          });
+        }
+      }, 100);
+      
+      console.log('[mesas] Estado DESPUÉS de finally: mesas.length =', this.mesas.length, 'cargando =', this.cargando);
       console.timeEnd('[mesas] cargarMesas');
     }
   }

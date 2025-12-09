@@ -6,7 +6,7 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon,
   IonCardSubtitle, IonSpinner, IonRefresher, IonRefresherContent, AlertController
 } from '@ionic/angular/standalone';
-import { chevronForwardOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, closeCircleOutline, chevronBackOutline } from 'ionicons/icons';
+import { chevronForwardOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, closeCircleOutline, chevronBackOutline, closeOutline, checkmarkOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { FormsModule } from '@angular/forms';
 import type { SegmentChangeEventDetail } from '@ionic/angular';
@@ -77,7 +77,9 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
       chatbubbleEllipsesOutline,
       checkmarkCircleOutline,
       closeCircleOutline,
-      chevronBackOutline
+      chevronBackOutline,
+      closeOutline,
+      checkmarkOutline
     });
     register(); // Registrar Swiper
     this.nombre = this.sesion.usuarioBD?.nombres || null;
@@ -261,23 +263,53 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
     
     const alert = await this.alertCtrl.create({
       header: 'CONFIRMAR RECHAZO',
-      message: `¿ESTÁS SEGURO DE QUE QUERÉS RECHAZAR EL PEDIDO DE LA MESA ${pedido.mesa_numero}?\n\nEL CLIENTE PODRÁ MODIFICARLO Y ENVIARLO NUEVAMENTE.`,
+      message: `¿Estás seguro que querés rechazar el pedido de la mesa ${pedido.mesa_numero}?`,
       buttons: [
         {
-          text: 'CANCELAR',
+          text: '✕',
           role: 'cancel',
-          cssClass: 'alert-button-cancel'
+          cssClass: 'alert-button-cancel-icon',
+          handler: () => {
+            // No hacer nada, solo cancelar
+          }
         },
         {
-          text: 'CONFIRMAR',
-          cssClass: 'alert-button-confirm',
+          text: '✓',
+          cssClass: 'alert-button-confirm-icon',
           handler: () => this.procesarRechazoPendiente(pedido)
         }
       ],
-      cssClass: 'custom-alert'
+      cssClass: 'custom-alert rechazo-alert'
     });
     
     await alert.present();
+    
+    // Reemplazar texto con iconos después de que el alert se presente
+    setTimeout(() => {
+      const alertElement = document.querySelector('.rechazo-alert');
+      if (alertElement) {
+        const buttons = alertElement.querySelectorAll('.alert-button');
+        if (buttons.length >= 2) {
+          // Botón cancelar (X roja)
+          const cancelButton = buttons[0] as HTMLElement;
+          const cancelIcon = document.createElement('ion-icon');
+          cancelIcon.setAttribute('name', 'close-outline');
+          cancelIcon.style.fontSize = '56px';
+          cancelIcon.style.color = '#ff0000';
+          cancelButton.innerHTML = '';
+          cancelButton.appendChild(cancelIcon);
+          
+          // Botón confirmar (✓ verde)
+          const confirmButton = buttons[1] as HTMLElement;
+          const confirmIcon = document.createElement('ion-icon');
+          confirmIcon.setAttribute('name', 'checkmark-outline');
+          confirmIcon.style.fontSize = '56px';
+          confirmIcon.style.color = '#28a745';
+          confirmButton.innerHTML = '';
+          confirmButton.appendChild(confirmIcon);
+        }
+      }
+    }, 150);
   }
 
   private async procesarRechazoPendiente(pedido: PedidoPendiente) {
@@ -319,23 +351,53 @@ export class HomeMozoComponent implements OnInit, OnDestroy {
     
     const alert = await this.alertCtrl.create({
       header: 'CONFIRMAR RECHAZO',
-      message: `¿ESTÁS SEGURO DE QUE QUERÉS RECHAZAR EL PEDIDO DE LA MESA ${pedido.mesa_numero}?\n\nEL CLIENTE PODRÁ MODIFICARLO Y ENVIARLO NUEVAMENTE.`,
+      message: `¿Estás seguro que querés rechazar el pedido de la mesa ${pedido.mesa_numero}?`,
       buttons: [
         {
-          text: 'CANCELAR',
+          text: '✕',
           role: 'cancel',
-          cssClass: 'alert-button-cancel'
+          cssClass: 'alert-button-cancel-icon',
+          handler: () => {
+            // No hacer nada, solo cancelar
+          }
         },
         {
-          text: 'CONFIRMAR',
-          cssClass: 'alert-button-confirm',
+          text: '✓',
+          cssClass: 'alert-button-confirm-icon',
           handler: () => this.procesarRechazoEnCurso(pedido)
         }
       ],
-      cssClass: 'custom-alert'
+      cssClass: 'custom-alert rechazo-alert'
     });
     
     await alert.present();
+    
+    // Reemplazar texto con iconos después de que el alert se presente
+    setTimeout(() => {
+      const alertElement = document.querySelector('.rechazo-alert');
+      if (alertElement) {
+        const buttons = alertElement.querySelectorAll('.alert-button');
+        if (buttons.length >= 2) {
+          // Botón cancelar (X roja)
+          const cancelButton = buttons[0] as HTMLElement;
+          const cancelIcon = document.createElement('ion-icon');
+          cancelIcon.setAttribute('name', 'close-outline');
+          cancelIcon.style.fontSize = '56px';
+          cancelIcon.style.color = '#ff0000';
+          cancelButton.innerHTML = '';
+          cancelButton.appendChild(cancelIcon);
+          
+          // Botón confirmar (✓ verde)
+          const confirmButton = buttons[1] as HTMLElement;
+          const confirmIcon = document.createElement('ion-icon');
+          confirmIcon.setAttribute('name', 'checkmark-outline');
+          confirmIcon.style.fontSize = '56px';
+          confirmIcon.style.color = '#28a745';
+          confirmButton.innerHTML = '';
+          confirmButton.appendChild(confirmIcon);
+        }
+      }
+    }, 150);
   }
 
   private async procesarRechazoEnCurso(pedido: PedidoPendiente) {

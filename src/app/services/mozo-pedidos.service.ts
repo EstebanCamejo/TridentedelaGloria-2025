@@ -402,6 +402,7 @@ export class MozoPedidosService {
         console.log('[MozoPedidosService] UPDATE detectado en pedidos en curso:', { old: oldPedido.estado, new: pedido.estado });
         
         // Recargar lista para cualquier cambio de estado en pedidos activos
+        // 🆕 Incluir 'pendiente confirmacion pago' para detectar cuando sale de la lista
         const estadosActivos = [
           'pedido en curso',
           'en preparación parcial', 
@@ -409,10 +410,20 @@ export class MozoPedidosService {
           'pendiente aceptación',
           'entregado',
           'rechazado',
-          'rechazado por mozo'
+          'rechazado por mozo',
+          'pendiente confirmacion pago' // 🆕 Incluir para detectar cuando pasa a 'pagado'
         ];
         
-        if (estadosActivos.includes(pedido.estado) || estadosActivos.includes(oldPedido.estado)) {
+        // 🆕 Recargar si:
+        // 1. El estado nuevo está en estadosActivos (sigue en la lista)
+        // 2. El estado anterior estaba en estadosActivos (salió de la lista, ej: pasó a 'pagado')
+        // 3. El estado nuevo es 'pagado' (para asegurar que se quite de la lista)
+        const debeRecargar = 
+          estadosActivos.includes(pedido.estado) || 
+          estadosActivos.includes(oldPedido.estado) ||
+          pedido.estado === 'pagado';
+        
+        if (debeRecargar) {
           console.log(`[MozoPedidosService] Estado de pedido cambiado: ${oldPedido.estado} → ${pedido.estado}, recargando lista`);
           const pedidos = await this.getPedidosEnCurso();
           subject.next(pedidos);

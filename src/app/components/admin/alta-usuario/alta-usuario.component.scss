@@ -470,15 +470,81 @@ select:focus{
 
 .modal-actions {
   display: flex;
-  gap: 12px;
-  padding: 16px 20px;
+  gap: 16px;
+  padding: 20px;
   background: #3f1717;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .modal-actions ion-button {
   flex: 1;
-  --height: 56px;
+  --height: 60px;
+  --min-height: 60px;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 12px;
+  margin: 0;
+}
+
+/* Botón CANCELAR - Fondo claro con texto oscuro para buen contraste */
+.modal-actions .btn-cancel {
+  --background: #ffe9d3;
+  --background-activated: #f6ecdc;
+  --background-hover: #f6ecdc;
+  --color: #5d2222;
+  --color-activated: #3f1717;
+  --border-color: #ffe9d3;
+  --border-width: 2px;
+  --border-style: solid;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.modal-actions .btn-cancel:hover {
+  --background: #f6ecdc;
+  transform: scale(1.02);
+}
+
+.modal-actions .btn-cancel:active {
+  transform: scale(0.98);
+}
+
+/* Botón CONFIRMAR - Fondo verde con texto blanco para buen contraste */
+.modal-actions .btn-confirm {
+  --background: #28a745;
+  --background-activated: #218838;
+  --background-hover: #218838;
+  --color: #ffffff;
+  --color-activated: #ffffff;
+  --border-color: #28a745;
+  --border-width: 2px;
+  --border-style: solid;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.modal-actions .btn-confirm:hover {
+  --background: #218838;
+  transform: scale(1.02);
+}
+
+.modal-actions .btn-confirm:active {
+  transform: scale(0.98);
+}
+
+/* Asegurar que el texto dentro de los botones tenga el color correcto */
+.modal-actions .btn-cancel::part(native),
+.modal-actions .btn-confirm::part(native) {
+  color: inherit;
+}
+
+.modal-actions .btn-cancel .button-inner,
+.modal-actions .btn-confirm .button-inner {
+  color: inherit;
 }

@@ -115,7 +115,7 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
             .select('numero_mesa')
             .eq('usuario_id', clienteId)
             .eq('estado', 'asignado')
-            .single();
+            .maybeSingle();
 
           const { data: usuario } = await this.supa.client
             .from('usuarios')
@@ -143,8 +143,13 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
         
         // Agregar detalles del pedido
         for (const detalle of pedido.pedidos_detalles || []) {
+          const detalleAny = detalle as any;
+          const menuData = detalleAny.menu;
+          const menuNombre = Array.isArray(menuData)
+            ? menuData[0]?.nombre
+            : menuData?.nombre;
           pago.pedidos.push({
-            nombre: detalle.menu?.[0]?.nombre || 'Producto',
+            nombre: menuNombre || 'Producto',
             cantidad: detalle.cantidad,
             precio_unitario: detalle.precioUnitario,
             subtotal: detalle.cantidad * detalle.precioUnitario
@@ -241,7 +246,7 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
 
       // 5. Redirigir inmediatamente al home del mozo (sin mostrar la pantalla de confirmar pagos)
       console.log('[ConfirmarPagoComponent] Pago confirmado, redirigiendo inmediatamente al home del mozo');
-      await this.router.navigate(['/home-mozo'], { 
+      await this.router.navigate(['/home'], { 
         replaceUrl: true // Reemplaza la ruta actual para que no pueda volver atrás
       });
 
@@ -380,7 +385,7 @@ export class ConfirmarPagoComponent implements OnInit, OnDestroy {
   }
 
   volver() {
-    this.router.navigate(['/home-mozo']);
+    this.router.navigate(['/home']);
   }
 
   async generarFactura(pago: PagoPendiente) {

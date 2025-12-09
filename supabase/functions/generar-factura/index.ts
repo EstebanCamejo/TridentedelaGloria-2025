@@ -30,6 +30,7 @@ interface FacturaData {
   }>;
   numero_mesa: number;
   fecha_pedido: string;
+  numero_factura?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -382,7 +383,7 @@ Deno.serve(async (req: Request) => {
         throw new Error(`Error al contar facturas: ${countError.message}`)
       }
 
-      const numeroFactura = `FACTURA Nº${(factCount ?? 0) + 1}`
+      let numeroFactura = `FACTURA Nº${(factCount ?? 0) + 1}`
       console.log('[generar-factura] Número de factura generado:', numeroFactura)
 
       // Verificar si ya existe una factura para este pedido
@@ -401,8 +402,50 @@ Deno.serve(async (req: Request) => {
       if (facturaExistente) {
         console.warn('[generar-factura] ⚠️ Ya existe una factura para este pedido:', facturaExistente.id)
         facturaId = facturaExistente.id
+        // Obtener numero_factura de la factura existente
+        const { data: facturaConNumero } = await supabase
+          .from('facturas')
+          .select('numero_factura')
+          .eq('id', facturaId)
+          .single()
+        if (facturaConNumero) {
+          facturaData.numero_factura = facturaConNumero.numero_factura
+        }
         console.log('[generar-factura] ✅ Usando factura existente con ID:', facturaId)
       } else {
+        // 🆕 Verificar también si el numero_factura ya existe (puede pasar en condiciones de carrera)
+        const { data: facturaPorNumero, error: checkNumeroError } = await supabase
+          .from('facturas')
+          .select('id, pedido_id')
+          .eq('numero_factura', numeroFactura)
+          .maybeSingle()
+
+        if (checkNumeroError) {
+          console.error('[generar-factura] ❌ Error al verificar numero_factura:', JSON.stringify(checkNumeroError, null, 2))
+          // Continuar de todas formas, intentaremos insertar
+        }
+
+        // Si existe una factura con ese número pero es para otro pedido, generar nuevo número
+        if (facturaPorNumero && facturaPorNumero.pedido_id !== pedido.id) {
+          console.warn('[generar-factura] ⚠️ El numero_factura ya existe para otro pedido, generando nuevo número...')
+          // Obtener el máximo número de factura y sumar 1
+          const { data: facturas, error: maxError } = await supabase
+            .from('facturas')
+            .select('numero_factura')
+            .order('id', { ascending: false })
+            .limit(1)
+          
+          if (!maxError && facturas && facturas.length > 0) {
+            const ultimoNumero = facturas[0].numero_factura
+            const match = ultimoNumero?.match(/Nº(\d+)/)
+            if (match) {
+              const ultimoNum = parseInt(match[1], 10)
+              numeroFactura = `FACTURA Nº${ultimoNum + 1}`
+              console.log('[generar-factura] ✅ Nuevo numero_factura generado:', numeroFactura)
+            }
+          }
+        }
+
         const facturaPayload = {
           numero_factura: numeroFactura,
           pedido_id: pedido.id,
@@ -436,8 +479,91 @@ Deno.serve(async (req: Request) => {
           console.error('[generar-factura] ❌ Detalles:', facturaError.details)
           console.error('[generar-factura] ❌ Hint:', facturaError.hint)
           
-          // Si es un error 401 o de autorización, devolverlo explícitamente
-          if (facturaError.code === 'PGRST301' || facturaError.message.includes('authorization') || facturaError.message.includes('401')) {
+          // 🆕 Manejar error de clave duplicada (23505) - puede pasar en condiciones de carrera
+          if (facturaError.code === '23505' && facturaError.message.includes('numero_factura')) {
+            console.warn('[generar-factura] ⚠️ numero_factura duplicado detectado, intentando recuperar factura existente...')
+            
+            // Intentar obtener la factura existente con ese número
+            const { data: facturaDuplicada, error: getDuplicadaError } = await supabase
+              .from('facturas')
+              .select('id, pedido_id')
+              .eq('numero_factura', numeroFactura)
+              .maybeSingle()
+            
+            if (!getDuplicadaError && facturaDuplicada) {
+              // Si la factura duplicada es para el mismo pedido, usarla
+              if (facturaDuplicada.pedido_id === pedido.id) {
+                console.log('[generar-factura] ✅ Factura duplicada encontrada para el mismo pedido, usando ID:', facturaDuplicada.id)
+                facturaId = facturaDuplicada.id
+                facturaData.numero_factura = numeroFactura
+                // Continuar con el flujo normal (no retornar error)
+              } else {
+                // Si es para otro pedido, generar nuevo número y reintentar (solo una vez)
+                console.warn('[generar-factura] ⚠️ Factura duplicada es para otro pedido, generando nuevo número...')
+                const { data: facturas, error: maxError2 } = await supabase
+                  .from('facturas')
+                  .select('numero_factura')
+                  .order('id', { ascending: false })
+                  .limit(1)
+                
+                if (!maxError2 && facturas && facturas.length > 0) {
+                  const ultimoNumero = facturas[0].numero_factura
+                  const match = ultimoNumero?.match(/Nº(\d+)/)
+                  if (match) {
+                    const ultimoNum = parseInt(match[1], 10)
+                    const nuevoNumeroFactura = `FACTURA Nº${ultimoNum + 1}`
+                    
+                    // Reintentar inserción con nuevo número (solo una vez)
+                    const facturaPayloadRetry = { ...facturaPayload, numero_factura: nuevoNumeroFactura }
+                    const { data: facturaRetry, error: facturaErrorRetry } = await supabase
+                      .from('facturas')
+                      .insert(facturaPayloadRetry)
+                      .select()
+                      .single()
+                    
+                    if (facturaErrorRetry) {
+                      console.error('[generar-factura] ❌ Error en reintento:', facturaErrorRetry)
+                      return new Response(
+                        JSON.stringify({ 
+                          ok: false, 
+                          error: `Error al crear factura después de reintento: ${facturaErrorRetry.message}`,
+                          code: facturaErrorRetry.code || 500,
+                          step: 6,
+                          details: facturaErrorRetry.details
+                        }),
+                        { status: 500, headers: { 'Content-Type': 'application/json', ...cors } }
+                      )
+                    }
+                    
+                    if (!facturaRetry || !facturaRetry.id) {
+                      throw new Error('La factura se creó en reintento pero no se obtuvo ID')
+                    }
+                    
+                    facturaId = facturaRetry.id
+                    facturaData.numero_factura = nuevoNumeroFactura
+                    console.log('[generar-factura] ✅ Factura creada en reintento con ID:', facturaId)
+                  } else {
+                    throw new Error('No se pudo generar nuevo número de factura')
+                  }
+                } else {
+                  throw new Error('No se pudo obtener último número de factura para reintento')
+                }
+              }
+            } else {
+              // Si no se puede obtener la factura duplicada, devolver error
+              return new Response(
+                JSON.stringify({ 
+                  ok: false, 
+                  error: `Error de clave duplicada pero no se pudo recuperar factura: ${facturaError.message}`,
+                  code: 500,
+                  step: 6,
+                  details: facturaError.details
+                }),
+                { status: 500, headers: { 'Content-Type': 'application/json', ...cors } }
+              )
+            }
+          } else if (facturaError.code === 'PGRST301' || facturaError.message.includes('authorization') || facturaError.message.includes('401')) {
+            // Si es un error 401 o de autorización, devolverlo explícitamente
             return new Response(
               JSON.stringify({ 
                 ok: false, 
@@ -448,27 +574,30 @@ Deno.serve(async (req: Request) => {
               }),
               { status: 401, headers: { 'Content-Type': 'application/json', ...cors } }
             )
+          } else {
+            // Otros errores
+            return new Response(
+              JSON.stringify({ 
+                ok: false, 
+                error: `Error al crear factura: ${facturaError.message}`,
+                code: facturaError.code || 500,
+                step: 6,
+                details: facturaError.details,
+                hint: facturaError.hint
+              }),
+              { status: 500, headers: { 'Content-Type': 'application/json', ...cors } }
+            )
           }
-          
-          return new Response(
-            JSON.stringify({ 
-              ok: false, 
-              error: `Error al crear factura: ${facturaError.message}`,
-              code: facturaError.code || 500,
-              step: 6,
-              details: facturaError.details,
-              hint: facturaError.hint
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json', ...cors } }
-          )
-        }
+        } else {
+          // Inserción exitosa
+          if (!factura || !factura.id) {
+            throw new Error('La factura se creó pero no se obtuvo ID')
+          }
 
-        if (!factura || !factura.id) {
-          throw new Error('La factura se creó pero no se obtuvo ID')
+          facturaId = factura.id
+          facturaData.numero_factura = numeroFactura
+          console.log('[generar-factura] ✅ Factura creada en BD con ID:', facturaId)
         }
-
-        facturaId = factura.id
-        console.log('[generar-factura] ✅ Factura creada en BD con ID:', facturaId)
       }
     } catch (facturaError: unknown) {
       const facturaMsg = facturaError instanceof Error ? facturaError.message : String(facturaError)

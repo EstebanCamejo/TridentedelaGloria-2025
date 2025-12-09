@@ -154,6 +154,24 @@
              class="file-hidden" (change)="onFileSelected($event)">
     </div>
 
+    <!-- Modal para previsualizar y confirmar foto -->
+    <ion-modal [isOpen]="showPhotoModal" (didDismiss)="closePhotoModal()">
+      <ng-template>
+        <div class="photo-modal">
+          <div class="modal-header">
+            <h2>CONFIRMAR FOTO</h2>
+          </div>
+          <div class="modal-content">
+            <img [src]="tempPhotoPreview || fotoPreview" alt="Vista previa" />
+          </div>
+          <div class="modal-actions">
+            <ion-button class="btn-cancel" (click)="cancelPhoto()">CANCELAR</ion-button>
+            <ion-button class="btn-confirm" (click)="confirmPhoto()">CONFIRMAR</ion-button>
+          </div>
+        </div>
+      </ng-template>
+    </ion-modal>
+
     <div class="alta-mesa-actions">
       <ion-button
         expand="block"
